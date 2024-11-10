@@ -62,11 +62,12 @@
   <div class="date-display" id="dateDisplay"></div>
   <div class="position-display" id="positionDisplay"></div>
   <div class="controls">
-    <input type="range" id="speedSlider" min="10" max="2000" value="20">
-    <label for="speedSlider">Speed</label>
+    <button id="pauseButton">Pause</button>
+    <input type="range" id="speedSlider" min="0.1" max="3" value="0.2", step="0.01">
+    <label for="speedSlider">Simulation Speed</label>
   </div>
   <div class="launch-date-container">
-    <label for="launchDateInput">Launch Date:</label>
+    <label for="launchDateInput">Choose Launch Date:</label>
     <input type="date" id="launchDateInput" value="2023-03-01">
   </div>
   <canvas id="canvas"></canvas>
@@ -86,9 +87,8 @@
 
     const startDate = new Date('2022-12-08'); 
     let launchDay = new Date('2023-03-01'); // Initial launch day, can be changed by the user
-    const endDate = new Date('2027-02-19');
 
-    let speed = 20; 
+    let speed = 0.2; 
     let currentDate = new Date(startDate);
 
     let yellowLineData = null; // Store the yellow line data
@@ -238,27 +238,39 @@
       document.getElementById('positionDisplay').textContent = `Earth: ${earthAngleDeg}° | Mars: ${marsAngleDeg}° | Difference: ${angleDifference}°`;
     }
 
-    let intervalId;
+    let isPaused = true; // Start in a paused state
+
+    // Initial drawing to display everything without animation
+    drawSolarSystem();
+    updateDateDisplay();
+    updatePositionDisplay();
+
+    document.getElementById('pauseButton').textContent = 'Start'; // Set initial button text to "Play"
+    
     function startAnimation() {
-      clearInterval(intervalId); 
-      intervalId = setInterval(() => {
-        currentDate.setDate(currentDate.getDate() + 1); 
+      if (!isPaused) { 
+        drawSolarSystem();
         updateDateDisplay();
         updatePositionDisplay();
-        drawSolarSystem();
-      }, 1000 / speed);
+        currentDate = new Date(currentDate.getTime() + speed * 24 * 60 * 60 * 1000);
+      }
+      requestAnimationFrame(startAnimation);
     }
 
     document.getElementById('speedSlider').addEventListener('input', (e) => {
       speed = e.target.value;
-      startAnimation();
     });
 
     document.getElementById('launchDateInput').addEventListener('change', (e) => {
       launchDay = new Date(e.target.value); 
       yellowLineData = null; 
       ellipseData = null; 
-      startAnimation();
+//      startAnimation();
+    });
+
+    document.getElementById('pauseButton').addEventListener('click', () => {
+      isPaused = !isPaused;
+      document.getElementById('pauseButton').textContent = isPaused ? 'Play' : 'Pause';
     });
 
     startAnimation();
