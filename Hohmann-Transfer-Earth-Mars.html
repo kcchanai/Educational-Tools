@@ -18,40 +18,43 @@
     .controls {
       position: fixed;
       bottom: 20px;
-      left: 10%;
+      left: 50%;
       transform: translateX(-50%);
       color: white;
     }
     .date-display {
-      font-size: 2.5em;
-      text-align: left;
+      font-size: 2em;
+      text-align: center;
       color: white;
       position: absolute;
       top: 20px;
-      left: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 10;
     }
     .position-display {
-      font-size: 1.3em;
-      text-align: left;
+      font-size: 1.5em;
+      text-align: center;
       color: white;
       position: absolute;
-      top: 70px;
-      left: 20px;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 10;
     }
     .launch-date-container {
     position: fixed;
     bottom: 60px;
-    left: 30px;
+    left: 50%;
+    transform: translateX(-50%);
     color: white;
-    font-size: 1.3em; /* Increase font size */
+    font-size: 1.5em; /* Increase font size */
     }
     #launchDateInput {
-    font-size: 1.3em; /* Increase font size of the input field */
+    font-size: 1.2em; /* Increase font size of the input field */
     padding: 5px; /* Increase padding for a larger clickable area */
-    width: 230px; /* Increase width of the input field */
-}
+    width: 200px; /* Increase width of the input field */
+    }
         
   </style>
 </head>
@@ -108,6 +111,27 @@
       return (angleInRadians * 180 / Math.PI) % 360;
     }
 
+    // Function to animate the spacecraft along the elliptical path
+    function animateSpacecraft() {
+    if (!ellipseData) return; // Ensure ellipse data is available
+
+    const period = 511; // Orbit period in days
+    const daysSinceLaunch = Math.floor((currentDate - launchDay) / (1000 * 60 * 60 * 24));
+    const orbitProgress = (daysSinceLaunch % period) / period; // Progress as a fraction of the orbit
+
+    // Calculate spacecraft position using parametric ellipse equations
+    const angle = -2 * Math.PI * orbitProgress;
+    const launchDayAngle = Math.atan2(yellowLineData.startY, yellowLineData.startX);
+    const spacecraftX = ellipseData.centerX + ellipseData.radiusX * Math.cos(angle);
+    const spacecraftY = ellipseData.centerY + ellipseData.radiusY * Math.sin(angle);
+
+    // Draw the spacecraft
+    ctx.beginPath();
+    ctx.arc(spacecraftX, spacecraftY, 5, 0, Math.PI * 2); // Make the spacecraft larger (8px)
+    ctx.fillStyle = 'cyan';
+    ctx.fill();
+    }
+
     // Draw the solar system and spacecraft orbit
     function drawSolarSystem() {
       const centerX = width / 2;
@@ -156,7 +180,7 @@
         const lineStartY = earthY;
         const lineEndX = centerX + marsOrbitRadius * Math.cos(earthAngle + Math.PI) * 200;
         const lineEndY = centerY + marsOrbitRadius * Math.sin(earthAngle + Math.PI) * 200;
-
+        
         yellowLineData = { startX: lineStartX, startY: lineStartY, endX: lineEndX, endY: lineEndY };
 
         const ellipseCenterX = (lineStartX + lineEndX) / 2;
@@ -175,6 +199,7 @@
         ctx.lineTo(yellowLineData.endX, yellowLineData.endY);
         ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 2;
+        ctx.stroke();
 
         if (ellipseData) {
           ctx.beginPath();
@@ -192,6 +217,9 @@
           ctx.stroke();
         }
       }
+    // Animate the spacecraft along the ellipse
+    animateSpacecraft();
+
     }
 
     // Update position display
