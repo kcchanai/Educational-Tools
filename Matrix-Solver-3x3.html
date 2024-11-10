@@ -36,6 +36,8 @@
       height: 30px;
       text-align: center;
       appearance: textfield;
+      -webkit-appearance: textfield; /* For WebKit-based browsers like Chrome, Safari */
+      -moz-appearance: textfield; /* For Firefox */
     }
 
     .matrix input::-webkit-outer-spin-button,
@@ -54,7 +56,9 @@
     }
 
     #vectorB input[type="number"] {
-      -moz-appearance: textfield;
+        appearance: textfield;
+        -webkit-appearance: textfield;
+        -moz-appearance: textfield;
     }
 
     .equals {
