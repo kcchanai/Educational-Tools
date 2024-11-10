@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earth and Mars Orbit Animation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      background-color: #000;
+    }
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+    }
+    .date-display {
+      font-size: 1.5em;
+      text-align: center;
+      color: white;
+      position: absolute; /* Absolute positioning to overlay on top of canvas */
+      top: 20px;  /* Adjust top position as needed */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;  /* Ensure the date display is above the canvas */
+    }
+  </style>
+</head>
+<body>
+  <div class="date-display" id="dateDisplay"></div>
+  <div class="controls">
+    <input type="range" id="speedSlider" min="10" max="2000" value="500">
+    <label for="speedSlider">Speed</label>
+  </div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    // Set up the canvas
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Orbital parameters (semi-major axis in AU, orbital period in Earth years)
+    const earthOrbitRadius = 1; // AU
+    const marsOrbitRadius = 1.524; // AU
+    const earthOrbitalPeriod = 1; // Earth years
+    const marsOrbitalPeriod = 1.881; // Earth years
+
+    // Dates
+    const startDate = new Date('2022-11-01'); // Start date: Nov 2022
+    const endDate = new Date('2027-11-01'); // End date: Nov 2027
+    const oppositionDates = [
+      new Date('2023-12-08'), // First opposition
+      new Date('2025-01-06'), // Second opposition
+      new Date('2027-03-05'), // Third opposition
+      new Date('2027-11-08')  // Fourth opposition
+    ];
+
+    // Set up the animation speed
+    let speed = 500; // Speed multiplier for the animation (days per update)
+    let currentDate = new Date(startDate); // Start at the beginning
+
+    // Function to convert a date to days since startDate
+    function getDaysSinceStart() {
+      return Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+    }
+
+    // Update the date display
+    function updateDateDisplay() {
+      const options = { year: 'numeric', month: 'short', day: 'numeric'};
+      document.getElementById('dateDisplay').textContent = `${currentDate.toLocaleDateString(undefined, options)}`;
+    }
+
+    // Draw Sun, Earth, and Mars
+    function drawSolarSystem() {
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Clear the canvas
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw Sun
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 30, 0, Math.PI * 2);
+      ctx.fillStyle = 'orange';
+      ctx.fill();
+
+      // Calculate Earth's position
+      const earthAngle = getDaysSinceStart() * (2 * Math.PI / (earthOrbitalPeriod * 365.25));
+      const earthX = centerX + earthOrbitRadius * Math.cos(earthAngle) * 200;
+      const earthY = centerY + earthOrbitRadius * Math.sin(earthAngle) * 200;
+
+      // Draw Earth
+      ctx.beginPath();
+      ctx.arc(earthX, earthY, 10, 0, Math.PI * 2);
+      ctx.fillStyle = 'blue';
+      ctx.fill();
+
+      // Calculate Mars's position
+      const marsAngle = getDaysSinceStart() * (2 * Math.PI / (marsOrbitalPeriod * 365.25));
+      const marsX = centerX + marsOrbitRadius * Math.cos(marsAngle) * 200;
+      const marsY = centerY + marsOrbitRadius * Math.sin(marsAngle) * 200;
+
+      // Draw Mars
+      ctx.beginPath();
+      ctx.arc(marsX, marsY, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+
+      // Highlight opposition events
+      oppositionDates.forEach(opposition => {
+        const daysSinceOpposition = Math.floor((currentDate - opposition) / (1000 * 60 * 60 * 24));
+        if (daysSinceOpposition >= 0 && daysSinceOpposition < speed) {
+          ctx.beginPath();
+          ctx.arc(marsX, marsY, 15, 0, Math.PI * 2);
+          ctx.strokeStyle = 'yellow';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      });
+    }
+
+    // Function to start or restart the animation based on slider input
+    let intervalId;
+    function startAnimation() {
+      clearInterval(intervalId); // Clear previous interval
+      intervalId = setInterval(() => {
+        currentDate.setDate(currentDate.getDate() + 1); // Increment the date by 1 day
+        updateDateDisplay();
+        drawSolarSystem();
+      }, 1000 / speed); // Adjust interval speed based on slider value
+    }
+
+    // Event listener for speed slider
+    document.getElementById('speedSlider').addEventListener('input', (event) => {
+      speed = parseInt(event.target.value);
+      startAnimation(); // Restart the animation with the new speed
+    });
+
+    // Start the animation initially
+    startAnimation();
+  </script>
+</body>
+</html>
