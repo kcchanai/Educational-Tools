@@ -68,10 +68,13 @@
 
     const startDate = new Date('2022-12-08'); 
     const endDate = new Date('2027-02-19');
-    const lineStartDate = new Date('2026-05-01'); 
+    const launchDay = new Date('2023-03-01'); // Changed lineStartDate to launchDay
 
     let speed = 20; 
     let currentDate = new Date(startDate);
+
+    let yellowLineData = null; // Store the yellow line data
+    let ellipseData = null; // Store the ellipse data
 
     function getDaysSinceStart() {
       return Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
@@ -128,38 +131,48 @@
       ctx.fillStyle = 'red';
       ctx.fill();
 
-      // Draw line from Earth through Sun to Mars's orbit if the date is May 1, 2026 or later
-      if (currentDate >= lineStartDate) {
-        ctx.beginPath();
-        ctx.moveTo(earthX, earthY);
+      // Draw line and ellipse only on launch day and store the values
+      if (currentDate >= launchDay && yellowLineData === null) {
+        const lineStartX = earthX;
+        const lineStartY = earthY;
         const lineEndX = centerX + marsOrbitRadius * Math.cos(earthAngle + Math.PI) * 200;
         const lineEndY = centerY + marsOrbitRadius * Math.sin(earthAngle + Math.PI) * 200;
-        ctx.lineTo(lineEndX, lineEndY);
-        ctx.strokeStyle = 'yellow';
-        ctx.lineWidth = 2;
-//        ctx.stroke(); // commenting this out to not draw the line
 
-        // Draw ellipse around the yellow line
-        const ellipseCenterX = (earthX + lineEndX) / 2;
-        const ellipseCenterY = (earthY + lineEndY) / 2;
-        const ellipseRadiusX = Math.hypot(lineEndX - earthX, lineEndY - earthY) / 2;
+        yellowLineData = { startX: lineStartX, startY: lineStartY, endX: lineEndX, endY: lineEndY };
+
+        const ellipseCenterX = (lineStartX + lineEndX) / 2;
+        const ellipseCenterY = (lineStartY + lineEndY) / 2;
+        const ellipseRadiusX = Math.hypot(lineEndX - lineStartX, lineEndY - lineStartY) / 2;
         const c = ellipseRadiusX * 0.5;  // Example focal offset; adjust based on your scale
         const ellipseRadiusY = Math.sqrt(ellipseRadiusX**2 - c**2);  // Calculate correct semi-minor axis
 
+        ellipseData = { centerX: ellipseCenterX, centerY: ellipseCenterY, radiusX: ellipseRadiusX, radiusY: ellipseRadiusY };
+      }
+
+      // Draw stored yellow line and ellipse if available
+      if (yellowLineData) {
         ctx.beginPath();
-        ctx.ellipse(
-        ellipseCenterX,
-        ellipseCenterY,
-        ellipseRadiusX,
-        ellipseRadiusY,
-        Math.atan2(lineEndY - earthY, lineEndX - earthX),
-        0,
-        2 * Math.PI
-        );
+        ctx.moveTo(yellowLineData.startX, yellowLineData.startY);
+        ctx.lineTo(yellowLineData.endX, yellowLineData.endY);
         ctx.strokeStyle = 'yellow';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 2;
         ctx.stroke();
 
+        if (ellipseData) {
+          ctx.beginPath();
+          ctx.ellipse(
+            ellipseData.centerX,
+            ellipseData.centerY,
+            ellipseData.radiusX,
+            ellipseData.radiusY,
+            Math.atan2(yellowLineData.endY - yellowLineData.startY, yellowLineData.endX - yellowLineData.startX),
+            0,
+            2 * Math.PI
+          );
+          ctx.strokeStyle = 'yellow';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
       }
     }
 
