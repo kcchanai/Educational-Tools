@@ -37,7 +37,7 @@
 <body>
   <div class="date-display" id="dateDisplay"></div>
   <div class="controls">
-    <input type="range" id="speedSlider" min="10" max="2000" value="500">
+    <input type="range" id="speedSlider" min="10" max="2000" value="20">
     <label for="speedSlider">Speed</label>
   </div>
   <canvas id="canvas"></canvas>
@@ -58,17 +58,11 @@
     const marsOrbitalPeriod = 1.881; // Earth years
 
     // Dates
-    const startDate = new Date('2022-11-01'); // Start date: Nov 2022
-    const endDate = new Date('2027-11-01'); // End date: Nov 2027
-    const oppositionDates = [
-      new Date('2023-12-08'), // First opposition
-      new Date('2025-01-06'), // Second opposition
-      new Date('2027-03-05'), // Third opposition
-      new Date('2027-11-08')  // Fourth opposition
-    ];
+    const startDate = new Date('2022-12-08'); // Start date
+    const endDate = new Date('2027-11-01'); // End date
 
     // Set up the animation speed
-    let speed = 500; // Speed multiplier for the animation (days per update)
+    let speed = 20; // Speed multiplier for the animation (days per update)
     let currentDate = new Date(startDate); // Start at the beginning
 
     // Function to convert a date to days since startDate
@@ -78,7 +72,7 @@
 
     // Update the date display
     function updateDateDisplay() {
-      const options = { year: 'numeric', month: 'short', day: 'numeric'};
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
       document.getElementById('dateDisplay').textContent = `${currentDate.toLocaleDateString(undefined, options)}`;
     }
 
@@ -92,12 +86,12 @@
 
       // Draw Sun
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 30, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
       ctx.fillStyle = 'orange';
       ctx.fill();
 
-      // Calculate Earth's position
-      const earthAngle = getDaysSinceStart() * (2 * Math.PI / (earthOrbitalPeriod * 365.25));
+      // Calculate Earth's position (counterclockwise)
+      const earthAngle = -getDaysSinceStart() * (2 * Math.PI / (earthOrbitalPeriod * 365.25));
       const earthX = centerX + earthOrbitRadius * Math.cos(earthAngle) * 200;
       const earthY = centerY + earthOrbitRadius * Math.sin(earthAngle) * 200;
 
@@ -107,8 +101,8 @@
       ctx.fillStyle = 'blue';
       ctx.fill();
 
-      // Calculate Mars's position
-      const marsAngle = getDaysSinceStart() * (2 * Math.PI / (marsOrbitalPeriod * 365.25));
+      // Calculate Mars's position (counterclockwise)
+      const marsAngle = -getDaysSinceStart() * (2 * Math.PI / (marsOrbitalPeriod * 365.25));
       const marsX = centerX + marsOrbitRadius * Math.cos(marsAngle) * 200;
       const marsY = centerY + marsOrbitRadius * Math.sin(marsAngle) * 200;
 
@@ -117,18 +111,6 @@
       ctx.arc(marsX, marsY, 8, 0, Math.PI * 2);
       ctx.fillStyle = 'red';
       ctx.fill();
-
-      // Highlight opposition events
-      oppositionDates.forEach(opposition => {
-        const daysSinceOpposition = Math.floor((currentDate - opposition) / (1000 * 60 * 60 * 24));
-        if (daysSinceOpposition >= 0 && daysSinceOpposition < speed) {
-          ctx.beginPath();
-          ctx.arc(marsX, marsY, 15, 0, Math.PI * 2);
-          ctx.strokeStyle = 'yellow';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-      });
     }
 
     // Function to start or restart the animation based on slider input
