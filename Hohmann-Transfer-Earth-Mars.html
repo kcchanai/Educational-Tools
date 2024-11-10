@@ -15,6 +15,16 @@
       display: block;
       background-color: #000;
     }
+    .title {
+      font-size: 2em;
+      color: white;
+      text-align: center;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
     .controls {
       position: fixed;
       bottom: 20px;
@@ -27,17 +37,17 @@
       text-align: center;
       color: white;
       position: absolute;
-      top: 20px;
+      top: 35px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
     }
     .position-display {
-      font-size: 1.5em;
+      font-size: 1.3em;
       text-align: center;
       color: white;
       position: absolute;
-      top: 60px;
+      top: 70px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
@@ -48,7 +58,7 @@
     left: 50%;
     transform: translateX(-50%);
     color: white;
-    font-size: 1.5em; /* Increase font size */
+    font-size: 1.2em; /* Increase font size */
     }
     #launchDateInput {
     font-size: 1.2em; /* Increase font size of the input field */
@@ -59,16 +69,18 @@
   </style>
 </head>
 <body>
+  <div class="title">Hohmann Transfer from Earth to Mars</div>
   <div class="date-display" id="dateDisplay"></div>
   <div class="position-display" id="positionDisplay"></div>
   <div class="controls">
     <button id="pauseButton">Pause</button>
-    <input type="range" id="speedSlider" min="0.1" max="3" value="0.2", step="0.01">
+    <button id="resetButton">Reset</button>
+    <input type="range" id="speedSlider" min="0.1" max="3" value="0.3", step="0.01">
     <label for="speedSlider">Simulation Speed</label>
   </div>
   <div class="launch-date-container">
     <label for="launchDateInput">Choose Launch Date:</label>
-    <input type="date" id="launchDateInput" value="2023-03-01">
+    <input type="date" id="launchDateInput" value="2023-02-01">
   </div>
   <canvas id="canvas"></canvas>
 
@@ -86,9 +98,9 @@
     const marsOrbitalPeriod = 1.881;
 
     const startDate = new Date('2022-12-08'); 
-    let launchDay = new Date('2023-03-01'); // Initial launch day, can be changed by the user
+    let launchDay = new Date('2023-02-01'); // Initial launch day, can be changed by the user
 
-    let speed = 0.2; 
+    let speed = 0.3; 
     let currentDate = new Date(startDate);
 
     let yellowLineData = null; // Store the yellow line data
@@ -235,7 +247,7 @@
         angleDifference += 360;
       }
 
-      document.getElementById('positionDisplay').textContent = `Earth: ${earthAngleDeg}° | Mars: ${marsAngleDeg}° | Difference: ${angleDifference}°`;
+      document.getElementById('positionDisplay').textContent = `Earth: ${earthAngleDeg}° | Mars: ${marsAngleDeg}° | Delta: ${angleDifference}°`;
     }
 
     let isPaused = true; // Start in a paused state
@@ -265,12 +277,31 @@
       launchDay = new Date(e.target.value); 
       yellowLineData = null; 
       ellipseData = null; 
-//      startAnimation();
+      startAnimation();
     });
 
     document.getElementById('pauseButton').addEventListener('click', () => {
       isPaused = !isPaused;
       document.getElementById('pauseButton').textContent = isPaused ? 'Play' : 'Pause';
+    });
+
+
+    document.getElementById('resetButton').addEventListener('click', () => {
+      // Reset currentDate to the start date
+      currentDate = new Date(startDate);
+
+      // Reset launch day path data
+      yellowLineData = null;
+      ellipseData = null;
+
+      // Set simulation to paused state and reset button text
+      isPaused = true;
+      document.getElementById('pauseButton').textContent = 'Start';
+
+      // Redraw the initial state
+      drawSolarSystem();
+      updateDateDisplay();
+      updatePositionDisplay();
     });
 
     startAnimation();
