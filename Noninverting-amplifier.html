@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Load Plotly.js for plotting -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    /* Center-align text in table cells */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table,
+    th,
+    td {
+      border: 1px solid black;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Non-Inverting Amplifier</h1>
+  <!-- Plot container -->
+  <div id="plot" style="width:100%;height:400px;"></div>
+
+  <!-- Controls for the input parameters, placed below the plot -->
+  <div style="display: flex; margin-top: 20px;">
+    <!-- Sliders -->
+    <div style="flex: 1;">
+      <label>Divider Resistor (R1) (Ω): <input type="range" id="inputResistor" min="100" max="10000"
+          value="1000"></label><span id="inputResistorValue">1000</span><br>
+      <label>Feedback Resistor (R2) (Ω): <input type="range" id="feedbackResistor" min="100" max="10000"
+          value="5000"></label><span id="feedbackResistorValue">5000</span><br>
+      <label>Input Voltage Amplitude (Vin): <input type="range" id="inputVoltage" min="0" max="5" step="0.1"
+          value="1"></label><span id="inputVoltageValue">1</span><br>
+      <label>Positive Supply Voltage (V+): <input type="range" id="positiveSupply" min="5" max="15"
+          value="10"></label><span id="positiveSupplyValue">10</span><br>
+      <label>Negative Supply Voltage (V-): <input type="range" id="negativeSupply" min="-15" max="-5"
+          value="-10"></label><span id="negativeSupplyValue">-10</span><br>
+    </div>
+
+    <!-- Table for displaying voltage, current, and power -->
+    <div style="flex: 1; padding-left: 10px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Max Voltage (V)</th>
+            <th>Min Voltage (V)</th>
+            <th>Current (mA)</th>
+            <th>Power (mW)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>R1</td>
+            <td id="voltageR1Max">0</td>
+            <td id="voltageR1Min">0</td>
+            <td id="currentR1">0</td>
+            <td id="powerR1">0</td>
+          </tr>
+          <tr>
+            <td>R2</td>
+            <td id="voltageR2Max">0</td>
+            <td id="voltageR2Min">0</td>
+            <td id="currentR2">0</td>
+            <td id="powerR2">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Initialize plot data
+    function plotGraph() {
+      const R1 = parseFloat(document.getElementById("inputResistor").value);
+      const R2 = parseFloat(document.getElementById("feedbackResistor").value);
+      const VinAmplitude = parseFloat(document.getElementById("inputVoltage").value);
+      const Vplus = parseFloat(document.getElementById("positiveSupply").value);
+      const Vminus = parseFloat(document.getElementById("negativeSupply").value);
+
+      // Gain calculation for the non-inverting op-amp
+      const gain = 1 + R2 / R1;
+
+      // Generate input and output waveforms for 3 periods of a 10 Hz signal (0.3 seconds)
+      const frequency = 10; // Frequency of the input AC signal in Hz
+      const numSamples = 1000; // Number of sample points
+      const time = Array.from({length: numSamples}, (_, i) => i * 0.2 / numSamples);
+      const Vin = time.map(t => VinAmplitude * Math.sin(2 * Math.PI * frequency * t)); // 10 Hz sine wave
+      let Vout = Vin.map(v => v * gain);
+
+      // Clipping the output voltage to the supply range
+      Vout = Vout.map(v => Math.max(Math.min(v, Vplus), Vminus));
+
+      // Calculate voltage, current, and power for R1 and R2 at peak input
+      const peakVin = VinAmplitude; // Peak input voltage
+      const peakVout = Math.max(Math.min(peakVin * gain, Vplus), Vminus);
+
+      // Voltage across R1 is simply the input voltage
+      const voltageR1 = peakVin;
+
+      // Voltage across R2 is the difference between Vout and Vin
+      const voltageR2 = peakVout - peakVin;
+
+      // For R1, the min and max values are based on the input voltage
+      const voltageR1Max = peakVin;
+      const voltageR1Min = -peakVin;
+
+      // Clipping logic for R2 based on supply voltages
+      const positiveClipped = Math.min(peakVout, Vplus); // Positive clipped voltage
+      const negativeClipped = Math.max(-peakVin * gain, Vminus); // Negative clipped voltage
+
+      // R2 max and min calculations
+      const voltageR2Max = positiveClipped - peakVin; // Max voltage across R2
+      const voltageR2Min = negativeClipped + peakVin; // Min voltage across R2
+      const absmaxv2 = Math.max(voltageR2Max, -voltageR2Min);
+
+      // Current and power calculations
+      const currentR1 = Math.abs(voltageR1Max / R1) * 1000; // in mA
+      const currentR2 = Math.abs(absmaxv2 / R2) * 1000; // in mA
+      const powerR1 = (currentR1 / 1000) ** 2 * R1 * 1000; // Power in R1 in mW
+      const powerR2 = (currentR2 / 1000) ** 2 * R2 * 1000; // Power in R2 in mW
+
+      // Update table values
+      document.getElementById("voltageR1Max").innerText = voltageR1Max.toFixed(2);
+      document.getElementById("voltageR1Min").innerText = voltageR1Min.toFixed(2);
+      document.getElementById("currentR1").innerText = currentR1.toFixed(2);
+      document.getElementById("powerR1").innerText = powerR1.toFixed(2);
+
+      document.getElementById("voltageR2Max").innerText = voltageR2Max.toFixed(2);
+      document.getElementById("voltageR2Min").innerText = voltageR2Min.toFixed(2);
+      document.getElementById("currentR2").innerText = currentR2.toFixed(2);
+      document.getElementById("powerR2").innerText = powerR2.toFixed(2);
+
+      // Plotly data traces
+      const inputTrace = {
+        x: time,
+        y: Vin,
+        mode: 'lines',
+        name: 'Input Voltage (Vin)'
+      };
+
+      const outputTrace = {
+        x: time,
+        y: Vout,
+        mode: 'lines',
+        name: 'Output Voltage (Vout)'
+      };
+
+      // Plot layout
+      const layout = {
+        title: 'Non-Inverting Op-Amp Voltage Output',
+        xaxis: {title: 'Time (s)', range: [0, 0.2]}, // Limit time axis to 0.3 seconds
+        yaxis: {title: 'Voltage (V)'},
+      };
+
+      // Plot with Plotly
+      Plotly.newPlot('plot', [inputTrace, outputTrace], layout);
+    }
+
+    // Update displayed slider values and replot
+    function updatePlot() {
+      document.getElementById("inputResistorValue").innerText = document.getElementById("inputResistor").value;
+      document.getElementById("feedbackResistorValue").innerText = document.getElementById("feedbackResistor").value;
+      document.getElementById("inputVoltageValue").innerText = document.getElementById("inputVoltage").value;
+      document.getElementById("positiveSupplyValue").innerText = document.getElementById("positiveSupply").value;
+      document.getElementById("negativeSupplyValue").innerText = document.getElementById("negativeSupply").value;
+      plotGraph();
+    }
+
+    // Add event listeners to sliders
+    document.getElementById("inputResistor").addEventListener('input', updatePlot);
+    document.getElementById("feedbackResistor").addEventListener('input', updatePlot);
+    document.getElementById("inputVoltage").addEventListener('input', updatePlot);
+    document.getElementById("positiveSupply").addEventListener('input', updatePlot);
+    document.getElementById("negativeSupply").addEventListener('input', updatePlot);
+
+    // Initial plot when page loads
+    plotGraph();
+  </script>
+
+</body>
+
+</html>
