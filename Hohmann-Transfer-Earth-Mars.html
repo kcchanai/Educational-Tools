@@ -61,126 +61,139 @@
     canvas.width = width;
     canvas.height = height;
 
-    // Orbital parameters (semi-major axis in AU, orbital period in Earth years)
-    const earthOrbitRadius = 1; // AU
-    const marsOrbitRadius = 1.524; // AU
-    const earthOrbitalPeriod = 1; // Earth years
-    const marsOrbitalPeriod = 1.881; // Earth years (687 days)
+    const earthOrbitRadius = 1; 
+    const marsOrbitRadius = 1.524;
+    const earthOrbitalPeriod = 1; 
+    const marsOrbitalPeriod = 1.881;
 
-    // Dates
     const startDate = new Date('2022-12-08'); 
     const endDate = new Date('2027-02-19');
+    const lineStartDate = new Date('2026-05-01'); 
 
-    // Set up the animation speed
     let speed = 20; 
     let currentDate = new Date(startDate);
 
-    // Function to convert a date to days since startDate
     function getDaysSinceStart() {
       return Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
     }
 
-    // Update the date display
     function updateDateDisplay() {
       const options = { year: 'numeric', month: 'short', day: 'numeric' };
       document.getElementById('dateDisplay').textContent = `${currentDate.toLocaleDateString(undefined, options)}`;
     }
 
-    // Function to calculate angular position in degrees
     function getAngularPosition(orbitalPeriod, daysSinceStart) {
       const angleInRadians = (2 * Math.PI / (orbitalPeriod * 365.25)) * daysSinceStart;
       return (angleInRadians * 180 / Math.PI) % 360;
     }
 
-    // Draw Sun, Earth, and Mars
     function drawSolarSystem() {
       const centerX = width / 2;
       const centerY = height / 2;
 
-      // Clear the canvas
       ctx.clearRect(0, 0, width, height);
 
-      // Draw Sun
       ctx.beginPath();
       ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
       ctx.fillStyle = 'orange';
       ctx.fill();
 
-      // Draw Earth and Mars Orbits
       ctx.beginPath();
-      ctx.arc(centerX, centerY, earthOrbitRadius * 200, 0, Math.PI * 2); // Earth orbit
+      ctx.arc(centerX, centerY, earthOrbitRadius * 200, 0, Math.PI * 2); 
       ctx.strokeStyle = 'blue';
       ctx.lineWidth = 1;
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(centerX, centerY, marsOrbitRadius * 200, 0, Math.PI * 2); // Mars orbit
+      ctx.arc(centerX, centerY, marsOrbitRadius * 200, 0, Math.PI * 2); 
       ctx.strokeStyle = 'red';
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Calculate Earth's position (counterclockwise)
       const earthAngle = -getDaysSinceStart() * (2 * Math.PI / (earthOrbitalPeriod * 365.25));
       const earthX = centerX + earthOrbitRadius * Math.cos(earthAngle) * 200;
       const earthY = centerY + earthOrbitRadius * Math.sin(earthAngle) * 200;
 
-      // Draw Earth
       ctx.beginPath();
       ctx.arc(earthX, earthY, 10, 0, Math.PI * 2);
       ctx.fillStyle = 'blue';
       ctx.fill();
 
-      // Calculate Mars's position (counterclockwise)
       const marsAngle = -getDaysSinceStart() * (2 * Math.PI / (marsOrbitalPeriod * 365.25));
       const marsX = centerX + marsOrbitRadius * Math.cos(marsAngle) * 200;
       const marsY = centerY + marsOrbitRadius * Math.sin(marsAngle) * 200;
 
-      // Draw Mars
       ctx.beginPath();
       ctx.arc(marsX, marsY, 8, 0, Math.PI * 2);
       ctx.fillStyle = 'red';
       ctx.fill();
+
+      // Draw line from Earth through Sun to Mars's orbit if the date is May 1, 2026 or later
+      if (currentDate >= lineStartDate) {
+        ctx.beginPath();
+        ctx.moveTo(earthX, earthY);
+        const lineEndX = centerX + marsOrbitRadius * Math.cos(earthAngle + Math.PI) * 200;
+        const lineEndY = centerY + marsOrbitRadius * Math.sin(earthAngle + Math.PI) * 200;
+        ctx.lineTo(lineEndX, lineEndY);
+        ctx.strokeStyle = 'yellow';
+        ctx.lineWidth = 2;
+//        ctx.stroke(); // commenting this out to not draw the line
+
+        // Draw ellipse around the yellow line
+        const ellipseCenterX = (earthX + lineEndX) / 2;
+        const ellipseCenterY = (earthY + lineEndY) / 2;
+        const ellipseRadiusX = Math.hypot(lineEndX - earthX, lineEndY - earthY) / 2;
+        const c = ellipseRadiusX * 0.5;  // Example focal offset; adjust based on your scale
+        const ellipseRadiusY = Math.sqrt(ellipseRadiusX**2 - c**2);  // Calculate correct semi-minor axis
+
+        ctx.beginPath();
+        ctx.ellipse(
+        ellipseCenterX,
+        ellipseCenterY,
+        ellipseRadiusX,
+        ellipseRadiusY,
+        Math.atan2(lineEndY - earthY, lineEndX - earthX),
+        0,
+        2 * Math.PI
+        );
+        ctx.strokeStyle = 'yellow';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+      }
     }
 
-    // Update the position display (angular positions)
-function updatePositionDisplay() {
-  const daysSinceStart = getDaysSinceStart();
+    function updatePositionDisplay() {
+      const daysSinceStart = getDaysSinceStart();
+      const earthAngleDeg = getAngularPosition(earthOrbitalPeriod, daysSinceStart).toFixed(0);
+      const marsAngleDeg = getAngularPosition(marsOrbitalPeriod, daysSinceStart).toFixed(0);
+      let angleDifference = marsAngleDeg - earthAngleDeg;
 
-  const earthAngleDeg = getAngularPosition(earthOrbitalPeriod, daysSinceStart).toFixed(0);
-  const marsAngleDeg = getAngularPosition(marsOrbitalPeriod, daysSinceStart).toFixed(0);
+      if (angleDifference > 180) {
+        angleDifference -= 360; 
+      } else if (angleDifference < -180) {
+        angleDifference += 360;
+      }
 
-  // Calculate the difference in angles
-  let angleDifference = marsAngleDeg - earthAngleDeg;
+      document.getElementById('positionDisplay').textContent = `Earth: ${earthAngleDeg}° | Mars: ${marsAngleDeg}° | Difference: ${angleDifference}°`;
+    }
 
-  // Adjust the difference to be between -180 and +180 degrees
-  if (angleDifference > 180) {
-    angleDifference -= 360; // Convert to negative range
-  } else if (angleDifference < -180) {
-    angleDifference += 360; // Convert to positive range
-  }
-
-  document.getElementById('positionDisplay').textContent = `Earth: ${earthAngleDeg}° | Mars: ${marsAngleDeg}° | Difference: ${angleDifference}°`;
-}
-
-    // Function to start or restart the animation based on slider input
     let intervalId;
     function startAnimation() {
-      clearInterval(intervalId); // Clear previous interval
+      clearInterval(intervalId); 
       intervalId = setInterval(() => {
-        currentDate.setDate(currentDate.getDate() + 1); // Increment the date by 1 day
+        currentDate.setDate(currentDate.getDate() + 1); 
         updateDateDisplay();
         updatePositionDisplay();
         drawSolarSystem();
-      }, 1000 / speed); // Adjust interval speed based on slider value
+      }, 1000 / speed);
     }
 
-    // Event listener for speed slider
     document.getElementById('speedSlider').addEventListener('input', (event) => {
       speed = parseInt(event.target.value);
-      startAnimation(); // Restart the animation with the new speed
+      startAnimation();
     });
 
-    // Start the animation initially
     startAnimation();
   </script>
 </body>
