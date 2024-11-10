@@ -120,14 +120,14 @@
     const orbitProgress = (daysSinceLaunch % period) / period; // Progress as a fraction of the orbit
 
     // Calculate spacecraft position using parametric ellipse equations
-    const angle = -2 * Math.PI * orbitProgress;
-    const launchDayAngle = Math.atan2(yellowLineData.startY, yellowLineData.startX);
-    const spacecraftX = ellipseData.centerX + ellipseData.radiusX * Math.cos(angle);
-    const spacecraftY = ellipseData.centerY + ellipseData.radiusY * Math.sin(angle);
+    const angle = 2 * Math.PI * orbitProgress;
+    const launchDayAngle = Math.atan2(ellipseData.centerY - yellowLineData.startY, yellowLineData.startX - ellipseData.centerX);
+    const spacecraftX = ellipseData.centerX + ellipseData.radiusX * Math.cos(angle) * Math.cos(launchDayAngle) - ellipseData.radiusY * Math.sin(angle) * Math.sin(launchDayAngle);
+    const spacecraftY = ellipseData.centerY + ellipseData.radiusX * Math.cos(angle) * -Math.sin(launchDayAngle) - ellipseData.radiusY * Math.sin(angle) * Math.cos(launchDayAngle);
 
     // Draw the spacecraft
     ctx.beginPath();
-    ctx.arc(spacecraftX, spacecraftY, 5, 0, Math.PI * 2); // Make the spacecraft larger (8px)
+    ctx.arc(spacecraftX, spacecraftY, 5, 0, Math.PI * 2); 
     ctx.fillStyle = 'cyan';
     ctx.fill();
     }
