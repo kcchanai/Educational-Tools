@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Phasor Plot and Sinusoids for Parallel RLC Circuit</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    #toggleR {
+      border: 2px solid red;
+      /* Resistor border color */
+    }
+
+    #toggleL {
+      border: 2px solid green;
+      /* Inductor border color */
+    }
+
+    #toggleC {
+      border: 2px solid purple;
+      /* Capacitor border color */
+    }
+
+    #toggleV {
+      border: 2px solid blue;
+      /* Voltage border color */
+    }
+
+    #toggleResultant {
+      border: 2px solid cyan;
+      /* Resultant current border color */
+    }
+
+    .slider-container {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      width: 350px;
+    }
+
+    .slider {
+      width: 200px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Title for the entire figure -->
+  <h1>Phasor Plot and Sinusoids for a Parallel RLC Circuit</h1>
+  <!-- Toggle buttons -->
+  <button id="toggleV">Toggle Voltage</button>
+  <button id="toggleR">Toggle Resistor Current</button>
+  <button id="toggleL">Toggle Inductor Current</button>
+  <button id="toggleC">Toggle Capacitor Current</button>
+  <button id="toggleResultant">Toggle Resultant Current</button>
+
+  <canvas id="phasorCanvas" width="800" height="400"></canvas>
+
+  <!-- Sliders for adjusting parameters -->
+  <div class="slider-container">
+    <div>Voltage (V): <span id="voltageValue">5</span> V</div>
+    <input type="range" id="voltageSlider" class="slider" min="3" max="7" step="0.1" value="5">
+  </div>
+  <div class="slider-container">
+    <div>Resistance (R): <span id="resistanceValue">2</span> Ω</div>
+    <input type="range" id="resistanceSlider" class="slider" min="0.6" max="10" step="0.1" value="2">
+  </div>
+  <div class="slider-container">
+    <div>Inductance (L): <span id="inductanceValue">5</span> H</div>
+    <input type="range" id="inductanceSlider" class="slider" min="1.0" max="10" step="0.1" value="5">
+  </div>
+  <div class="slider-container">
+    <div>Capacitance (C): <span id="capacitanceValue">1</span> F</div>
+    <input type="range" id="capacitanceSlider" class="slider" min="0.1" max="2.5" step="0.1" value="1">
+  </div>
+  <div class="slider-container">
+    <div>Speed: <span id="speedValue">1</span></div>
+    <input type="range" id="speedSlider" class="slider" min="0.1" max="4" step="0.1" value="1">
+  </div>
+
+  <script>
+    const canvas = document.getElementById("phasorCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Canvas dimensions and centers for phasor plot and sinusoidal plot
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 4;
+    const centerY = height / 2;
+
+    // Time properties for sinusoidal plot
+    const timePlotXStart = width / 2 + 10;
+    const timeScale = 50; // Horizontal scaling for time in sinusoidal plot
+    const maxTime = 20; // 1 full period, as 1 period is 10 seconds for a 0.1Hz signal
+    const numPoints = 1600; // Number of points to plot
+    const dt = maxTime / numPoints; // Time increment per point
+
+    // Default RLC Circuit parameters
+    let V = 5; // Voltage magnitude in volts
+    let R = 2; // Resistance in ohms
+    let L = 5; // Inductance in henrys
+    let C = 1; // Capacitance in farads
+    let frequency = 0.1; // Frequency in Hz
+    let omega = 2 * Math.PI * frequency; // Angular frequency
+
+    // Speed multiplier for simulation speed
+    let speedMultiplier = 1;
+
+    // Calculate currents' magnitudes
+    function calculateCurrents() {
+      const I_R = V / R; // Current through resistor (in-phase with voltage)
+      const I_L = V / (omega * L); // Current through inductor (lags voltage by 90 degrees)
+      const I_C = V * omega * C; // Current through capacitor (leads voltage by 90 degrees)
+      return {I_R, I_L, I_C};
+    }
+
+    // Function to calculate the resultant phasor (sum of currents)
+    function calculateResultantPhasor(I_R, I_L, I_C, time) {
+      // Angle calculations for each phasor based on time
+      const angleR = omega * time;           // Resistor current phasor
+      const angleL = angleR - Math.PI / 2;   // Inductor current phasor (lags by 90 degrees)
+      const angleC = angleR + Math.PI / 2;   // Capacitor current phasor (leads by 90 degrees)
+
+      // Calculate the components in the real (X) and imaginary (Y) axis
+      const realPart = I_R * Math.cos(angleR) + I_L * Math.cos(angleL) + I_C * Math.cos(angleC);
+      const imaginaryPart = I_R * Math.sin(angleR) + I_L * Math.sin(angleL) + I_C * Math.sin(angleC);
+
+      // Magnitude and angle of the resultant phasor
+      const resultantMagnitude = Math.sqrt(realPart * realPart + imaginaryPart * imaginaryPart);
+      const resultantAngle = Math.atan2(imaginaryPart, realPart);
+
+      return {resultantMagnitude, resultantAngle};
+    }
+
+    // Scaling factor to make phasors visible
+    const phasorScale = 20;
+
+    // Initialize toggle states
+    let showR = true;
+    let showL = true;
+    let showC = true;
+    let showV = true;
+    let showResultant = true;
+
+    // Function to draw axes
+    function drawAxes() {
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 1;
+
+      // X-axis for phasor plot
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(width / 2, centerY);
+      ctx.stroke();
+      ctx.fillText("Real Axis", width / 2.5, centerY + 15);
+
+      // Y-axis for phasor plot
+      ctx.beginPath();
+      ctx.moveTo(centerX, 0);
+      ctx.lineTo(centerX, height);
+      ctx.stroke();
+      ctx.fillText("Imaginary Axis", centerX + 10, 30);
+
+      // X-axis for sinusoidal plot
+      ctx.beginPath();
+      ctx.moveTo(timePlotXStart, centerY);
+      ctx.lineTo(width, centerY);
+      ctx.stroke();
+      ctx.fillText("Time", width - 50, centerY + 20);
+
+      // Y-axis for sinusoidal plot (added vertical axis on the left side)
+      ctx.beginPath();
+      ctx.moveTo(timePlotXStart, 0);
+      ctx.lineTo(timePlotXStart, height);
+      ctx.stroke();
+      ctx.fillText("Amplitude", timePlotXStart + 5, 30);
+    }
+
+    // Function to draw phasor with an arrowhead
+    function drawPhasor(magnitude, angle, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+
+      const xEnd = centerX + magnitude * phasorScale * Math.cos(angle);
+      const yEnd = centerY - magnitude * phasorScale * Math.sin(angle);
+
+      // Draw the phasor line
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(xEnd, yEnd);
+      ctx.stroke();
+
+      // Draw arrowhead
+      drawArrowHead(xEnd, yEnd, angle, color);
+    }
+
+    // Function to draw an arrowhead at the end of a phasor
+    function drawArrowHead(x, y, angle, color) {
+      const arrowLength = 10; // Length of the arrowhead lines
+      const arrowAngle = Math.PI / 8; // Angle between the arrowhead lines
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(
+        x - arrowLength * Math.cos(angle - arrowAngle),
+        y + arrowLength * Math.sin(angle - arrowAngle)
+      );
+
+      ctx.moveTo(x, y);
+      ctx.lineTo(
+        x - arrowLength * Math.cos(angle + arrowAngle),
+        y + arrowLength * Math.sin(angle + arrowAngle)
+      );
+
+      ctx.stroke();
+    }
+
+    // Function to draw animated sinusoidal wave for each phasor over time
+    function drawSinusoidal(magnitude, phaseShift, color, currentTime) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      for (let i = 0; i <= numPoints; i++) {
+        const t = currentTime - maxTime + i * dt; // Shifted time for scrolling effect
+        const y = centerY - magnitude * phasorScale * Math.sin(omega * t + phaseShift);
+        const x = timePlotXStart + i * (width / 2 - 20) / numPoints;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+    }
+
+    // Animation loop
+    let time = 0;
+    function animate() {
+      ctx.clearRect(0, 0, width, height); // Clear canvas
+
+      // Draw axes
+      drawAxes();
+
+      // Update angles for rotating phasors
+      const angleR = omega * time;           // Resistor current phasor
+      const angleL = angleR - Math.PI / 2;   // Inductor current phasor (lags by 90 degrees)
+      const angleC = angleR + Math.PI / 2;   // Capacitor current phasor (leads by 90 degrees)
+      const angleV = angleR;                 // Voltage phasor
+
+      // Calculate currents
+      const {I_R, I_L, I_C} = calculateCurrents();
+
+      // Calculate resultant phasor (now rotating)
+      const {resultantMagnitude, resultantAngle} = calculateResultantPhasor(I_R, I_L, I_C, time);
+
+      // Draw phasors and sinusoidal waves
+      if (showR) {
+        drawPhasor(I_R, angleR, "red");
+        drawSinusoidal(I_R, Math.PI / 2, "red", time);
+      }
+      if (showL) {
+        drawPhasor(I_L, angleL, "green");
+        drawSinusoidal(-I_L, Math.PI, "green", time);
+      }
+      if (showC) {
+        drawPhasor(I_C, angleC, "purple");
+        drawSinusoidal(I_C, Math.PI, "purple", time);
+      }
+      if (showV) {
+        drawPhasor(V, angleV, "blue");
+        drawSinusoidal(V, Math.PI / 2, "blue", time);
+      }
+
+      // Draw resultant current if toggle is enabled
+      if (showResultant) {
+        drawPhasor(resultantMagnitude, resultantAngle, "cyan");
+        drawSinusoidal(resultantMagnitude, resultantAngle - angleV + Math.PI / 2, "cyan", time); // cyan for the resultant current sinusoidal
+      }
+
+      // Increment time for animation speed
+      time += dt * speedMultiplier;
+      if (time > maxTime) time = 0;
+
+      requestAnimationFrame(animate); // Recursively call animate
+    }
+
+    // Handle toggle button clicks to show/hide components
+    document.getElementById("toggleR").addEventListener("click", function () {
+      showR = !showR;
+    });
+    document.getElementById("toggleL").addEventListener("click", function () {
+      showL = !showL;
+    });
+    document.getElementById("toggleC").addEventListener("click", function () {
+      showC = !showC;
+    });
+    document.getElementById("toggleV").addEventListener("click", function () {
+      showV = !showV;
+    });
+    document.getElementById("toggleResultant").addEventListener("click", function () {
+      showResultant = !showResultant;
+    });
+
+    // Handle sliders for updating parameters
+    document.getElementById("voltageSlider").addEventListener("input", function () {
+      V = parseFloat(this.value);
+      document.getElementById("voltageValue").textContent = V.toFixed(1);
+    });
+    document.getElementById("resistanceSlider").addEventListener("input", function () {
+      R = parseFloat(this.value);
+      document.getElementById("resistanceValue").textContent = R.toFixed(1);
+    });
+    document.getElementById("inductanceSlider").addEventListener("input", function () {
+      L = parseFloat(this.value);
+      document.getElementById("inductanceValue").textContent = L.toFixed(1);
+    });
+    document.getElementById("capacitanceSlider").addEventListener("input", function () {
+      C = parseFloat(this.value);
+      document.getElementById("capacitanceValue").textContent = C.toFixed(1);
+    });
+    document.getElementById("speedSlider").addEventListener("input", function () {
+      speedMultiplier = parseFloat(this.value);
+      document.getElementById("speedValue").textContent = speedMultiplier.toFixed(1);
+    });
+
+    // Start the animation
+    animate();
+  </script>
+</body>
+
+</html>

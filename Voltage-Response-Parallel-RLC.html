@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voltage Response of a Parallel RLC Circuit</title>
+  <style>
+    /* Container for the sliders */
+    #parameters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    /* Style for each slider container */
+    .slider-container {
+      margin: 5px 0;
+      flex: 0 0 48%;
+      /* This will allow each slider to take up ~50% of the width */
+    }
+
+    /* Adjusting slider container to handle smaller screen sizes */
+    @media (max-width: 600px) {
+      .slider-container {
+        flex: 0 0 100%;
+        /* On small screens, make sliders take full width */
+      }
+    }
+  </style>
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+</head>
+
+<body>
+  <h1>Voltage Response of a Parallel RLC Circuit</h1>
+  <div id="plot"></div>
+  <div id="parameters">
+    <div class="slider-container">
+      <label>Resistance (R): <span id="r-value"></span> Ω</label>
+      <input type="range" id="r" min="1" max="100" step="1" value="50">
+    </div>
+    <div class="slider-container">
+      <label>Initial Capacitor Voltage (V<sub>C0</sub>): <span id="vc0-value"></span></label>
+      <input type="range" id="vc0" min="-5" max="5" step="0.1" value="0">
+    </div>
+    <div class="slider-container">
+      <label>Inductance (L): <span id="l-value"></span> mH</label>
+      <input type="range" id="l" min="1" max="100" step="1" value="1">
+    </div>
+    <div class="slider-container">
+      <label>Initial Inductor Current (I<sub>L0</sub>): <span id="il0-value"></span></label>
+      <input type="range" id="il0" min="-1" max="1" step="0.1" value="0">
+    </div>
+    <div class="slider-container">
+      <label>Capacitance (C): <span id="c-value"></span> µF</label>
+      <input type="range" id="c" min="1" max="100" step="1" value="1">
+    </div>
+    <div class="slider-container">
+      <label>DC Current Source (I<sub>DC</sub>): <span id="idc-value"></span></label>
+      <input type="range" id="idc" min="-1" max="1" step="0.1" value="1">
+    </div>
+    <div class="slider-container">
+      <label>Time Scale: <span id="timescale-value"></span> ms</label>
+      <input type="range" id="timescale" min="0.1" max="10" step="0.1" value="1">
+    </div>
+  </div>
+  <p>Neper frequency \( \left( \alpha = \frac{1}{2RC} \right) \): <span id="alpha"></span></p>
+  <p>Resonant frequency \( \left( \omega_0 = \frac{1}{\sqrt{LC}} \right) \): <span id="omega"></span></p>
+
+
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+  <script>
+    // Wait for MathJax to process the document after it has loaded
+    window.onload = function () {
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    };
+  </script>
+
+  <script>
+    // Get references to HTML elements
+    const vc0Slider = document.getElementById('vc0');
+    const il0Slider = document.getElementById('il0');
+    const idcSlider = document.getElementById('idc');
+    const rSlider = document.getElementById('r');
+    const lSlider = document.getElementById('l');
+    const cSlider = document.getElementById('c');
+    const timescaleSlider = document.getElementById('timescale');
+
+    const vc0Value = document.getElementById('vc0-value');
+    const il0Value = document.getElementById('il0-value');
+    const idcValue = document.getElementById('idc-value');
+    const rValue = document.getElementById('r-value');
+    const lValue = document.getElementById('l-value');
+    const cValue = document.getElementById('c-value');
+    const timescaleValue = document.getElementById('timescale-value');
+    const alphaValue = document.getElementById('alpha');
+    const omegaValue = document.getElementById('omega');
+
+    // Initialize parameters
+    function updatePlot() {
+      const Vc0 = parseFloat(vc0Slider.value);
+      const IL0 = parseFloat(il0Slider.value);
+      const Idc = parseFloat(idcSlider.value);
+      const R = parseFloat(rSlider.value);
+      const L = parseFloat(lSlider.value) * 1e-3; // Convert mH to H
+      const C = parseFloat(cSlider.value) * 1e-6; // Convert µF to F
+      const timescale = parseFloat(timescaleSlider.value); // Timescale in ms
+
+      // Update UI display values
+      vc0Value.innerText = Vc0;
+      il0Value.innerText = IL0;
+      idcValue.innerText = Idc;
+      rValue.innerText = R;
+      lValue.innerText = (L * 1e3).toFixed(2); // Display in mH
+      cValue.innerText = (C * 1e6).toFixed(2); // Display in µF
+      timescaleValue.innerText = timescale.toFixed(1); // Display in ms
+
+      // Calculate alpha and omega
+      const alpha = 1 / (2 * R * C);
+      const omega_0 = 1 / Math.sqrt(L * C);
+      const omega_d = Math.sqrt(omega_0 * omega_0 - alpha * alpha);
+
+      // Display alpha and omega with commas and rounded to the nearest integer
+      alphaValue.innerText = Math.round(alpha).toLocaleString();
+      omegaValue.innerText = Math.round(omega_0).toLocaleString();
+
+      // Time array in ms
+      const tMax = 1 * timescale; // Maximum time in ms
+      const dt = tMax / 1000; // Time step in ms
+      const time = Array.from({length: 1001}, (_, i) => i * dt);
+
+      // Voltage response
+      const voltage = time.map(t => {
+        t = t / 1000; // Convert time from ms to seconds for calculations
+        if (alpha > omega_0) {
+          // Overdamped
+          const s1 = -alpha + Math.sqrt(alpha * alpha - omega_0 * omega_0);
+          const s2 = -alpha - Math.sqrt(alpha * alpha - omega_0 * omega_0);
+          return Idc * R + (Vc0 - Idc * R) * Math.exp(s1 * t) + IL0 / C * Math.exp(s2 * t);
+        } else if (alpha === omega_0) {
+          // Critically damped
+          return Idc * R + (Vc0 - Idc * R) * Math.exp(-alpha * t) * (1 + alpha * t);
+        } else {
+          // Underdamped
+          return Idc * R + Math.exp(-alpha * t) * ((Vc0 - Idc * R) * Math.cos(omega_d * t) + (IL0 / C) * Math.sin(omega_d * t) / omega_d);
+        }
+      });
+
+      // Plot with Plotly
+      const data = [{
+        x: time, // Time in ms
+        y: voltage,
+        mode: 'lines',
+        name: 'Voltage Response',
+      }];
+      const layout = {
+        // title: 'Voltage Response of Parallel RLC Circuit',
+        xaxis: {
+          title: 'Time (ms)', // Time in ms
+          tickmode: 'array',
+          tickvals: time.filter((_, i) => i % 100 === 0), // Display ticks at intervals
+          ticktext: time.filter((_, i) => i % 100 === 0).map(t => t.toFixed(1)) // Format time ticks as ms
+        },
+        yaxis: {title: 'Voltage (V)'},
+      };
+      Plotly.newPlot('plot', data, layout);
+    }
+
+    // Attach event listeners to sliders
+    vc0Slider.oninput = updatePlot;
+    il0Slider.oninput = updatePlot;
+    idcSlider.oninput = updatePlot;
+    rSlider.oninput = updatePlot;
+    lSlider.oninput = updatePlot;
+    cSlider.oninput = updatePlot;
+    timescaleSlider.oninput = updatePlot;
+
+    // Initial plot
+    updatePlot();
+  </script>
+</body>
+
+</html>

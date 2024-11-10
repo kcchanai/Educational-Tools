@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3x3 Matrix Equation Solver</title>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+  <style>
+    .container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .matrix-container,
+    .vector-container,
+    .result-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 60px);
+      gap: 20px;
+    }
+
+    .matrix input,
+    .vector input {
+      width: 60px;
+      height: 30px;
+      text-align: center;
+      appearance: textfield;
+    }
+
+    .matrix input::-webkit-outer-spin-button,
+    .matrix input::-webkit-inner-spin-button,
+    .vector input::-webkit-outer-spin-button,
+    .vector input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Remove number input spinner controls from Vector B */
+    #vectorB input::-webkit-outer-spin-button,
+    #vectorB input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    #vectorB input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .equals {
+      font-size: 3em;
+    }
+
+    .solution {
+      margin-top: 30px;
+    }
+
+    .unknowns {
+      font-size: 2em;
+      display: inline-block;
+      padding: 5px;
+      margin-right: 10px;
+    }
+
+    .bracket1,
+    .bracket2,
+    .bracket3,
+    .bracket4 {
+      font-size: 1.5em;
+      display: inline-block;
+      padding: 1px;
+      margin-right: 1px;
+    }
+
+    .vector-container input {
+      width: 60px;
+      height: 30px;
+      margin: 9px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>3x3 Matrix Equation Solver</h1>
+
+  <div class="container">
+    <!-- Bracket 1 -->
+    <div class="bracket1">
+      \[
+      \left[
+      \begin{array}{c}
+      \\
+      \\
+      \\
+      \\
+      \\
+      \end{array}
+      \right.
+      \]
+    </div>
+
+    <!-- Matrix A -->
+    <div class="matrix-container">
+      <div class="matrix" id="matrixA">
+        <input type="number" id="a11"> <input type="number" id="a12"> <input type="number" id="a13">
+        <input type="number" id="a21"> <input type="number" id="a22"> <input type="number" id="a23">
+        <input type="number" id="a31"> <input type="number" id="a32"> <input type="number" id="a33">
+      </div>
+    </div>
+
+    <!-- Bracket 2 -->
+    <div class="bracket2">
+      \[
+      \left.
+      \begin{array}{c}
+      \\
+      \\
+      \\
+      \\
+      \\
+      \end{array}
+      \right]
+      \]
+    </div>
+
+    <!-- Unknowns -->
+    <div class="unknowns">
+      \[
+      \left[
+      \begin{array}{c}
+      x_1 \\
+      x_2\\
+      x_3\\
+      \end{array}
+      \right]
+      \]
+    </div>
+
+    <!-- Equals Sign -->
+    <span class="equals">=</span>
+
+    <!-- Bracket 3 -->
+    <div class="bracket3">
+      \[
+      \left[
+      \begin{array}{c}
+      \\
+      \\
+      \\
+      \\
+      \\
+      \end{array}
+      \right.
+      \]
+    </div>
+
+    <!-- Result Vector B -->
+    <div class="result-container">
+      <div class="vector-container" id="vectorB">
+        <input type="number" id="b1">
+        <input type="number" id="b2">
+        <input type="number" id="b3">
+      </div>
+    </div>
+
+    <!-- Bracket 4 -->
+    <div class="bracket4">
+      \[
+      \left.
+      \begin{array}{c}
+      \\
+      \\
+      \\
+      \\
+      \\
+      \end{array}
+      \right]
+      \]
+    </div>
+  </div>
+
+  <!-- Solve Button and Result -->
+  <div class="solution">
+    <button onclick="solveMatrix()">Solve</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function solveMatrix() {
+      // Matrix A values
+      const A = [
+        [parseFloat(document.getElementById('a11').value), parseFloat(document.getElementById('a12').value), parseFloat(document.getElementById('a13').value)],
+        [parseFloat(document.getElementById('a21').value), parseFloat(document.getElementById('a22').value), parseFloat(document.getElementById('a23').value)],
+        [parseFloat(document.getElementById('a31').value), parseFloat(document.getElementById('a32').value), parseFloat(document.getElementById('a33').value)]
+      ];
+
+      // Vector B values
+      const B = [
+        parseFloat(document.getElementById('b1').value),
+        parseFloat(document.getElementById('b2').value),
+        parseFloat(document.getElementById('b3').value)
+      ];
+
+      // Solve for x using Cramer's rule or matrix inversion (requires custom implementation or external library)
+      const determinant = (A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1])
+        - A[0][1] * (A[1][0] * A[2][2] - A[1][2] * A[2][0])
+        + A[0][2] * (A[1][0] * A[2][1] - A[1][1] * A[2][0]));
+
+      if (determinant === 0) {
+        document.getElementById("result").innerText = "No unique solution (determinant is zero).";
+        return;
+      }
+
+      // Calculate adjoint and inverse of A, then multiply by B to find X
+      const adjoint = [
+        [
+          A[1][1] * A[2][2] - A[1][2] * A[2][1],
+          -(A[0][1] * A[2][2] - A[0][2] * A[2][1]),
+          A[0][1] * A[1][2] - A[0][2] * A[1][1]
+        ],
+        [
+          -(A[1][0] * A[2][2] - A[1][2] * A[2][0]),
+          A[0][0] * A[2][2] - A[0][2] * A[2][0],
+          -(A[0][0] * A[1][2] - A[0][2] * A[1][0])
+        ],
+        [
+          A[1][0] * A[2][1] - A[1][1] * A[2][0],
+          -(A[0][0] * A[2][1] - A[0][1] * A[2][0]),
+          A[0][0] * A[1][1] - A[0][1] * A[1][0]
+        ]
+      ];
+
+      const inverse = adjoint.map(row => row.map(value => value / determinant));
+      const X = inverse.map(row => row.reduce((sum, val, i) => sum + val * B[i], 0));
+
+      // Display the result
+      document.getElementById("result").innerHTML = `
+        <p>Solution:</p>
+        <p>x<sub>1</sub> = ${X[0].toFixed(2)}</p>
+        <p>x<sub>2</sub> = ${X[1].toFixed(2)}</p>
+        <p>x<sub>3</sub> = ${X[2].toFixed(2)}</p>
+      `;
+    }
+  </script>
+</body>
+
+</html>
