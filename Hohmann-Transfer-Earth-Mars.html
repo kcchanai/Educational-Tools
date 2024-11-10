@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Earth and Mars Orbit Animation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      background-color: #000;
+    }
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+    }
+    .date-display {
+      font-size: 1.5em;
+      text-align: center;
+      color: white;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+    .position-display {
+      font-size: 1.2em;
+      text-align: center;
+      color: white;
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div class="date-display" id="dateDisplay"></div>
+  <div class="position-display" id="positionDisplay"></div>
+  <div class="controls">
+    <input type="range" id="speedSlider" min="10" max="2000" value="20">
+    <label for="speedSlider">Speed</label>
+  </div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Orbital parameters (semi-major axis in AU, orbital period in Earth years)
+    const earthOrbitRadius = 1; // AU
+    const marsOrbitRadius = 1.524; // AU
+    const earthOrbitalPeriod = 1; // Earth years
+    const marsOrbitalPeriod = 1.881; // Earth years (687 days)
+
+    // Dates
+    const startDate = new Date('2022-12-08'); 
+    const endDate = new Date('2027-02-19');
+
+    // Set up the animation speed
+    let speed = 20; 
+    let currentDate = new Date(startDate);
+
+    // Function to convert a date to days since startDate
+    function getDaysSinceStart() {
+      return Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+    }
+
+    // Update the date display
+    function updateDateDisplay() {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      document.getElementById('dateDisplay').textContent = `${currentDate.toLocaleDateString(undefined, options)}`;
+    }
+
+    // Function to calculate angular position in degrees
+    function getAngularPosition(orbitalPeriod, daysSinceStart) {
+      const angleInRadians = (2 * Math.PI / (orbitalPeriod * 365.25)) * daysSinceStart;
+      return (angleInRadians * 180 / Math.PI) % 360;
+    }
+
+    // Draw Sun, Earth, and Mars
+    function drawSolarSystem() {
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Clear the canvas
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw Sun
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
+      ctx.fillStyle = 'orange';
+      ctx.fill();
+
+      // Draw Earth and Mars Orbits
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, earthOrbitRadius * 200, 0, Math.PI * 2); // Earth orbit
+      ctx.strokeStyle = 'blue';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, marsOrbitRadius * 200, 0, Math.PI * 2); // Mars orbit
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Calculate Earth's position (counterclockwise)
+      const earthAngle = -getDaysSinceStart() * (2 * Math.PI / (earthOrbitalPeriod * 365.25));
+      const earthX = centerX + earthOrbitRadius * Math.cos(earthAngle) * 200;
+      const earthY = centerY + earthOrbitRadius * Math.sin(earthAngle) * 200;
+
+      // Draw Earth
+      ctx.beginPath();
+      ctx.arc(earthX, earthY, 10, 0, Math.PI * 2);
+      ctx.fillStyle = 'blue';
+      ctx.fill();
+
+      // Calculate Mars's position (counterclockwise)
+      const marsAngle = -getDaysSinceStart() * (2 * Math.PI / (marsOrbitalPeriod * 365.25));
+      const marsX = centerX + marsOrbitRadius * Math.cos(marsAngle) * 200;
+      const marsY = centerY + marsOrbitRadius * Math.sin(marsAngle) * 200;
+
+      // Draw Mars
+      ctx.beginPath();
+      ctx.arc(marsX, marsY, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+    }
+
+    // Update the position display (angular positions)
+function updatePositionDisplay() {
+  const daysSinceStart = getDaysSinceStart();
+
+  const earthAngleDeg = getAngularPosition(earthOrbitalPeriod, daysSinceStart).toFixed(0);
+  const marsAngleDeg = getAngularPosition(marsOrbitalPeriod, daysSinceStart).toFixed(0);
+
+  // Calculate the difference in angles
+  let angleDifference = marsAngleDeg - earthAngleDeg;
+
+  // Adjust the difference to be between -180 and +180 degrees
+  if (angleDifference > 180) {
+    angleDifference -= 360; // Convert to negative range
+  } else if (angleDifference < -180) {
+    angleDifference += 360; // Convert to positive range
+  }
+
+  document.getElementById('positionDisplay').textContent = `Earth: ${earthAngleDeg}° | Mars: ${marsAngleDeg}° | Difference: ${angleDifference}°`;
+}
+
+    // Function to start or restart the animation based on slider input
+    let intervalId;
+    function startAnimation() {
+      clearInterval(intervalId); // Clear previous interval
+      intervalId = setInterval(() => {
+        currentDate.setDate(currentDate.getDate() + 1); // Increment the date by 1 day
+        updateDateDisplay();
+        updatePositionDisplay();
+        drawSolarSystem();
+      }, 1000 / speed); // Adjust interval speed based on slider value
+    }
+
+    // Event listener for speed slider
+    document.getElementById('speedSlider').addEventListener('input', (event) => {
+      speed = parseInt(event.target.value);
+      startAnimation(); // Restart the animation with the new speed
+    });
+
+    // Start the animation initially
+    startAnimation();
+  </script>
+</body>
+</html>
