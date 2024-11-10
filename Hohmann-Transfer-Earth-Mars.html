@@ -128,7 +128,7 @@
     // Draw the spacecraft
     ctx.beginPath();
     ctx.arc(spacecraftX, spacecraftY, 5, 0, Math.PI * 2); 
-    ctx.fillStyle = 'cyan';
+    ctx.fillStyle = 'yellow';
     ctx.fill();
     }
 
@@ -146,7 +146,7 @@
 
       ctx.beginPath();
       ctx.arc(centerX, centerY, earthOrbitRadius * 200, 0, Math.PI * 2); 
-      ctx.strokeStyle = 'blue';
+      ctx.strokeStyle = 'cyan';
       ctx.lineWidth = 1;
       ctx.stroke();
 
@@ -162,7 +162,7 @@
 
       ctx.beginPath();
       ctx.arc(earthX, earthY, 10, 0, Math.PI * 2);
-      ctx.fillStyle = 'blue';
+      ctx.fillStyle = 'cyan';
       ctx.fill();
 
       const marsAngle = -getDaysSinceStart() * (2 * Math.PI / (marsOrbitalPeriod * 365.25));
@@ -199,7 +199,7 @@
         ctx.lineTo(yellowLineData.endX, yellowLineData.endY);
         ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 2;
-        ctx.stroke();
+//        ctx.stroke();
 
         if (ellipseData) {
           ctx.beginPath();
