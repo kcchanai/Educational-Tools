@@ -71,6 +71,9 @@
     const earthOrbitalPeriod = 1; 
     const marsOrbitalPeriod = 1.881;
 
+//    const initialVelocity = 6.32; // AU/yr (30 km/s)
+    const initialVelocity = 6.72; // AU/yr (30 km/s)
+
     const startDate = new Date('2022-12-08'); 
     let launchDay = new Date('2022-12-09'); // launch day
 
@@ -163,11 +166,17 @@
         
         yellowLineData = { startX: lineStartX, startY: lineStartY, endX: lineEndX, endY: lineEndY };
 
-        const ellipseCenterX = (lineStartX + lineEndX) / 2;
-        const ellipseCenterY = (lineStartY + lineEndY) / 2;
-        const ellipseRadiusX = Math.hypot(lineEndX - lineStartX, lineEndY - lineStartY) / 2;
-        const c = ellipseRadiusX * 0.5;  // Example focal offset; adjust based on your scale
-        const ellipseRadiusY = Math.sqrt(ellipseRadiusX**2 - c**2);  // Calculate correct semi-minor axis
+        const r = 1; // Distance from the Sun (1 AU)
+        const mu = 39.478;
+        const ellipseRadiusX = 200 * mu / (2*mu - initialVelocity ** 2);  // Semi-major axis based on initial velocity
+        const e = Math.sqrt(1 - (r / ellipseRadiusX/200));  // Eccentricity based on the semi-major axis
+        const ellipseRadiusY = 200*ellipseRadiusX * Math.sqrt(1 - e ** 2); // Semi-minor axis
+        const ellipseCenterX = earthX - ellipseRadiusX;
+        const ellipseCenterY = centerY;
+
+        console.log('ellipse X', ellipseRadiusX);
+        console.log('ellipse Y', ellipseRadiusY);
+
 
         ellipseData = { centerX: ellipseCenterX, centerY: ellipseCenterY, radiusX: ellipseRadiusX, radiusY: ellipseRadiusY };
       }
