@@ -31,8 +31,13 @@
     const M = 5.972e24; // Mass of the Earth (kg)
     const EARTH_RADIUS = 6371000; // Earth's radius in meters
     const SCALE = 5e4; // Scale to make the animation visually manageable
-    const deltaV1 = 2200; // Impulsive change in velocity (m/s)
-    const T1 = 10500; // Time that deltaV1 is applied
+    
+    const deltaV1 = 1500; // Impulsive change in velocity (m/s)
+    const T1 = 10300; // Time when deltaV1 is applied
+    const T1interval = 2000; // How long to display the indicator
+    const deltaV2 = 800; // Impulsive change in velocity (m/s)
+    const T2 = 30300; // Time when deltaV2 is applied
+    const T2interval = 2000; // How long to display the indicator
 
     // Initial conditions for the spacecraft (Low Earth Orbit)
     const altitude = 700000; // 700 km altitude for LEO (meters)
@@ -56,11 +61,13 @@
     // Initialize elapsed simulation time
     let elapsedTime = 0; // Time in seconds
 
-    // Flag to check if impulse is applied
-    let impulseApplied = false;
+    // Flags to check if impulses are applied
+    let impulse1Applied = false;
+    let impulse2Applied = false;
 
-    // Time when the impulse is applied
-    let impulseTime = 0;
+    // Time when the impulses are applied
+    let impulse1Time = 0;
+    let impulse2Time = 0;
 
     // Function to convert elapsed time to hours:minutes:seconds
     function formatTime(seconds) {
@@ -76,8 +83,8 @@
 
     // Update function for numerical integration
     function updateOrbit() {
-        // Apply impulsive velocity change at time T1 seconds (only once)
-        if (elapsedTime >= T1 && elapsedTime < T1 + dt && !impulseApplied) {
+        // Apply first impulsive velocity change at time T1 seconds (only once)
+        if (elapsedTime >= T1 && elapsedTime < T1 + dt && !impulse1Applied) {
             // Calculate the unit vector of the velocity
             let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
             let unitVectorX = vx / velocityMagnitude;  // Unit vector in x-direction
@@ -87,9 +94,25 @@
             vx += deltaV1 * unitVectorX;  // Add impulsive velocity change in x-direction
             vy += deltaV1 * unitVectorY;  // Add impulsive velocity change in y-direction
 
-            // Mark that the impulse has been applied and record the time
-            impulseApplied = true;
-            impulseTime = elapsedTime;
+            // Mark that the first impulse has been applied and record the time
+            impulse1Applied = true;
+            impulse1Time = elapsedTime;
+        }
+
+        // Apply second impulsive velocity change at time T2 seconds (only once)
+        if (elapsedTime >= T2 && elapsedTime < T2 + dt && !impulse2Applied) {
+            // Calculate the unit vector of the velocity
+            let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
+            let unitVectorX = vx / velocityMagnitude;  // Unit vector in x-direction
+            let unitVectorY = vy / velocityMagnitude;  // Unit vector in y-direction
+
+            // Apply deltaV2 in the direction of the velocity
+            vx += deltaV2 * unitVectorX;  // Add impulsive velocity change in x-direction
+            vy += deltaV2 * unitVectorY;  // Add impulsive velocity change in y-direction
+
+            // Mark that the second impulse has been applied and record the time
+            impulse2Applied = true;
+            impulse2Time = elapsedTime;
         }
 
         // Calculate gravitational acceleration towards the center
@@ -117,9 +140,13 @@
         drawScene();
     }
 
-    // Function to draw the Earth, spacecraft, and elapsed time
+    // Function to draw the Earth, spacecraft, elapsed time, and the velocity arrow
     function drawScene() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Display the elapsed simulation time in seconds (for debugging)
+        const secondsText = 'Time: ' + elapsedTime.toFixed(0); // Display time in seconds
+        ctx.fillText(secondsText, (canvas.width - ctx.measureText(secondsText).width) / 2, 70);
 
         // Draw the Earth
         ctx.beginPath();
@@ -136,143 +163,68 @@
         // Display the elapsed simulation time (formatted as HH:MM:SS)
         ctx.font = '24px Arial';
         ctx.fillStyle = 'white';
-        ctx.fillText('Elapsed Time: ' + formatTime(elapsedTime), 20, 40);
+        
+        // Calculate the width of the text to center it
+        const timeText = 'Elapsed Time: ' + formatTime(elapsedTime);
+        const textWidth = ctx.measureText(timeText).width;
 
-        // Display "Impulse" text if the impulse is applied
-        if (impulseApplied && elapsedTime - impulseTime <= 5000) {
-            ctx.fillText('Impulse', canvas.width / 2 - 45, canvas.height / 2 + 10);
+        // Center the text
+        ctx.fillText(timeText, (canvas.width - textWidth) / 2, 40);
+
+        // Display "Impulse" text and arrow for the first impulse
+        if (impulse1Applied && elapsedTime - impulse1Time <= T1interval) {
+            ctx.fillText('Impulse 1', canvas.width / 2 - 50, canvas.height / 2 + 5);
+            drawArrow(
+                canvas.width / 2 + spacecraftX / SCALE,
+                canvas.height / 2 + spacecraftY / SCALE,
+                vx / 10, // Scale the velocity for the arrow length
+                vy / 10  // Scale the velocity for the arrow length
+            );
+        }
+
+        // Display "Impulse" text and arrow for the second impulse
+        if (impulse2Applied && elapsedTime - impulse2Time <= T2interval) {
+            ctx.fillText('Impulse 2', canvas.width / 2 - 50, canvas.height / 2 + 5);
+            drawArrow(
+                canvas.width / 2 + spacecraftX / SCALE,
+                canvas.height / 2 + spacecraftY / SCALE,
+                vx / 10, // Scale the velocity for the arrow length
+                vy / 10  // Scale the velocity for the arrow length
+            );
         }
     }
 
-    // Function to animate the system
-    function animate() {
-        updateOrbit();
-        requestAnimationFrame(animate);
+
+    // Function to draw an arrow
+    function drawArrow(x, y, dx, dy) {
+        const arrowLength = 30;
+        const angle = Math.atan2(dy, dx);
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + arrowLength * Math.cos(angle), y + arrowLength * Math.sin(angle));
+        ctx.strokeStyle = 'yellow';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Draw arrowhead
+        const arrowHeadLength = 10;
+        ctx.beginPath();
+        ctx.moveTo(x + arrowLength * Math.cos(angle), y + arrowLength * Math.sin(angle));
+        ctx.lineTo(x + arrowLength * Math.cos(angle) - arrowHeadLength * Math.cos(angle - Math.PI / 6), y + arrowLength * Math.sin(angle) - arrowHeadLength * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x + arrowLength * Math.cos(angle) - arrowHeadLength * Math.cos(angle + Math.PI / 6), y + arrowLength * Math.sin(angle) - arrowHeadLength * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fillStyle = 'yellow';
+        ctx.fill();
+    }
+
+    // Start the simulation
+    function startSimulation() {
+        setInterval(updateOrbit, dt);
     }
 
     // Start the animation
-    animate();
-</script>
-
-
-    const canvas = document.getElementById('orbitCanvas');
-    const ctx = canvas.getContext('2d');
-
-    // Set canvas size to fill the window
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Constants
-    const G = 6.67430e-11; // Gravitational constant (m^3⋅kg^−1⋅s^−2)
-    const M = 5.972e24; // Mass of the Earth (kg)
-    const EARTH_RADIUS = 6371000; // Earth's radius in meters
-    const SCALE = 5e4; // Scale to make the animation visually manageable
-    const deltaV1 = 2200; // Impulsive change in velocity (m/s)
-    const T1 = 10500; // Time that deltaV1 is applied
-
-    // Initial conditions for the spacecraft (Low Earth Orbit)
-    const altitude = 700000; // 700 km altitude for LEO (meters)
-    let r = EARTH_RADIUS + altitude; // Initial distance from the center of the Earth (meters)
-    
-    // Calculate the initial tangential velocity for circular orbit at LEO
-    let v = -Math.sqrt(G * M / r); // Orbital velocity in m/s
-    
-    // Initial angle and position of spacecraft
-    let angle = -Math.PI / 2; // Start directly above the Earth (90 degrees)
-    let spacecraftX = r * Math.cos(angle);
-    let spacecraftY = r * Math.sin(angle);
-
-    // Velocity components
-    let vx = -v * Math.sin(angle); // Velocity in the X direction (negative for counter-clockwise motion)
-    let vy = v * Math.cos(angle);  // Velocity in the Y direction (positive for upward motion)
-
-    // Time step for the numerical integration
-    const dt = 100; // seconds
-
-    // Initialize elapsed simulation time
-    let elapsedTime = 0; // Time in seconds
-
-    // Function to convert elapsed time to hours:minutes:seconds
-    function formatTime(seconds) {
-        let hours = Math.floor(seconds / 3600);
-        let minutes = Math.floor((seconds % 3600) / 60);
-        let secondsLeft = seconds % 60;
-
-        // Pad single-digit minutes and seconds with leading zero
-        return hours.toString().padStart(2, '0') + ':' +
-               minutes.toString().padStart(2, '0') + ':' +
-               secondsLeft.toFixed(0).padStart(2, '0');
-    }
-
-    // Update function for numerical integration
-    function updateOrbit() {
-        // Apply impulsive velocity change at time T1 seconds (only once)
-        if (elapsedTime >= T1 && elapsedTime < T1 + dt) {
-            // Calculate the unit vector of the velocity
-            let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
-            let unitVectorX = vx / velocityMagnitude;  // Unit vector in x-direction
-            let unitVectorY = vy / velocityMagnitude;  // Unit vector in y-direction
-
-            // Apply deltaV1 in the direction of the velocity
-            vx += deltaV1 * unitVectorX;  // Add impulsive velocity change in x-direction
-            vy += deltaV1 * unitVectorY;  // Add impulsive velocity change in y-direction
-        }
-
-        // Calculate gravitational acceleration towards the center
-        let acceleration = -G * M / (r * r); // Gravitational acceleration in m/s^2
-
-        // Compute the acceleration components in the X and Y directions
-        let ax = acceleration * (spacecraftX / r); // X component of acceleration
-        let ay = acceleration * (spacecraftY / r); // Y component of acceleration
-
-        // Update velocity (First-order ODE integration)
-        vx += ax * dt;
-        vy += ay * dt;
-
-        // Update position based on the new velocity
-        spacecraftX += vx * dt;
-        spacecraftY += vy * dt;
- 
-        // Update the distance from the center of the Earth
-        r = Math.sqrt(spacecraftX * spacecraftX + spacecraftY * spacecraftY);
-
-        // Update elapsed time
-        elapsedTime += dt;
-
-        // Draw the scene
-        drawScene();
-    }
-
-    // Function to draw the Earth, spacecraft, and elapsed time
-    function drawScene() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw the Earth
-        ctx.beginPath();
-        ctx.arc(canvas.width / 2, canvas.height / 2, EARTH_RADIUS / SCALE, 0, 2 * Math.PI);
-        ctx.fillStyle = 'blue';
-        ctx.fill();
-
-        // Draw the spacecraft
-        ctx.beginPath();
-        ctx.arc(canvas.width / 2 + spacecraftX / SCALE, canvas.height / 2 + spacecraftY / SCALE, 10, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-
-        // Display the elapsed simulation time (formatted as HH:MM:SS)
-        ctx.font = '24px Arial';
-        ctx.fillStyle = 'white';
-        ctx.fillText('Elapsed Time: ' + formatTime(elapsedTime), 20, 40);
-    }
-
-    // Function to animate the system
-    function animate() {
-        updateOrbit();
-        requestAnimationFrame(animate);
-    }
-
-    // Start the animation
-    animate();
+    startSimulation();
 </script>
 </body>
 </html>
