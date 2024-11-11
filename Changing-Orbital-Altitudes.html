@@ -30,14 +30,17 @@
     const G = 6.67430e-11; // Gravitational constant (m^3⋅kg^−1⋅s^−2)
     const M = 5.972e24; // Mass of the Earth (kg)
     const EARTH_RADIUS = 6371000; // Earth's radius in meters
-    const SCALE = 4E4; // Scale to make the animation visually manageable
+    const SCALE = 5E4; // Scale to make the animation visually manageable
     
     const deltaV1 = 1500; // Impulsive change in velocity (m/s)
     const T1 = 10300; // Time when deltaV1 is applied
     const T1interval = 1000; // How long to display the indicator
-    const deltaV2 = 800; // Impulsive change in velocity (m/s)
-    const T2 = 30500; // Time when deltaV2 is applied
+    const deltaV2 = 1000; // Impulsive change in velocity (m/s)
+    const T2 = 44500; // Time when deltaV2 is applied
     const T2interval = 1000; // How long to display the indicator
+    const deltaV3 = -1000; // Impulsive change in velocity for third impulse (m/s)
+    const T3 = 87000; // Time when deltaV3 is applied
+    const T3interval = 1000; // How long to display the third impulse indicator
 
     // Initial conditions for the spacecraft (Low Earth Orbit)
     const altitude = 700000; // 700 km altitude for LEO (meters)
@@ -56,7 +59,7 @@
     let vy = v * Math.cos(angle);  // Velocity in the Y direction (positive for upward motion)
 
     // Time step for the numerical integration
-    const dt = 5; // seconds
+    const dt = 50; // seconds
 
     // Initialize elapsed simulation time
     let elapsedTime = 0; // Time in seconds
@@ -64,10 +67,12 @@
     // Flags to check if impulses are applied
     let impulse1Applied = false;
     let impulse2Applied = false;
+    let impulse3Applied = false;
 
     // Time when the impulses are applied
     let impulse1Time = 0;
     let impulse2Time = 0;
+    let impulse3Time = 0;
 
     // Function to convert elapsed time to hours:minutes:seconds
     function formatTime(seconds) {
@@ -75,7 +80,6 @@
         let minutes = Math.floor((seconds % 3600) / 60);
         let secondsLeft = seconds % 60;
 
-        // Pad single-digit minutes and seconds with leading zero
         return hours.toString().padStart(2, '0') + ':' +
                minutes.toString().padStart(2, '0') + ':' +
                secondsLeft.toFixed(0).padStart(2, '0');
@@ -107,6 +111,19 @@
 
             impulse2Applied = true;
             impulse2Time = elapsedTime;
+        }
+
+        // Apply third impulsive velocity change at time T3 seconds (only once)
+        if (elapsedTime >= T3 && elapsedTime < T3 + dt && !impulse3Applied) {
+            let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
+            let unitVectorX = vx / velocityMagnitude;
+            let unitVectorY = vy / velocityMagnitude;
+
+            vx += deltaV3 * unitVectorX;
+            vy += deltaV3 * unitVectorY;
+
+            impulse3Applied = true;
+            impulse3Time = elapsedTime;
         }
 
         let acceleration = -G * M / (r * r); // Gravitational acceleration in m/s^2
@@ -155,19 +172,28 @@
 
         ctx.fillText(timeText, (canvas.width - textWidth) / 2, 40);
 
+
+        // Display the raw time in seconds (for debugging)
+        const timeInSecondsText = 'Time (seconds): ' + elapsedTime.toFixed(0);
+        const timeInSecondsTextWidth = ctx.measureText(timeInSecondsText).width;
+        ctx.fillText(timeInSecondsText, (canvas.width - timeInSecondsTextWidth) / 2, 100);
+
+
         // Display the altitude (distance above Earth's surface in km) centered at the top
         const altitudeText = 'Altitude: ' + altitudeInKm.toFixed(2) + ' km';
         const altitudeTextWidth = ctx.measureText(altitudeText).width;
         ctx.fillText(altitudeText, (canvas.width - altitudeTextWidth) / 2, 70);
 
+        let speed = Math.sqrt(vx * vx + vy * vy);
+        
         // Display "Impulse" text and arrow for the first impulse
         if (impulse1Applied && elapsedTime - impulse1Time <= T1interval) {
             ctx.fillText('Impulse 1', canvas.width / 2 - 50, canvas.height / 2 + 5);
             drawArrow(
                 canvas.width / 2 + spacecraftX / SCALE,
                 canvas.height / 2 + spacecraftY / SCALE,
-                vx / 10,
-                vy / 10
+                deltaV1*vx / speed / 10,
+                deltaV1*vy / speed / 10
             );
         }
 
@@ -177,29 +203,42 @@
             drawArrow(
                 canvas.width / 2 + spacecraftX / SCALE,
                 canvas.height / 2 + spacecraftY / SCALE,
-                vx / 10,
-                vy / 10
+                deltaV2*vx / speed / 10,
+                deltaV2*vy / speed / 10
+            );
+        }
+
+        // Display "Impulse" text and arrow for the third impulse
+        if (impulse3Applied && elapsedTime - impulse3Time <= T3interval) {
+            ctx.fillText('Impulse 3', canvas.width / 2 - 50, canvas.height / 2 + 5);
+            drawArrow(
+                canvas.width / 2 + spacecraftX / SCALE,
+                canvas.height / 2 + spacecraftY / SCALE,
+                deltaV3*vx / speed / 10,
+                deltaV3*vy / speed / 10
             );
         }
     }
 
     // Function to draw an arrow
     function drawArrow(x, y, dx, dy) {
-        const arrowLength = 30;
         const angle = Math.atan2(dy, dx);
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const arrowSize = 20;
 
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x + arrowLength * Math.cos(angle), y + arrowLength * Math.sin(angle));
+        ctx.lineTo(x + dx, y + dy);
         ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        const arrowHeadLength = 10;
         ctx.beginPath();
-        ctx.moveTo(x + arrowLength * Math.cos(angle), y + arrowLength * Math.sin(angle));
-        ctx.lineTo(x + arrowLength * Math.cos(angle) - arrowHeadLength * Math.cos(angle - Math.PI / 6), y + arrowLength * Math.sin(angle) - arrowHeadLength * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(x + arrowLength * Math.cos(angle) - arrowHeadLength * Math.cos(angle + Math.PI / 6), y + arrowLength * Math.sin(angle) - arrowHeadLength * Math.sin(angle + Math.PI / 6));
+        ctx.moveTo(x + dx, y + dy);
+        ctx.lineTo(x + dx - arrowSize * Math.cos(angle - Math.PI / 6),
+                   y + dy - arrowSize * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x + dx - arrowSize * Math.cos(angle + Math.PI / 6),
+                   y + dy - arrowSize * Math.sin(angle + Math.PI / 6));
         ctx.closePath();
         ctx.fillStyle = 'yellow';
         ctx.fill();
@@ -207,10 +246,12 @@
 
     // Start the simulation
     function startSimulation() {
-        setInterval(updateOrbit, dt);
+        updateOrbit();
+        setInterval(updateOrbit, 1000 / 60); // 60 FPS
     }
 
-    startSimulation();
+    // Start the simulation after the page loads
+    window.onload = startSimulation;
 </script>
 </body>
 </html>
