@@ -13,10 +13,82 @@
         canvas {
             display: block;
         }
+
+        #deltaVSlider {
+        position: fixed;
+        bottom: 10px; /* Position 10px from the bottom */
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        color: white;
+    }
+
+    #sliderValue {
+        position: fixed;
+        bottom: 40px; /* Position below the slider */
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 16px;
+    }
+
+    .button-container {
+        position: fixed;
+        bottom: 70px; /* Position both buttons above the slider */
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex; /* Align buttons horizontally */
+        gap: 10px; /* Add space between buttons */
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    #impulseButton {
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    #impulseButton:hover {
+        background-color: #0056b3;
+    }
+
+    #resetButton {
+        background-color: #FF5733; /* Red color */
+        color: white;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    #resetButton:hover {
+        background-color: #C70039; /* Darker red on hover */
+    }
+
+
     </style>
 </head>
 <body>
 <canvas id="orbitCanvas"></canvas>
+
+<!-- Slider to control deltaV -->
+<div id="deltaVSlider">
+    <label for="deltaV">deltaV: </label>
+    <input type="range" id="deltaV" min="-1000" max="1000" value="10">
+</div>
+
+<div id="sliderValue">deltaV: 10 m/s</div>
+
+<!-- Container for buttons -->
+<div class="button-container">
+    <button id="impulseButton">Apply Impulse</button>
+    <button id="resetButton">Reset Simulation</button>
+</div>
 
 <script>
     const canvas = document.getElementById('orbitCanvas');
@@ -38,7 +110,7 @@
     const MOON_SCALE = 2e5; // Scale for the Moon size
     
     const deltaV1 = 1500; // Impulsive change in velocity (m/s)
-    const T1 = 11000; // Time when deltaV1 is applied
+    const T1 = 5000; // Time when deltaV1 is applied
     const T1interval = 1000; // How long to display the indicator
     const deltaV2 = 100; // Impulsive change in velocity (m/s)
     const T2 = 1750000; // Time when deltaV2 is applied
