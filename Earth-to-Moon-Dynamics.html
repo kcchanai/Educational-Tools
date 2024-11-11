@@ -28,26 +28,31 @@
 
     // Constants
     const G = 6.67430e-11; // Gravitational constant (m^3⋅kg^−1⋅s^−2)
-    const M = 5.972e24; // Mass of the Earth (kg)
+    const Me = 5.972e24; // Mass of the Earth (kg)
+    const Mm = 7.342e22 * 50; // Mass of the Moon (kg)
     const EARTH_RADIUS = 6371000; // Earth's radius in meters
-    const SCALE = 5E4; // Scale to make the animation visually manageable
+    const MOON_RADIUS = 1737000; // Moon's radius in meters
+    const MOON_DISTANCE = 384400000 * 0.2; // Average distance from Earth to Moon in meters
+
+    const SCALE = 8E4; // Scale to make the animation visually manageable
+    const MOON_SCALE = 2e5; // Scale for the Moon size
     
     const deltaV1 = 1500; // Impulsive change in velocity (m/s)
-    const T1 = 10300; // Time when deltaV1 is applied
+    const T1 = 11000; // Time when deltaV1 is applied
     const T1interval = 1000; // How long to display the indicator
-    const deltaV2 = 1000; // Impulsive change in velocity (m/s)
-    const T2 = 44500; // Time when deltaV2 is applied
+    const deltaV2 = 100; // Impulsive change in velocity (m/s)
+    const T2 = 1750000; // Time when deltaV2 is applied
     const T2interval = 1000; // How long to display the indicator
-    const deltaV3 = -1000; // Impulsive change in velocity for third impulse (m/s)
-    const T3 = 87000; // Time when deltaV3 is applied
+    const deltaV3 = -100; // Impulsive change in velocity for third impulse (m/s)
+    const T3 = 1950000; // Time when deltaV3 is applied
     const T3interval = 1000; // How long to display the third impulse indicator
 
     // Initial conditions for the spacecraft (Low Earth Orbit)
-    const altitude = 700000; // 700 km altitude for LEO (meters)
+    const altitude = 1000000; // meters
     let r = EARTH_RADIUS + altitude; // Initial distance from the center of the Earth (meters)
     
     // Calculate the initial tangential velocity for circular orbit at LEO
-    let v = -Math.sqrt(G * M / r); // Orbital velocity in m/s
+    let v = -Math.sqrt(G * Me / r); // Orbital velocity in m/s
     
     // Initial angle and position of spacecraft
     let angle = -Math.PI / 2; // Start directly above the Earth (90 degrees)
@@ -59,7 +64,7 @@
     let vy = v * Math.cos(angle);  // Velocity in the Y direction (positive for upward motion)
 
     // Time step for the numerical integration
-    const dt = 50; // seconds
+    const dt = 20; // seconds
 
     // Initialize elapsed simulation time
     let elapsedTime = 0; // Time in seconds
@@ -126,21 +131,40 @@
             impulse3Time = elapsedTime;
         }
 
-        let acceleration = -G * M / (r * r); // Gravitational acceleration in m/s^2
+        // Calculate the gravitational force of the Earth
+        let earthForceX = -G * Me * (spacecraftX / Math.pow(r, 3));
+        let earthForceY = -G * Me * (spacecraftY / Math.pow(r, 3));
 
-        let ax = acceleration * (spacecraftX / r);
-        let ay = acceleration * (spacecraftY / r);
+        // Calculate the position of the Moon relative to the spacecraft
+        const moonX = -MOON_DISTANCE;
+        const moonY = 0;
 
+        // Calculate the distance from the spacecraft to the Moon
+        let moonDistance = Math.sqrt(Math.pow(spacecraftX - moonX, 2) + Math.pow(spacecraftY - moonY, 2));
+
+        // Calculate the gravitational force of the Moon
+        let moonForceX = -G * Mm * (spacecraftX - moonX) / Math.pow(moonDistance, 3);
+        let moonForceY = -G * Mm * (spacecraftY - moonY) / Math.pow(moonDistance, 3);
+
+        // Total gravitational acceleration (from both Earth and Moon)
+        let ax = (earthForceX + moonForceX) * 1;
+        let ay = (earthForceY + moonForceY) * 1;
+
+        // Update velocity based on acceleration
         vx += ax * dt;
         vy += ay * dt;
 
+        // Update position based on velocity
         spacecraftX += vx * dt;
         spacecraftY += vy * dt;
 
+        // Update the distance (r) from the center of the Earth
         r = Math.sqrt(spacecraftX * spacecraftX + spacecraftY * spacecraftY);
 
+        // Increment elapsed time
         elapsedTime += dt;
 
+        // Call the drawScene function to update the canvas
         drawScene();
     }
 
@@ -151,17 +175,71 @@
         // Convert distance to altitude in kilometers
         const altitudeInKm = (r - EARTH_RADIUS) / 1000;
 
+        // Calculate the center point between Earth and Moon
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        // New Earth position (centered between Earth and Moon)
+        const earthX = centerX + MOON_DISTANCE / SCALE / 2;
+        const earthY = centerY;
+
         // Draw the Earth
         ctx.beginPath();
-        ctx.arc(canvas.width / 2, canvas.height / 2, EARTH_RADIUS / SCALE, 0, 2 * Math.PI);
-        ctx.fillStyle = 'blue';
+        ctx.arc(earthX, earthY, EARTH_RADIUS / SCALE * 0.20, 0, 2 * Math.PI);
+        ctx.fillStyle = 'turquoise';
         ctx.fill();
 
-        // Draw the spacecraft
+        // Draw the Moon to the left of Earth
+        const moonX = centerX - MOON_DISTANCE / SCALE / 2;
+        const moonY = centerY;
         ctx.beginPath();
-        ctx.arc(canvas.width / 2 + spacecraftX / SCALE, canvas.height / 2 + spacecraftY / SCALE, 10, 0, 2 * Math.PI);
+        ctx.arc(moonX, moonY, MOON_RADIUS / MOON_SCALE, 0, 2 * Math.PI);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+
+        // Draw the spacecraft relative to the new Earth center
+        ctx.beginPath();
+        ctx.arc(
+            earthX + spacecraftX / SCALE,
+            earthY + spacecraftY / SCALE,
+            10,
+            0,
+            2 * Math.PI
+        );
         ctx.fillStyle = 'red';
         ctx.fill();
+
+        // Calculate the gravitational force vector of the Earth
+        let gravityForceX = -G * Me * (spacecraftX / Math.pow(r, 3));
+        let gravityForceY = -G * Me * (spacecraftY / Math.pow(r, 3));
+
+        // Calculate the gravitational force vector of the Moon
+        const moonXPosition = centerX - MOON_DISTANCE; // Moon's position
+        const moonYPosition = centerY;
+        let moonDistance = Math.sqrt(Math.pow(spacecraftX - moonXPosition, 2) + Math.pow(spacecraftY - moonYPosition, 2));
+        let moonForceX = -G * Mm * (spacecraftX - moonXPosition) / Math.pow(moonDistance, 3);
+        let moonForceY = -G * Mm * (spacecraftY - moonYPosition) / Math.pow(moonDistance, 3);
+
+        // Scale down the forces for visual clarity
+        const forceScale = 2e0; 
+
+        // Draw the Earth's gravitational force vector
+        drawArrow(
+            earthX + spacecraftX / SCALE, 
+            earthY + spacecraftY / SCALE, 
+            gravityForceX * forceScale, 
+            gravityForceY * forceScale, 
+            'turquoise'
+        );
+
+        // Draw the Moon's gravitational force vector
+        drawArrow(
+            earthX + spacecraftX / SCALE, 
+            earthY + spacecraftY / SCALE, 
+            moonForceX * forceScale, 
+            moonForceY * forceScale, 
+            'white'  // Color for Moon's gravity vector
+        );
 
         // Display the elapsed simulation time (formatted as HH:MM:SS)
         ctx.font = '24px Arial';
@@ -172,12 +250,10 @@
 
         ctx.fillText(timeText, (canvas.width - textWidth) / 2, 40);
 
-
         // Display the raw time in seconds (for debugging)
         const timeInSecondsText = 'Time (seconds): ' + elapsedTime.toFixed(0);
         const timeInSecondsTextWidth = ctx.measureText(timeInSecondsText).width;
         ctx.fillText(timeInSecondsText, (canvas.width - timeInSecondsTextWidth) / 2, 100);
-
 
         // Display the altitude (distance above Earth's surface in km) centered at the top
         const altitudeText = 'Altitude: ' + altitudeInKm.toFixed(2) + ' km';
@@ -190,8 +266,8 @@
         if (impulse1Applied && elapsedTime - impulse1Time <= T1interval) {
             ctx.fillText('Impulse 1', canvas.width / 2 - 50, canvas.height / 2 + 5);
             drawArrow(
-                canvas.width / 2 + spacecraftX / SCALE,
-                canvas.height / 2 + spacecraftY / SCALE,
+                earthX + spacecraftX / SCALE, 
+                earthY + spacecraftY / SCALE, 
                 deltaV1*vx / speed / 10,
                 deltaV1*vy / speed / 10
             );
@@ -201,8 +277,8 @@
         if (impulse2Applied && elapsedTime - impulse2Time <= T2interval) {
             ctx.fillText('Impulse 2', canvas.width / 2 - 50, canvas.height / 2 + 5);
             drawArrow(
-                canvas.width / 2 + spacecraftX / SCALE,
-                canvas.height / 2 + spacecraftY / SCALE,
+                earthX + spacecraftX / SCALE, 
+                earthY + spacecraftY / SCALE, 
                 deltaV2*vx / speed / 10,
                 deltaV2*vy / speed / 10
             );
@@ -212,37 +288,51 @@
         if (impulse3Applied && elapsedTime - impulse3Time <= T3interval) {
             ctx.fillText('Impulse 3', canvas.width / 2 - 50, canvas.height / 2 + 5);
             drawArrow(
-                canvas.width / 2 + spacecraftX / SCALE,
-                canvas.height / 2 + spacecraftY / SCALE,
+                earthX + spacecraftX / SCALE, 
+                earthY + spacecraftY / SCALE, 
                 deltaV3*vx / speed / 10,
                 deltaV3*vy / speed / 10
             );
         }
     }
+   
 
-    // Function to draw an arrow
-    function drawArrow(x, y, dx, dy) {
+    // Function to draw an arrow with minimum length plus a scaled additional length and customizable color
+    function drawArrow(x, y, dx, dy, color = 'yellow') {
+        const baseLength = 15; // Minimum length for the arrow
+        const scaleFactor = 4; // Scale factor for additional length
+
+        // Calculate the dynamic length based on the input
+        const additionalLength = Math.sqrt(dx * dx + dy * dy) * scaleFactor;
+        const arrowLength = baseLength + additionalLength;
+
         const angle = Math.atan2(dy, dx);
-        const length = Math.sqrt(dx * dx + dy * dy);
-        const arrowSize = 20;
+        const arrowSize = 10; // Size for the arrowhead
 
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x + dx, y + dy);
-        ctx.strokeStyle = 'yellow';
+        ctx.lineTo(x + arrowLength * Math.cos(angle), y + arrowLength * Math.sin(angle));
+        ctx.strokeStyle = color; // Set arrow color to the input color
         ctx.lineWidth = 3;
         ctx.stroke();
 
+        // Draw the arrowhead
         ctx.beginPath();
-        ctx.moveTo(x + dx, y + dy);
-        ctx.lineTo(x + dx - arrowSize * Math.cos(angle - Math.PI / 6),
-                   y + dy - arrowSize * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(x + dx - arrowSize * Math.cos(angle + Math.PI / 6),
-                   y + dy - arrowSize * Math.sin(angle + Math.PI / 6));
+        ctx.moveTo(x + arrowLength * Math.cos(angle), y + arrowLength * Math.sin(angle));
+        ctx.lineTo(
+            x + arrowLength * Math.cos(angle) - arrowSize * Math.cos(angle - Math.PI / 6),
+            y + arrowLength * Math.sin(angle) - arrowSize * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+            x + arrowLength * Math.cos(angle) - arrowSize * Math.cos(angle + Math.PI / 6),
+            y + arrowLength * Math.sin(angle) - arrowSize * Math.sin(angle + Math.PI / 6)
+        );
         ctx.closePath();
-        ctx.fillStyle = 'yellow';
+        ctx.fillStyle = color; // Set arrowhead color to the input color
         ctx.fill();
     }
+
+
 
     // Start the simulation
     function startSimulation() {
@@ -250,7 +340,6 @@
         setInterval(updateOrbit, 1000 / 60); // 60 FPS
     }
 
-    
     // Start the simulation after the page loads
     window.onload = startSimulation;
 </script>
