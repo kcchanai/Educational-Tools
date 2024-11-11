@@ -13,10 +13,55 @@
         canvas {
             display: block;
         }
+        #deltaVSlider {
+    position: fixed;
+    bottom: 10px; /* Position 10px from the bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    color: white;
+    }
+
+    #sliderValue {
+        position: fixed;
+        bottom: 40px; /* Position below the slider */
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 16px;
+    }
+
+    #applyImpulseButton {
+        position: fixed;
+        bottom: 70px; /* Position below the slider value */
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    #applyImpulseButton:hover {
+        background-color: #0056b3;
+    }
+
     </style>
 </head>
 <body>
 <canvas id="orbitCanvas"></canvas>
+
+<!-- Slider to control deltaV -->
+<div id="deltaVSlider">
+    <label for="deltaV">deltaV: </label>
+    <input type="range" id="deltaV" min="-1000" max="1000" value="10">
+</div>
+
+<div id="sliderValue">deltaV: 10 m/s</div>
+
+<!-- Button to apply the impulse -->
+<button id="applyImpulseButton">Apply Impulse</button>
 
 <script>
     const canvas = document.getElementById('orbitCanvas');
@@ -30,20 +75,14 @@
     const G = 6.67430e-11; // Gravitational constant (m^3⋅kg^−1⋅s^−2)
     const M = 5.972e24; // Mass of the Earth (kg)
     const EARTH_RADIUS = 6371000; // Earth's radius in meters
-    const SCALE = 5E4; // Scale to make the animation visually manageable
-    
-    const deltaV1 = 1500; // Impulsive change in velocity (m/s)
-    const T1 = 10300; // Time when deltaV1 is applied
-    const T1interval = 1000; // How long to display the indicator
+    const SCALE = 1E5; // Scale to make the animation visually manageable
+
+    let deltaV = 10; // Impulsive change in velocity (m/s) - set initial value
     const deltaV2 = 1000; // Impulsive change in velocity (m/s)
-    const T2 = 44500; // Time when deltaV2 is applied
-    const T2interval = 1000; // How long to display the indicator
     const deltaV3 = -1000; // Impulsive change in velocity for third impulse (m/s)
-    const T3 = 87000; // Time when deltaV3 is applied
-    const T3interval = 1000; // How long to display the third impulse indicator
 
     // Initial conditions for the spacecraft (Low Earth Orbit)
-    const altitude = 700000; // 700 km altitude for LEO (meters)
+    const altitude = 500000; // altitude (meters)
     let r = EARTH_RADIUS + altitude; // Initial distance from the center of the Earth (meters)
     
     // Calculate the initial tangential velocity for circular orbit at LEO
@@ -87,21 +126,21 @@
 
     // Update function for numerical integration
     function updateOrbit() {
-        // Apply first impulsive velocity change at time T1 seconds (only once)
-        if (elapsedTime >= T1 && elapsedTime < T1 + dt && !impulse1Applied) {
+        // Apply first impulsive velocity change when the user presses the button
+        if (!impulse1Applied && impulse1Time > 0) {
             let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
             let unitVectorX = vx / velocityMagnitude;
             let unitVectorY = vy / velocityMagnitude;
 
-            vx += deltaV1 * unitVectorX;
-            vy += deltaV1 * unitVectorY;
+            vx += deltaV * unitVectorX;
+            vy += deltaV * unitVectorY;
 
             impulse1Applied = true;
             impulse1Time = elapsedTime;
         }
 
-        // Apply second impulsive velocity change at time T2 seconds (only once)
-        if (elapsedTime >= T2 && elapsedTime < T2 + dt && !impulse2Applied) {
+        // Apply second impulsive velocity change (for testing)
+        if (!impulse2Applied) {
             let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
             let unitVectorX = vx / velocityMagnitude;
             let unitVectorY = vy / velocityMagnitude;
@@ -113,8 +152,8 @@
             impulse2Time = elapsedTime;
         }
 
-        // Apply third impulsive velocity change at time T3 seconds (only once)
-        if (elapsedTime >= T3 && elapsedTime < T3 + dt && !impulse3Applied) {
+        // Apply third impulsive velocity change (for testing)
+        if (!impulse3Applied) {
             let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
             let unitVectorX = vx / velocityMagnitude;
             let unitVectorY = vy / velocityMagnitude;
@@ -153,7 +192,7 @@
 
         // Draw the Earth
         ctx.beginPath();
-        ctx.arc(canvas.width / 2, canvas.height / 2, EARTH_RADIUS / SCALE, 0, 2 * Math.PI);
+        ctx.arc(canvas.width / 2, canvas.height / 2, EARTH_RADIUS / SCALE*0.5, 0, 2 * Math.PI);
         ctx.fillStyle = 'blue';
         ctx.fill();
 
@@ -172,87 +211,67 @@
 
         ctx.fillText(timeText, (canvas.width - textWidth) / 2, 40);
 
-
-        // Display the raw time in seconds (for debugging)
-        const timeInSecondsText = 'Time (seconds): ' + elapsedTime.toFixed(0);
-        const timeInSecondsTextWidth = ctx.measureText(timeInSecondsText).width;
-        ctx.fillText(timeInSecondsText, (canvas.width - timeInSecondsTextWidth) / 2, 100);
-
-
         // Display the altitude (distance above Earth's surface in km) centered at the top
         const altitudeText = 'Altitude: ' + altitudeInKm.toFixed(2) + ' km';
         const altitudeTextWidth = ctx.measureText(altitudeText).width;
         ctx.fillText(altitudeText, (canvas.width - altitudeTextWidth) / 2, 70);
 
         let speed = Math.sqrt(vx * vx + vy * vy);
-        
+
         // Display "Impulse" text and arrow for the first impulse
-        if (impulse1Applied && elapsedTime - impulse1Time <= T1interval) {
-            ctx.fillText('Impulse 1', canvas.width / 2 - 50, canvas.height / 2 + 5);
+        if (impulse1Applied && elapsedTime - impulse1Time <= 1000) {
+//            ctx.fillText('Impulse 1', canvas.width / 2 - 50, canvas.height / 2 + 5);
             drawArrow(
                 canvas.width / 2 + spacecraftX / SCALE,
                 canvas.height / 2 + spacecraftY / SCALE,
-                deltaV1*vx / speed / 10,
-                deltaV1*vy / speed / 10
+                deltaV*vx / speed / 10,
+                deltaV*vy / speed / 10
             );
         }
 
-        // Display "Impulse" text and arrow for the second impulse
-        if (impulse2Applied && elapsedTime - impulse2Time <= T2interval) {
-            ctx.fillText('Impulse 2', canvas.width / 2 - 50, canvas.height / 2 + 5);
-            drawArrow(
-                canvas.width / 2 + spacecraftX / SCALE,
-                canvas.height / 2 + spacecraftY / SCALE,
-                deltaV2*vx / speed / 10,
-                deltaV2*vy / speed / 10
-            );
-        }
-
-        // Display "Impulse" text and arrow for the third impulse
-        if (impulse3Applied && elapsedTime - impulse3Time <= T3interval) {
-            ctx.fillText('Impulse 3', canvas.width / 2 - 50, canvas.height / 2 + 5);
-            drawArrow(
-                canvas.width / 2 + spacecraftX / SCALE,
-                canvas.height / 2 + spacecraftY / SCALE,
-                deltaV3*vx / speed / 10,
-                deltaV3*vy / speed / 10
-            );
-        }
+        // Update the slider value display
+        document.getElementById('sliderValue').textContent = 'deltaV: ' + deltaV + ' m/s';
     }
 
     // Function to draw an arrow
     function drawArrow(x, y, dx, dy) {
+        const size = 10;
         const angle = Math.atan2(dy, dx);
-        const length = Math.sqrt(dx * dx + dy * dy);
-        const arrowSize = 20;
+        const arrowLength = 50 + 0.3*Math.sqrt(dx * dx + dy * dy);
 
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
         ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + dx, y + dy);
-        ctx.strokeStyle = 'yellow';
-        ctx.lineWidth = 3;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(arrowLength - size, 0);
+        ctx.lineTo(arrowLength - size * 2, -size / 2);
+        ctx.moveTo(arrowLength - size, 0);
+        ctx.lineTo(arrowLength - size * 2, size / 2);
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
         ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(x + dx, y + dy);
-        ctx.lineTo(x + dx - arrowSize * Math.cos(angle - Math.PI / 6),
-                   y + dy - arrowSize * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(x + dx - arrowSize * Math.cos(angle + Math.PI / 6),
-                   y + dy - arrowSize * Math.sin(angle + Math.PI / 6));
-        ctx.closePath();
-        ctx.fillStyle = 'yellow';
-        ctx.fill();
+        ctx.restore();
     }
 
-    // Start the simulation
-    function startSimulation() {
+    // Event listener for the apply impulse button
+    document.getElementById('applyImpulseButton').addEventListener('click', () => {
+        impulse1Time = elapsedTime;
+        impulse1Applied = false;
+    });
+
+    // Event listener for the deltaV slider to adjust the impulsive velocity change
+    document.getElementById('deltaV').addEventListener('input', (event) => {
+        deltaV = parseInt(event.target.value);
+    });
+
+    // Start the animation loop
+    function animate() {
         updateOrbit();
-        setInterval(updateOrbit, 1000 / 60); // 60 FPS
+        requestAnimationFrame(animate);
     }
 
-    
-    // Start the simulation after the page loads
-    window.onload = startSimulation;
+    animate();
 </script>
 </body>
 </html>
