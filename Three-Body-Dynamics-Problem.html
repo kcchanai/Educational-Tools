@@ -30,9 +30,9 @@
     const G = 6.67430e-11; // Gravitational constant (m^3⋅kg^−1⋅s^−2)
     const M = 5.972e24; // Mass of the Earth (kg)
     const EARTH_RADIUS = 6371000; // Earth's radius in meters
-    const SCALE = 1e5; // Scale to make the animation visually manageable
-    const deltaV1 = 1000; // Impulsive change in velocity (m/s)
-    const T1 = 3600; // Time that deltaV1 is applied
+    const SCALE = 5e4; // Scale to make the animation visually manageable
+    const deltaV1 = 2200; // Impulsive change in velocity (m/s)
+    const T1 = 10500; // Time that deltaV1 is applied
 
     // Initial conditions for the spacecraft (Low Earth Orbit)
     const altitude = 700000; // 700 km altitude for LEO (meters)
@@ -51,7 +51,7 @@
     let vy = v * Math.cos(angle);  // Velocity in the Y direction (positive for upward motion)
 
     // Time step for the numerical integration
-    const dt = 10; // seconds
+    const dt = 100; // seconds
 
     // Initialize elapsed simulation time
     let elapsedTime = 0; // Time in seconds
