@@ -30,14 +30,14 @@
     const G = 6.67430e-11; // Gravitational constant (m^3⋅kg^−1⋅s^−2)
     const M = 5.972e24; // Mass of the Earth (kg)
     const EARTH_RADIUS = 6371000; // Earth's radius in meters
-    const SCALE = 5e4; // Scale to make the animation visually manageable
+    const SCALE = 4E4; // Scale to make the animation visually manageable
     
     const deltaV1 = 1500; // Impulsive change in velocity (m/s)
     const T1 = 10300; // Time when deltaV1 is applied
-    const T1interval = 2000; // How long to display the indicator
+    const T1interval = 1000; // How long to display the indicator
     const deltaV2 = 800; // Impulsive change in velocity (m/s)
-    const T2 = 30300; // Time when deltaV2 is applied
-    const T2interval = 2000; // How long to display the indicator
+    const T2 = 30500; // Time when deltaV2 is applied
+    const T2interval = 1000; // How long to display the indicator
 
     // Initial conditions for the spacecraft (Low Earth Orbit)
     const altitude = 700000; // 700 km altitude for LEO (meters)
@@ -56,7 +56,7 @@
     let vy = v * Math.cos(angle);  // Velocity in the Y direction (positive for upward motion)
 
     // Time step for the numerical integration
-    const dt = 100; // seconds
+    const dt = 5; // seconds
 
     // Initialize elapsed simulation time
     let elapsedTime = 0; // Time in seconds
@@ -85,58 +85,45 @@
     function updateOrbit() {
         // Apply first impulsive velocity change at time T1 seconds (only once)
         if (elapsedTime >= T1 && elapsedTime < T1 + dt && !impulse1Applied) {
-            // Calculate the unit vector of the velocity
             let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
-            let unitVectorX = vx / velocityMagnitude;  // Unit vector in x-direction
-            let unitVectorY = vy / velocityMagnitude;  // Unit vector in y-direction
+            let unitVectorX = vx / velocityMagnitude;
+            let unitVectorY = vy / velocityMagnitude;
 
-            // Apply deltaV1 in the direction of the velocity
-            vx += deltaV1 * unitVectorX;  // Add impulsive velocity change in x-direction
-            vy += deltaV1 * unitVectorY;  // Add impulsive velocity change in y-direction
+            vx += deltaV1 * unitVectorX;
+            vy += deltaV1 * unitVectorY;
 
-            // Mark that the first impulse has been applied and record the time
             impulse1Applied = true;
             impulse1Time = elapsedTime;
         }
 
         // Apply second impulsive velocity change at time T2 seconds (only once)
         if (elapsedTime >= T2 && elapsedTime < T2 + dt && !impulse2Applied) {
-            // Calculate the unit vector of the velocity
             let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
-            let unitVectorX = vx / velocityMagnitude;  // Unit vector in x-direction
-            let unitVectorY = vy / velocityMagnitude;  // Unit vector in y-direction
+            let unitVectorX = vx / velocityMagnitude;
+            let unitVectorY = vy / velocityMagnitude;
 
-            // Apply deltaV2 in the direction of the velocity
-            vx += deltaV2 * unitVectorX;  // Add impulsive velocity change in x-direction
-            vy += deltaV2 * unitVectorY;  // Add impulsive velocity change in y-direction
+            vx += deltaV2 * unitVectorX;
+            vy += deltaV2 * unitVectorY;
 
-            // Mark that the second impulse has been applied and record the time
             impulse2Applied = true;
             impulse2Time = elapsedTime;
         }
 
-        // Calculate gravitational acceleration towards the center
         let acceleration = -G * M / (r * r); // Gravitational acceleration in m/s^2
 
-        // Compute the acceleration components in the X and Y directions
-        let ax = acceleration * (spacecraftX / r); // X component of acceleration
-        let ay = acceleration * (spacecraftY / r); // Y component of acceleration
+        let ax = acceleration * (spacecraftX / r);
+        let ay = acceleration * (spacecraftY / r);
 
-        // Update velocity (First-order ODE integration)
         vx += ax * dt;
         vy += ay * dt;
 
-        // Update position based on the new velocity
         spacecraftX += vx * dt;
         spacecraftY += vy * dt;
- 
-        // Update the distance from the center of the Earth
+
         r = Math.sqrt(spacecraftX * spacecraftX + spacecraftY * spacecraftY);
 
-        // Update elapsed time
         elapsedTime += dt;
 
-        // Draw the scene
         drawScene();
     }
 
@@ -144,9 +131,8 @@
     function drawScene() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Display the elapsed simulation time in seconds (for debugging)
-        const secondsText = 'Time: ' + elapsedTime.toFixed(0); // Display time in seconds
-        ctx.fillText(secondsText, (canvas.width - ctx.measureText(secondsText).width) / 2, 70);
+        // Convert distance to altitude in kilometers
+        const altitudeInKm = (r - EARTH_RADIUS) / 1000;
 
         // Draw the Earth
         ctx.beginPath();
@@ -164,12 +150,15 @@
         ctx.font = '24px Arial';
         ctx.fillStyle = 'white';
         
-        // Calculate the width of the text to center it
         const timeText = 'Elapsed Time: ' + formatTime(elapsedTime);
         const textWidth = ctx.measureText(timeText).width;
 
-        // Center the text
         ctx.fillText(timeText, (canvas.width - textWidth) / 2, 40);
+
+        // Display the altitude (distance above Earth's surface in km) centered at the top
+        const altitudeText = 'Altitude: ' + altitudeInKm.toFixed(2) + ' km';
+        const altitudeTextWidth = ctx.measureText(altitudeText).width;
+        ctx.fillText(altitudeText, (canvas.width - altitudeTextWidth) / 2, 70);
 
         // Display "Impulse" text and arrow for the first impulse
         if (impulse1Applied && elapsedTime - impulse1Time <= T1interval) {
@@ -177,8 +166,8 @@
             drawArrow(
                 canvas.width / 2 + spacecraftX / SCALE,
                 canvas.height / 2 + spacecraftY / SCALE,
-                vx / 10, // Scale the velocity for the arrow length
-                vy / 10  // Scale the velocity for the arrow length
+                vx / 10,
+                vy / 10
             );
         }
 
@@ -188,12 +177,11 @@
             drawArrow(
                 canvas.width / 2 + spacecraftX / SCALE,
                 canvas.height / 2 + spacecraftY / SCALE,
-                vx / 10, // Scale the velocity for the arrow length
-                vy / 10  // Scale the velocity for the arrow length
+                vx / 10,
+                vy / 10
             );
         }
     }
-
 
     // Function to draw an arrow
     function drawArrow(x, y, dx, dy) {
@@ -207,7 +195,6 @@
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Draw arrowhead
         const arrowHeadLength = 10;
         ctx.beginPath();
         ctx.moveTo(x + arrowLength * Math.cos(angle), y + arrowLength * Math.sin(angle));
@@ -223,7 +210,6 @@
         setInterval(updateOrbit, dt);
     }
 
-    // Start the animation
     startSimulation();
 </script>
 </body>
