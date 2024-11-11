@@ -31,22 +31,49 @@
         font-size: 16px;
     }
 
-    #applyImpulseButton {
-        position: fixed;
-        bottom: 70px; /* Position below the slider value */
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 10px;
-        background-color: #007BFF;
-        color: white;
-        border: none;
-        cursor: pointer;
-    }
 
-    #applyImpulseButton:hover {
+    #impulseButton {
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+    #impulseButton:hover {
         background-color: #0056b3;
     }
 
+    /* Styling for the reset button */
+    #resetButton {
+        padding: 12px 20px;
+        background-color: #FF5733; /* Red color */
+        color: white;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    #resetButton:hover {
+        background-color: #C70039; /* Darker red on hover */
+    }
+
+    /* Container for buttons */
+    .button-container {
+        position: fixed;
+        bottom: 70px; /* Position both buttons above the slider */
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex; /* Align buttons horizontally */
+        gap: 10px; /* Add space between buttons */
+    }
+
+    /* Optional: Style the buttons */
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
     </style>
 </head>
 <body>
@@ -60,8 +87,10 @@
 
 <div id="sliderValue">deltaV: 10 m/s</div>
 
-<!-- Button to apply the impulse -->
-<button id="applyImpulseButton">Apply Impulse</button>
+<div class="button-container">
+    <button id="impulseButton">Apply Impulse</button>
+    <button id="resetButton">Reset Simulation</button>
+</div>
 
 <script>
     const canvas = document.getElementById('orbitCanvas');
@@ -139,32 +168,6 @@
             impulse1Time = elapsedTime;
         }
 
-        // Apply second impulsive velocity change (for testing)
-        if (!impulse2Applied) {
-            let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
-            let unitVectorX = vx / velocityMagnitude;
-            let unitVectorY = vy / velocityMagnitude;
-
-            vx += deltaV2 * unitVectorX;
-            vy += deltaV2 * unitVectorY;
-
-            impulse2Applied = true;
-            impulse2Time = elapsedTime;
-        }
-
-        // Apply third impulsive velocity change (for testing)
-        if (!impulse3Applied) {
-            let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
-            let unitVectorX = vx / velocityMagnitude;
-            let unitVectorY = vy / velocityMagnitude;
-
-            vx += deltaV3 * unitVectorX;
-            vy += deltaV3 * unitVectorY;
-
-            impulse3Applied = true;
-            impulse3Time = elapsedTime;
-        }
-
         let acceleration = -G * M / (r * r); // Gravitational acceleration in m/s^2
 
         let ax = acceleration * (spacecraftX / r);
@@ -218,7 +221,7 @@
 
         let speed = Math.sqrt(vx * vx + vy * vy);
 
-        // Display "Impulse" text and arrow for the first impulse
+        // Display "Impulse" text and arrow for the impulse
         if (impulse1Applied && elapsedTime - impulse1Time <= 1000) {
 //            ctx.fillText('Impulse 1', canvas.width / 2 - 50, canvas.height / 2 + 5);
             drawArrow(
@@ -254,8 +257,43 @@
         ctx.restore();
     }
 
+    // Example function to reset the simulation
+    function resetSimulation() {
+        // Reset the spacecraft's initial conditions
+        r = EARTH_RADIUS + altitude; // Reset distance to the center of the Earth
+        v = -Math.sqrt(G * M / r); // Reset orbital velocity
+        angle = -Math.PI / 2; // Reset angle (directly above the Earth)
+        spacecraftX = r * Math.cos(angle); // Reset X position
+        spacecraftY = r * Math.sin(angle); // Reset Y position
+
+        // Reset velocity components
+        vx = -v * Math.sin(angle); // Reset velocity in the X direction
+        vy = v * Math.cos(angle);  // Reset velocity in the Y direction
+
+        // Reset simulation time and elapsed time
+        elapsedTime = 0;
+
+        // Reset impulse flags and times
+        impulse1Applied = false;
+        impulse1Time = 0;
+
+        // Reset deltaV slider
+        deltaV = 10;
+        document.getElementById('deltaV').value = deltaV;
+
+        // Update the slider value display
+        document.getElementById('sliderValue').textContent = 'deltaV: ' + deltaV + ' m/s';
+
+        // Clear the canvas and redraw the initial scene
+        drawScene();
+
+    }
+
+    // Attach event listener to the reset button
+    document.getElementById('resetButton').addEventListener('click', resetSimulation);
+
     // Event listener for the apply impulse button
-    document.getElementById('applyImpulseButton').addEventListener('click', () => {
+    document.getElementById('impulseButton').addEventListener('click', () => {
         impulse1Time = elapsedTime;
         impulse1Applied = false;
     });
