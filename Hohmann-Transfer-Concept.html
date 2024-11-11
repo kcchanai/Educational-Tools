@@ -53,8 +53,8 @@
   <div class="controls">
     <button id="pauseButton">Pause</button>
     <button id="resetButton">Reset</button>
-    <input type="range" id="speedSlider" min="0.1" max="3" value="0.2", step="0.01">
-    <label for="speedSlider">Simulation Speed</label>
+    <input type="range" id="velocitySlider" min="6.28" max="8" value="6.28" step="0.02">
+    <label for="velocitySlider">Initial Velocity (AU/yr)</label>
   </div>
   <canvas id="canvas"></canvas>
 
@@ -72,12 +72,12 @@
     const marsOrbitalPeriod = 1.881;
 
 //    const initialVelocity = 6.32; // AU/yr (30 km/s)
-    const initialVelocity = 6.72; // AU/yr (30 km/s)
+    let initialVelocity = parseFloat(document.getElementById('velocitySlider').value);
 
     const startDate = new Date('2022-12-08'); 
     let launchDay = new Date('2022-12-09'); // launch day
 
-    let speed = 0.2; 
+    let speed = 1; 
     let currentDate = new Date(startDate);
 
     let yellowLineData = null; // Store the yellow line data
@@ -227,10 +227,6 @@
       requestAnimationFrame(startAnimation);
     }
 
-    document.getElementById('speedSlider').addEventListener('input', (e) => {
-      speed = e.target.value;
-    });
-
     document.getElementById('pauseButton').addEventListener('click', () => {
       isPaused = !isPaused;
       document.getElementById('pauseButton').textContent = isPaused ? 'Play' : 'Pause';
@@ -251,6 +247,14 @@
 
       // Redraw the initial state
       drawSolarSystem();
+    });
+
+    document.getElementById('velocitySlider').addEventListener('input', (e) => {
+        initialVelocity = parseFloat(e.target.value);
+        // Reset ellipse and yellow line data to recalculate with new velocity
+        yellowLineData = null;
+        ellipseData = null;
+        drawSolarSystem(); // Redraw with updated initial velocity
     });
 
     startAnimation();
