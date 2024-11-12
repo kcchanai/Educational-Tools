@@ -13,40 +13,44 @@
         canvas {
             display: block;
         }
-        #deltaVSlider {
-    position: fixed;
-    bottom: 10px; /* Position 10px from the bottom */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    color: white;
-    }
 
-    #sliderValue {
+        #deltaVSlider {
         position: fixed;
-        bottom: 40px; /* Position below the slider */
+        bottom: 35px; /* Position 10px from the bottom */
         left: 50%;
         transform: translateX(-50%);
+        z-index: 10;
         color: white;
-        font-size: 16px;
-    }
-
-
-    #impulseButton {
-            padding: 10px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            cursor: pointer;
         }
 
-    #impulseButton:hover {
-        background-color: #0056b3;
-    }
+        #deltaVSlider input {
+        width: 240px;
+        }
+
+        #sliderValue {
+            position: fixed;
+            bottom: 55px; /* Position below the slider */
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 16px;
+        }
+
+        #impulseButton {
+                padding: 10px;
+                background-color: #007BFF;
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
+
+        #impulseButton:hover {
+            background-color: #0056b3;
+        }
 
     /* Styling for the reset button */
     #resetButton {
-        padding: 12px 20px;
+        padding: 10px 20px;
         background-color: #FF5733; /* Red color */
         color: white;
         border: none;
@@ -58,14 +62,38 @@
         background-color: #C70039; /* Darker red on hover */
     }
 
+    #speedSlider {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: fixed;
+    bottom: 10px; /* Position 10px from the bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    color: white;
+    }
+
+    #speedSlider label {
+    margin-right: 7px;      /* Space between label and slider */
+    margin-bottom: 2px;    /* Move the label up slightly */
+    display: block;          /* Ensure label is on its own line above the slider */
+    transform: translateX(0px); /* Fine-tune the vertical position if necessary */
+    transform: translateY(0px); /* Fine-tune the vertical position if necessary */
+    }   
+
+    #speedSlider input {
+        width: 120px;
+    }
+
     /* Container for buttons */
     .button-container {
         position: fixed;
-        bottom: 70px; /* Position both buttons above the slider */
+        bottom: 85px; /* Position both buttons above the slider */
         left: 50%;
         transform: translateX(-50%);
         display: flex; /* Align buttons horizontally */
-        gap: 10px; /* Add space between buttons */
+        gap: 20px; /* Add space between buttons */
     }
 
     /* Optional: Style the buttons */
@@ -81,11 +109,17 @@
 
 <!-- Slider to control deltaV -->
 <div id="deltaVSlider">
-    <label for="deltaV">deltaV: </label>
-    <input type="range" id="deltaV" min="-1000" max="1000" value="10">
+    <label for="deltaV"> </label>
+    <input type="range" id="deltaV" min="-5000" max="5000" value="100" step="100">
 </div>
 
-<div id="sliderValue">deltaV: 10 m/s</div>
+<div id="sliderValue">deltaV: 100 m/s</div>
+
+<!-- Slider to control simulation speed -->
+<div id="speedSlider">
+    <label for="speed">Simulation speed: </label>
+    <input type="range" id="speed" min="1" max="10" value="1" step="1">
+</div>
 
 <div class="button-container">
     <button id="impulseButton">Apply Impulse</button>
@@ -102,21 +136,24 @@
 
     // Constants
     const G = 6.67430e-11; // Gravitational constant (m^3⋅kg^−1⋅s^−2)
-    const M = 5.972e24; // Mass of the Earth (kg)
-    const EARTH_RADIUS = 6371000; // Earth's radius in meters
-    const SCALE = 1E5; // Scale to make the animation visually manageable
+    const M = 1.989e30; // Mass of the Sun (kg)
+    const SUN_RADIUS = 696340000; // Sun's radius in meters
+    const EARTH_ORBIT_RADIUS = 149.6e9;
+    const MARS_ORBIT_RADIUS = 227.9e9;
+    
+    const SCALE = 7E8; // Scale to make the animation visually manageable
 
-    let deltaV = 10; // Impulsive change in velocity (m/s) - set initial value
+    let deltaV = 100; // Impulsive change in velocity (m/s) - set initial value
 
-    // Initial conditions for the spacecraft (Low Earth Orbit)
-    const altitude = 500000; // altitude (meters)
-    let r = EARTH_RADIUS + altitude; // Initial distance from the center of the Earth (meters)
+    // Initial conditions for the spacecraft
+    const altitude = 149.6e9; // altitude (meters)
+    let r = SUN_RADIUS + altitude; // Initial distance from the center of the Sun (meters)
     
     // Calculate the initial tangential velocity for circular orbit at LEO
     let v = -Math.sqrt(G * M / r); // Orbital velocity in m/s
     
     // Initial angle and position of spacecraft
-    let angle = -Math.PI / 2; // Start directly above the Earth (90 degrees)
+    let angle = - Math.PI / 2; // Initial angular position
     let spacecraftX = r * Math.cos(angle);
     let spacecraftY = r * Math.sin(angle);
 
@@ -125,7 +162,8 @@
     let vy = v * Math.cos(angle);  // Velocity in the Y direction (positive for upward motion)
 
     // Time step for the numerical integration
-    const dt = 50; // seconds
+    const dt = 1e4; // seconds
+    let speed = 1; // Speed multiplier for simulation
 
     // Initialize elapsed simulation time
     let elapsedTime = 0; // Time in seconds
@@ -140,19 +178,20 @@
     let impulse2Time = 0;
     let impulse3Time = 0;
 
-    // Function to convert elapsed time to hours:minutes:seconds
     function formatTime(seconds) {
-        let hours = Math.floor(seconds / 3600);
+        let days = Math.floor(seconds / 86400);
+        let hours = Math.floor((seconds % 86400) / 3600);
         let minutes = Math.floor((seconds % 3600) / 60);
-        let secondsLeft = seconds % 60;
+        let secondsLeft = Math.floor(seconds % 60);
 
-        return hours.toString().padStart(2, '0') + ':' +
-               minutes.toString().padStart(2, '0') + ':' +
-               secondsLeft.toFixed(0).padStart(2, '0');
+        return days + ' days';
     }
 
     // Update function for numerical integration
+    // Update function for numerical integration
     function updateOrbit() {
+        let adjustedDt = dt * speed; // Adjust dt based on the speed multiplier
+
         // Apply first impulsive velocity change when the user presses the button
         if (!impulse1Applied && impulse1Time > 0) {
             let velocityMagnitude = Math.sqrt(vx * vx + vy * vy);
@@ -171,36 +210,61 @@
         let ax = acceleration * (spacecraftX / r);
         let ay = acceleration * (spacecraftY / r);
 
-        vx += ax * dt;
-        vy += ay * dt;
+        vx += ax * adjustedDt;
+        vy += ay * adjustedDt;
 
-        spacecraftX += vx * dt;
-        spacecraftY += vy * dt;
+        spacecraftX += vx * adjustedDt;
+        spacecraftY += vy * adjustedDt;
 
         r = Math.sqrt(spacecraftX * spacecraftX + spacecraftY * spacecraftY);
 
-        elapsedTime += dt;
+        elapsedTime += adjustedDt;
 
         drawScene();
     }
 
-    // Function to draw the Earth, spacecraft, elapsed time, and the velocity arrow
+    // Event listener for the speed slider to adjust the simulation speed
+    document.getElementById('speed').addEventListener('input', (event) => {
+        speed = parseInt(event.target.value);
+    });
+
+    // Function to draw the Sun, spacecraft, elapsed time, and the velocity arrow
     function drawScene() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Convert distance to altitude in kilometers
-        const altitudeInKm = (r - EARTH_RADIUS) / 1000;
+        const altitudeInKm = (r - SUN_RADIUS) / 1000;
 
-        // Draw the Earth
+        // Draw the Sun
         ctx.beginPath();
-        ctx.arc(canvas.width / 2, canvas.height / 2, EARTH_RADIUS / SCALE*0.5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'blue';
+        ctx.arc(canvas.width / 2, canvas.height / 2, SUN_RADIUS / SCALE*30, 0, 2 * Math.PI);
+        ctx.fillStyle = 'orange';
         ctx.fill();
+
+        // Draw Mars
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2 - (MARS_ORBIT_RADIUS / SCALE), canvas.height / 2, SUN_RADIUS / SCALE*10, 0, 2 * Math.PI);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+
+        // Draw Earth's orbit (blue circle)
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, EARTH_ORBIT_RADIUS / SCALE, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw Mars's orbit (red circle)
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, MARS_ORBIT_RADIUS / SCALE, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 1;
+        ctx.stroke();
 
         // Draw the spacecraft
         ctx.beginPath();
         ctx.arc(canvas.width / 2 + spacecraftX / SCALE, canvas.height / 2 + spacecraftY / SCALE, 10, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = 'white';
         ctx.fill();
 
         // Display the elapsed simulation time (formatted as HH:MM:SS)
@@ -212,15 +276,15 @@
 
         ctx.fillText(timeText, (canvas.width - textWidth) / 2, 40);
 
-        // Display the altitude (distance above Earth's surface in km) centered at the top
-        const altitudeText = 'Altitude: ' + altitudeInKm.toFixed(2) + ' km';
-        const altitudeTextWidth = ctx.measureText(altitudeText).width;
-        ctx.fillText(altitudeText, (canvas.width - altitudeTextWidth) / 2, 70);
+        // Display the altitude (distance above Sun's surface in km) centered at the top
+//        const altitudeText = 'Altitude: ' + altitudeInKm.toFixed(2) + ' km';
+//        const altitudeTextWidth = ctx.measureText(altitudeText).width;
+//        ctx.fillText(altitudeText, (canvas.width - altitudeTextWidth) / 2, 70);
 
         let speed = Math.sqrt(vx * vx + vy * vy);
 
         // Display "Impulse" text and arrow for the impulse
-        if (impulse1Applied && elapsedTime - impulse1Time <= 1000) {
+        if (impulse1Applied && elapsedTime - impulse1Time <= dt*50) {
 //            ctx.fillText('Impulse 1', canvas.width / 2 - 50, canvas.height / 2 + 5);
             drawArrow(
                 canvas.width / 2 + spacecraftX / SCALE,
@@ -238,7 +302,7 @@
     function drawArrow(x, y, dx, dy) {
         const size = 10;
         const angle = Math.atan2(dy, dx);
-        const arrowLength = 50 + 0.3*Math.sqrt(dx * dx + dy * dy);
+        const arrowLength = 40 + 0.2*Math.sqrt(dx * dx + dy * dy);
 
         ctx.save();
         ctx.translate(x, y);
@@ -249,7 +313,7 @@
         ctx.lineTo(arrowLength - size * 2, -size / 2);
         ctx.moveTo(arrowLength - size, 0);
         ctx.lineTo(arrowLength - size * 2, size / 2);
-        ctx.strokeStyle = 'white';
+        ctx.strokeStyle = 'yellow';
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.restore();
@@ -258,9 +322,9 @@
     // Example function to reset the simulation
     function resetSimulation() {
         // Reset the spacecraft's initial conditions
-        r = EARTH_RADIUS + altitude; // Reset distance to the center of the Earth
+        r = SUN_RADIUS + altitude; // Reset distance to the center of the Sun
         v = -Math.sqrt(G * M / r); // Reset orbital velocity
-        angle = -Math.PI / 2; // Reset angle (directly above the Earth)
+        angle = - Math.PI / 2; // Reset angle
         spacecraftX = r * Math.cos(angle); // Reset X position
         spacecraftY = r * Math.sin(angle); // Reset Y position
 
@@ -276,10 +340,17 @@
         impulse1Time = 0;
 
         // Reset deltaV slider
-        deltaV = 10;
+        deltaV = 100;
         document.getElementById('deltaV').value = deltaV;
 
         // Update the slider value display
+        document.getElementById('sliderValue').textContent = 'deltaV: ' + deltaV + ' m/s';
+
+        // Reset speed slider to default value (1)
+        speed = 1;
+        document.getElementById('speed').value = speed;
+
+        // Update the slider value display for deltaV
         document.getElementById('sliderValue').textContent = 'deltaV: ' + deltaV + ' m/s';
 
         // Clear the canvas and redraw the initial scene
