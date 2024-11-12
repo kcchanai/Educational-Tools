@@ -105,6 +105,7 @@
     </style>
 </head>
 <body>
+    
 <canvas id="orbitCanvas"></canvas>
 
 <!-- Slider to control deltaV -->
@@ -232,6 +233,13 @@
     function drawScene() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Draw the title at the top of the canvas
+        ctx.font = '24px Arial';
+        ctx.fillStyle = 'white';
+        const titleText = 'Hohmann Transfer Practice';
+        const titleTextWidth = ctx.measureText(titleText).width;
+        ctx.fillText(titleText, (canvas.width - titleTextWidth) / 2, 40);
+
         // Convert distance to altitude in kilometers
         const altitudeInKm = (r - SUN_RADIUS) / 1000;
 
@@ -263,18 +271,16 @@
 
         // Draw the spacecraft
         ctx.beginPath();
-        ctx.arc(canvas.width / 2 + spacecraftX / SCALE, canvas.height / 2 + spacecraftY / SCALE, 10, 0, 2 * Math.PI);
+        ctx.arc(canvas.width / 2 + spacecraftX / SCALE, canvas.height / 2 + spacecraftY / SCALE, 8, 0, 2 * Math.PI);
         ctx.fillStyle = 'white';
         ctx.fill();
 
         // Display the elapsed simulation time (formatted as HH:MM:SS)
-        ctx.font = '24px Arial';
-        ctx.fillStyle = 'white';
-        
+        ctx.font = '20px Arial';
+        ctx.fillStyle = 'white';      
         const timeText = 'Elapsed Time: ' + formatTime(elapsedTime);
         const textWidth = ctx.measureText(timeText).width;
-
-        ctx.fillText(timeText, (canvas.width - textWidth) / 2, 40);
+        ctx.fillText(timeText, (canvas.width - textWidth) / 2, 70);
 
         // Display the altitude (distance above Sun's surface in km) centered at the top
 //        const altitudeText = 'Altitude: ' + altitudeInKm.toFixed(2) + ' km';
