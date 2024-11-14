@@ -1,58 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Microplastic Concentrations in the Pacific</title>
+    <title>Map Locations from CSV</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
-    <div id="map" style="width: 100%; height: 600px;"></div>
+    <h2>Upload CSV to Map Locations</h2>
+    <input type="file" id="csvFile" accept=".csv">
+    <div id="map" style="width: 100%; height: 600px; margin-top: 20px;"></div>
 
     <script>
-        var map = L.map('map').setView([14.5, -170], 4);  // Centered on the Pacific
+        var map = L.map('map').setView([20.0, -160.0], 3);  // General center in the Pacific
 
         // Add a tile layer (background map)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Example: GeoJSON data for microplastic concentrations (replace with your actual data)
-        var microplasticData = {
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [-170.5, 14.5]
-                    },
-                    "properties": {
-                        "name": "Hawaii",
-                        "concentration": "High"
-                    }
-                },
-                {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [-172.5, -14.5]
-                    },
-                    "properties": {
-                        "name": "American Samoa",
-                        "concentration": "Medium"
+        // Function to handle the CSV file upload
+        document.getElementById('csvFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    for (const row of results.data) {
+                        const name = row['Name'];
+                        const latitude = parseFloat(row['Latitude']);
+                        const longitude = parseFloat(row['Longitude']);
+
+                        // Check if latitude and longitude are valid numbers
+                        if (!isNaN(latitude) && !isNaN(longitude)) {
+                            L.marker([latitude, longitude]).addTo(map)
+                                .bindPopup(`<b>${name}</b><br>Latitude: ${latitude}, Longitude: ${longitude}`);
+                        }
                     }
                 }
-            ]
-        };
-
-        // Add GeoJSON layer to map
-        L.geoJSON(microplasticData, {
-            onEachFeature: function (feature, layer) {
-                layer.bindPopup('<b>' + feature.properties.name + '</b><br>Concentration: ' + feature.properties.concentration);
-            }
-        }).addTo(map);
+            });
+        });
     </script>
 </body>
 </html>
