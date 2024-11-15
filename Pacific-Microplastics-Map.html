@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    
     <style>
         .info.legend i {
             width: 20px;
@@ -36,6 +39,39 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
+        // Initialize the geocoder control (search bar)
+        var geocoder = L.Control.geocoder({
+            position: 'topleft'  // 'topleft', 'topright', 'bottomleft', or 'bottomright'
+        }).addTo(map);
+
+        // Intercept the geocode results and prevent the default marker placement
+        geocoder.on('markgeocode', function(e) {
+            var lat = e.geocode.center.lat;
+            var lng = e.geocode.center.lng;
+
+            // Normalize longitude to be within +/- 180 degrees of Hawaii (-158 deg long)
+            if (lng > 22) {
+                lng -= 360;
+            } else if (lng < -338) {
+                lng += 360;
+            }
+
+            // Remove any existing markers on the map to avoid multiple pins
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);  // Remove markers before adding the new one
+                }
+            });
+
+            // Set the map view to the geocoded location with normalized longitude
+            map.setView([lat, lng], 10);  // Adjust zoom level as needed
+
+            // Add a custom marker at the normalized location
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup(`Location: Latitude ${lat}, Longitude ${lng}`)
+                .openPopup();
+        });
 
         // Define colors for each microplastic type
         function getTypeColor(type) {
@@ -111,7 +147,9 @@
                                     color: color, // Set marker color based on predominant type
                                     fillColor: color,
                                     fillOpacity: 0.7,
-                                    radius: 8 // Adjust size as needed
+                                    radius: 8, // Adjust size as needed
+                                    pane: 'markerPane',  // Ensure markers are rendered in the correct pane
+                                    zIndexOffset: 1000  // Higher zIndex ensures markers are on top
                                 }).addTo(map)
                                 .bindPopup(
                                     `<b>${name}</b><br>
@@ -167,8 +205,10 @@
                             L.polygon(vertices, {
                                 color: color,
                                 fillColor: fillColor,
-                                fillOpacity: 0.5
-                            }).addTo(map).bindPopup(
+                                fillOpacity: 0.5,
+                                weight: 2
+                            }).addTo(map)
+                            .bindPopup(
                                 `<b>${name}</b><br>
                                 Cellulose acetate: ${celluloseAcetate}<br>
                                 Acrylic: ${acrylic}<br>
@@ -179,17 +219,15 @@
                     }
                 });
             })
-            .catch(error => console.error('Error fetching polygons from Google Sheet:', error));
+            .catch(error => console.error('Error fetching polygon data:', error));
 
-
-        // Add the legend to the map
-        addLegend();
-
-        // Function to navigate to a specific location on the map
-        function goToLocation(lat, lon, zoomLevel) {
-            map.setView([lat, lon], zoomLevel);
+        // Function to move to a specific location and zoom level
+        function goToLocation(lat, lng, zoom) {
+            map.setView([lat, lng], zoom);
         }
 
+        // Add the legend
+        addLegend();
     </script>
 </body>
 </html>
