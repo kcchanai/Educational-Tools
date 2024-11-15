@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Microplastics Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    
+    <style>
+        .info.legend i {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h2>Microplastics map: color code indicates the predominant type per location (click on locations for details)</h2>
+    
+    <!-- Buttons to navigate to specific locations -->
+    <div>
+        <button onclick="goToLocation(10, -165, 3)">Pacific Region</button>
+        <button onclick="goToLocation(20.6, -157.7, 8)">Hawaiian Islands</button>
+        <button onclick="goToLocation(21.482, -157.96, 11)">Oʻahu</button>
+        <button onclick="goToLocation(-14.30, -170.7, 12)">American Samoa</button>
+    </div>
+    
+    <div id="map" style="width: 100%; height: 720px; margin-top: 20px;"></div>
+
+    <script>
+        var map = L.map('map').setView([10, -165], 3);  // ([20.6, -157.9], 8)
+
+        // Add a tile layer (background map)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Initialize the geocoder control (search bar)
+        var geocoder = L.Control.geocoder({
+            position: 'topleft'  // 'topleft', 'topright', 'bottomleft', or 'bottomright'
+        }).addTo(map);
+
+        // Intercept the geocode results and prevent the default marker placement
+        geocoder.on('markgeocode', function(e) {
+            var lat = e.geocode.center.lat;
+            var lng = e.geocode.center.lng;
+
+            // Normalize longitude to be within +/- 180 degrees of Hawaii (-158 deg long)
+            if (lng > 22) {
+                lng -= 360;
+            } else if (lng < -338) {
+                lng += 360;
+            }
+
+            // Remove any existing markers on the map to avoid multiple pins
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);  // Remove markers before adding the new one
+                }
+            });
+
+            // Set the map view to the geocoded location with normalized longitude
+            map.setView([lat, lng], 10);  // Adjust zoom level as needed
+
+            // Add a custom marker at the normalized location
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup(`Location: Latitude ${lat}, Longitude ${lng}`)
+                .openPopup();
+        });
+
+        // Define colors for each microplastic type
+        function getTypeColor(type) {
+            return type === 'Total' ? 'red' :
+                type === 'Cellulose acetate' ? 'blue' :
+                type === 'Acrylic' ? 'green' :
+                type === 'Polypropylene' ? 'orange' :
+                type === 'Polycarbonate' ? 'purple' : 'gray';
+        }
+
+        // Function to add the microplastic legend
+        function addLegend() {
+            var legend = L.control({position: 'topright'});
+
+            legend.onAdd = function () {
+                var div = L.DomUtil.create('div', 'info legend');
+                var labels = ['<strong>Microplastic Types</strong>'];
+                var categories = [
+                    {name: 'Total', color: 'red'},
+                    {name: 'Cellulose acetate', color: 'blue'},
+                    {name: 'Acrylic', color: 'green'},
+                    {name: 'Polypropylene', color: 'orange'},
+                    {name: 'Polycarbonate', color: 'purple'}
+                ];
+
+                categories.forEach(function(category) {
+                    labels.push(
+                        '<i style="background:' + category.color + '"></i> ' + category.name
+                    );
+                });
+
+                div.innerHTML = labels.join('<br>');
+                return div;
+            };
+
+            legend.addTo(map);
+        }
+
+        // URL to the Google Sheet published as CSV
+        const googleSheetPOINTS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSu5Jn-bpovLOw-UrP7QhJx5fne1AQJXdBkRY4OZjguNuGBJBjZD5a7-gZ4ZV8NAIHqt22piR40zLP8/pub?gid=0&single=true&output=csv';
+
+        // Fetching and processing points data
+        fetch(googleSheetPOINTS)
+            .then(response => response.text())
+            .then(csvData => {
+                Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        results.data.forEach(row => {
+                            const name = row['Name'];
+                            const latitude = parseFloat(row['Latitude']);
+                            const longitude = parseFloat(row['Longitude']);
+
+                            // Microplastic data
+                            const total = parseFloat(row['Total']) || 0;
+                            const celluloseAcetate = parseFloat(row['Cellulose acetate']) || 0;
+                            const acrylic = parseFloat(row['Acrylic']) || 0;
+                            const polypropylene = parseFloat(row['Polypropylene']) || 0;
+                            const polycarbonate = parseFloat(row['Polycarbonate']) || 0;
+
+                            // Data array and labels for the chart
+                            const chartData = [total, celluloseAcetate, acrylic, polypropylene, polycarbonate];
+                            const chartLabels = ['Total', 'Cellulose acetate', 'Acrylic', 'Polypropylene', 'Polycarbonate'];
+
+                            // Determine the predominant type
+                            const values = {
+                                'Total': total,
+                                'Cellulose acetate': celluloseAcetate,
+                                'Acrylic': acrylic,
+                                'Polypropylene': polypropylene,
+                                'Polycarbonate': polycarbonate
+                            };
+                            const predominantType = Object.keys(values).reduce((a, b) => values[a] > values[b] ? a : b);
+                            const color = getTypeColor(predominantType);
+
+                            // Check if latitude and longitude are valid numbers
+                            if (!isNaN(latitude) && !isNaN(longitude)) {
+                                L.circleMarker([latitude, longitude], {
+                                    color: color, 
+                                    fillColor: color,
+                                    fillOpacity: 0.7,
+                                    radius: 8,
+                                    pane: 'markerPane', // Ensure markers are rendered in the correct pane
+                                    zIndexOffset: 1000  // Higher zIndex ensures markers are on top
+                                }).addTo(map)
+                                .bindPopup(
+                                    `<b>${name}</b><br>
+                                    <canvas id="chart-${latitude}-${longitude}" width="300" height="200"></canvas>`,
+                                    { maxWidth: 400 }
+                                )
+                                .on('popupopen', function() {
+                                    const ctx = document.getElementById(`chart-${latitude}-${longitude}`).getContext('2d');
+                                    new Chart(ctx, {
+                                        type: 'bar',
+                                        data: {
+                                            labels: chartLabels,
+                                            datasets: [{
+                                                label: 'Microplastic Amounts',
+                                                data: chartData,
+                                                backgroundColor: ['blue', 'green', 'orange', 'purple'],
+                                            }]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            plugins: {
+                                                legend: {
+                                                    display: false,
+                                                }
+                                            },
+                                            scales: {
+                                                x: {
+                                                    title: {
+                                                        display: true,
+                                                        text: 'Microplastic Types'
+                                                    }
+                                                },
+                                                y: {
+                                                    title: {
+                                                        display: true,
+                                                        text: 'Amount'
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching the Google Sheet:', error));
+
+        // Function to move to a specific location and zoom level
+        function goToLocation(lat, lng, zoom) {
+            map.setView([lat, lng], zoom);
+        }
+
+        // Add the legend
+        addLegend();
+    </script>
+</body>
+</html>
