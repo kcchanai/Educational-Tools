@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     
     <style>
         .info.legend i {
@@ -141,14 +140,19 @@
 
                             // Determine the predominant type
                             const values = {
-                                'Total': total,
                                 'Cellulose acetate': celluloseAcetate,
                                 'Acrylic': acrylic,
                                 'Polypropylene': polypropylene,
                                 'Polycarbonate': polycarbonate
                             };
-                            const predominantType = Object.keys(values).reduce((a, b) => values[a] > values[b] ? a : b);
+                            let predominantType = Object.keys(values).reduce((a, b) => values[a] > values[b] ? a : b);
+
+                            // If all values are zero, default to 'Total'
+                            if (Object.values(values).every(val => val === 0)) {
+                                predominantType = 'Total';
+                            }
                             const color = getTypeColor(predominantType);
+                            console.log('predominantType',predominantType);
 
                             // Check if latitude and longitude are valid numbers
                             if (!isNaN(latitude) && !isNaN(longitude)) {
@@ -172,9 +176,9 @@
                                         data: {
                                             labels: chartLabels,
                                             datasets: [{
-                                                label: 'Microplastic Amounts',
+                                                label: 'Qty',
                                                 data: chartData,
-                                                backgroundColor: ['blue', 'green', 'orange', 'purple'],
+                                                backgroundColor: ['red','blue', 'green', 'orange', 'purple'],
                                             }]
                                         },
                                         options: {
@@ -194,7 +198,7 @@
                                                 y: {
                                                     title: {
                                                         display: true,
-                                                        text: 'Amount'
+                                                        text: 'Particles per m^2'
                                                     }
                                                 }
                                             }
