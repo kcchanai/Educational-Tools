@@ -10,10 +10,18 @@
 </head>
 <body>
     <h2>Solar Design Workshop Participating Schools</h2>
+    
+    <!-- Buttons to navigate to specific locations -->
+    <div>
+        <button onclick="goToLocation(20.6, -157.9, 8)">Hawaiian Islands</button>
+        <button onclick="goToLocation(21.47, -157.99, 11)">Oʻahu</button>
+        <button onclick="goToLocation(-14.30, -170.7, 12)">American Samoa</button>
+    </div>
+    
     <div id="map" style="width: 100%; height: 800px; margin-top: 20px;"></div>
 
     <script>
-        var map = L.map('map').setView([20.6, -157.9], 8);  // General center in the Pacific
+        var map = L.map('map').setView([8, -165], 4);  // ([20.6, -157.9], 8)
 
         // Add a tile layer (background map)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -46,6 +54,11 @@
                 });
             })
             .catch(error => console.error('Error fetching the Google Sheet:', error));
+
+        // Function to navigate to a specific location on the map
+        function goToLocation(lat, lon, zoomLevel) {
+            map.setView([lat, lon], zoomLevel);
+        }
     </script>
 </body>
 </html>
