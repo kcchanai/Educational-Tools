@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        .info.legend i {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
     <h2>Map of Microplastics</h2>
@@ -29,11 +37,47 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // URL to the Google Sheet published as CSV
-        const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSIPgCG22KwxXOdbSK5V297IJGjF960lhe_JHVruylOj8IysqameTEtHt9eQsu-E4SZdYAEKwZG3gin/pub?gid=0&single=true&output=csv';
+        // Define colors for each microplastic type
+        function getTypeColor(type) {
+            return type === 'Cellulose acetate' ? 'blue' :
+                type === 'Acrylic' ? 'green' :
+                type === 'Polypropylene' ? 'orange' :
+                type === 'Polycarbonate' ? 'purple' : 'gray';
+        }
 
-        // Fetch and parse the CSV from the Google Sheet
-        fetch(googleSheetUrl)
+        // Function to add the microplastic legend
+        function addLegend() {
+            var legend = L.control({position: 'topright'});
+
+            legend.onAdd = function () {
+                var div = L.DomUtil.create('div', 'info legend');
+                var labels = ['<strong>Microplastic Types</strong>'];
+                var categories = [
+                    {name: 'Cellulose acetate', color: 'blue'},
+                    {name: 'Acrylic', color: 'green'},
+                    {name: 'Polypropylene', color: 'orange'},
+                    {name: 'Polycarbonate', color: 'purple'}
+                ];
+
+                categories.forEach(function(category) {
+                    labels.push(
+                        '<i style="background:' + category.color + '"></i> ' + category.name
+                    );
+                });
+
+                div.innerHTML = labels.join('<br>');
+                return div;
+            };
+
+            legend.addTo(map);
+        }
+
+        // URL to the Google Sheet published as CSV
+        const googleSheetPOINTS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSIPgCG22KwxXOdbSK5V297IJGjF960lhe_JHVruylOj8IysqameTEtHt9eQsu-E4SZdYAEKwZG3gin/pub?gid=0&single=true&output=csv';
+        const googleSheetPOLYGONS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSIPgCG22KwxXOdbSK5V297IJGjF960lhe_JHVruylOj8IysqameTEtHt9eQsu-E4SZdYAEKwZG3gin/pub?gid=1777769243&single=true&output=csv';
+
+        // Fetching and processing points data
+        fetch(googleSheetPOINTS)
             .then(response => response.text())
             .then(csvData => {
                 Papa.parse(csvData, {
@@ -45,10 +89,38 @@
                             const latitude = parseFloat(row['Latitude']);
                             const longitude = parseFloat(row['Longitude']);
 
+                            // Microplastic data
+                            const celluloseAcetate = parseFloat(row['Cellulose acetate']) || 0;
+                            const acrylic = parseFloat(row['Acrylic']) || 0;
+                            const polypropylene = parseFloat(row['Polypropylene']) || 0;
+                            const polycarbonate = parseFloat(row['Polycarbonate']) || 0;
+
+                            // Determine the predominant type
+                            const values = {
+                                'Cellulose acetate': celluloseAcetate,
+                                'Acrylic': acrylic,
+                                'Polypropylene': polypropylene,
+                                'Polycarbonate': polycarbonate
+                            };
+                            const predominantType = Object.keys(values).reduce((a, b) => values[a] > values[b] ? a : b);
+                            const color = getTypeColor(predominantType);
+
                             // Check if latitude and longitude are valid numbers
                             if (!isNaN(latitude) && !isNaN(longitude)) {
-                                L.marker([latitude, longitude]).addTo(map)
-                                    .bindPopup(`<b>${name}</b><br>Latitude: ${latitude}, Longitude: ${longitude}`);
+                                L.circleMarker([latitude, longitude], {
+                                    color: color, // Set marker color based on predominant type
+                                    fillColor: color,
+                                    fillOpacity: 0.7,
+                                    radius: 8 // Adjust size as needed
+                                }).addTo(map)
+                                .bindPopup(
+                                    `<b>${name}</b><br>
+                                    Predominant Type: ${predominantType}<br>
+                                    Cellulose acetate: ${celluloseAcetate}<br>
+                                    Acrylic: ${acrylic}<br>
+                                    Polypropylene: ${polypropylene}<br>
+                                    Polycarbonate: ${polycarbonate}`
+                                );
                             }
                         }
                     }
@@ -56,10 +128,58 @@
             })
             .catch(error => console.error('Error fetching the Google Sheet:', error));
 
+        fetch(googleSheetPOLYGONS)
+            .then(response => response.text())
+            .then(csvData => {
+                Papa.parse(csvData, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        results.data.forEach(row => {
+                            const name = row['Polygon Name'];
+                            const verticesStr = row['Vertices'];
+                            const color = row['Color'] || 'blue';
+                            const fillColor = row['Fill Color'] || 'lightblue';
+                            const fillOpacity = parseFloat(row['Fill Opacity']) || 0.5;
+
+                            // Microplastic data
+                            const celluloseAcetate = row['Cellulose acetate'] || 0;
+                            const acrylic = row['Acrylic'] || 0;
+                            const polypropylene = row['Polypropylene'] || 0;
+                            const polycarbonate = row['Polycarbonate'] || 0;
+
+                            // Parse vertices from the string
+                            const vertices = verticesStr.split(';').map(v => {
+                                const [lat, lon] = v.replace('[', '').replace(']', '').split(',').map(Number);
+                                return [lat, lon];
+                            });
+
+                            // Create the polygon
+                            L.polygon(vertices, {
+                                color: color,
+                                fillColor: fillColor,
+                                fillOpacity: fillOpacity
+                            }).addTo(map).bindPopup(
+                                `<b>${name}</b><br>
+                                Cellulose acetate: ${celluloseAcetate}<br>
+                                Acrylic: ${acrylic}<br>
+                                Polypropylene: ${polypropylene}<br>
+                                Polycarbonate: ${polycarbonate}`
+                            );
+                        });
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching polygons from Google Sheet:', error));
+
+        // Add the legend to the map
+        addLegend();
+
         // Function to navigate to a specific location on the map
         function goToLocation(lat, lon, zoomLevel) {
             map.setView([lat, lon], zoomLevel);
         }
+
     </script>
 </body>
 </html>
