@@ -166,7 +166,8 @@
                                 }).addTo(map)
                                 .bindPopup(
                                     `<b>${name}</b><br>
-                                    <canvas id="chart-${latitude}-${longitude}" width="300" height="200"></canvas>`,
+                                    <canvas id="chart-${latitude}-${longitude}" width="300" height="200"></canvas><br>
+                                    <small>${row['Notes'] || ' '}</small>`,
                                     { maxWidth: 400 }
                                 )
                                 .on('popupopen', function() {
@@ -198,7 +199,7 @@
                                                 y: {
                                                     title: {
                                                         display: true,
-                                                        text: 'Particles per m^2'
+                                                        text: 'Particles'
                                                     }
                                                 }
                                             }
