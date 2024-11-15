@@ -74,13 +74,10 @@
                 .openPopup();
         });
 
-        // Define colors for each microplastic type
-        function getTypeColor(type) {
-            return type === 'Total' ? 'red' :
-                type === 'Cellulose acetate' ? 'blue' :
-                type === 'Acrylic' ? 'green' :
-                type === 'Polypropylene' ? 'orange' :
-                type === 'Polycarbonate' ? 'purple' : 'gray';
+        // Define colors for sand and water sources
+        function getSourceColor(source) {
+            return source === 'sand' ? 'orange' : 
+                source === 'water' ? 'blue' : 'gray';
         }
 
         // Function to add the microplastic legend
@@ -89,13 +86,10 @@
 
             legend.onAdd = function () {
                 var div = L.DomUtil.create('div', 'info legend');
-                var labels = ['<strong>Microplastic Types</strong>'];
+                var labels = ['<strong>Source</strong>'];
                 var categories = [
-                    {name: 'Total', color: 'red'},
-                    {name: 'Cellulose acetate', color: 'blue'},
-                    {name: 'Acrylic', color: 'green'},
-                    {name: 'Polypropylene', color: 'orange'},
-                    {name: 'Polycarbonate', color: 'purple'}
+                    {name: 'Sand', color: 'orange'},
+                    {name: 'Water', color: 'blue'}
                 ];
 
                 categories.forEach(function(category) {
@@ -126,36 +120,12 @@
                             const name = row['Name'];
                             const latitude = parseFloat(row['Latitude']);
                             const longitude = parseFloat(row['Longitude']);
-
-                            // Microplastic data
-                            const total = parseFloat(row['Total']) || 0;
-                            const celluloseAcetate = parseFloat(row['Cellulose acetate']) || 0;
-                            const acrylic = parseFloat(row['Acrylic']) || 0;
-                            const polypropylene = parseFloat(row['Polypropylene']) || 0;
-                            const polycarbonate = parseFloat(row['Polycarbonate']) || 0;
-
-                            // Data array and labels for the chart
-                            const chartData = [total, celluloseAcetate, acrylic, polypropylene, polycarbonate];
-                            const chartLabels = ['Total', 'Cellulose acetate', 'Acrylic', 'Polypropylene', 'Polycarbonate'];
-
-                            // Determine the predominant type
-                            const values = {
-                                'Cellulose acetate': celluloseAcetate,
-                                'Acrylic': acrylic,
-                                'Polypropylene': polypropylene,
-                                'Polycarbonate': polycarbonate
-                            };
-                            let predominantType = Object.keys(values).reduce((a, b) => values[a] > values[b] ? a : b);
-
-                            // If all values are zero, default to 'Total'
-                            if (Object.values(values).every(val => val === 0)) {
-                                predominantType = 'Total';
-                            }
-                            const color = getTypeColor(predominantType);
-                            console.log('predominantType',predominantType);
+                            const source = row['Source'].toLowerCase(); // Assume 'sand' or 'water'
 
                             // Check if latitude and longitude are valid numbers
                             if (!isNaN(latitude) && !isNaN(longitude)) {
+                                const color = getSourceColor(source);
+
                                 L.circleMarker([latitude, longitude], {
                                     color: color, 
                                     fillColor: color,
@@ -167,7 +137,11 @@
                                 .bindPopup(
                                     `<b>${name}</b><br>
                                     <canvas id="chart-${latitude}-${longitude}" width="300" height="200"></canvas><br>
-                                    <small>${row['Notes'] || ' '}</small>`,
+                                    <small>${row['Notes'] || ' '}</small><br>
+                                    <strong>Source:</strong> ${row['Source']}<br>
+                                    <strong>Date:</strong> ${row['Date']}<br>
+                                    <strong>Unit:</strong> ${row['Unit']}<br>
+                                    <strong>Reference:</strong> ${row['Reference'] || 'N/A'}`,
                                     { maxWidth: 400 }
                                 )
                                 .on('popupopen', function() {
@@ -175,10 +149,10 @@
                                     new Chart(ctx, {
                                         type: 'bar',
                                         data: {
-                                            labels: chartLabels,
+                                            labels: ['Total', 'Cellulose acetate', 'Acrylic', 'Polypropylene', 'Polycarbonate'],
                                             datasets: [{
                                                 label: 'Qty',
-                                                data: chartData,
+                                                data: [parseFloat(row['Total']) || 0, parseFloat(row['Cellulose acetate']) || 0, parseFloat(row['Acrylic']) || 0, parseFloat(row['Polypropylene']) || 0, parseFloat(row['Polycarbonate']) || 0],
                                                 backgroundColor: ['red','blue', 'green', 'orange', 'purple'],
                                             }]
                                         },
