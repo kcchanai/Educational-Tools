@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Map of Microplastics</title>
+    <title>Microplastics Map</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -17,7 +17,7 @@
     </style>
 </head>
 <body>
-    <h2>Map of Microplastics</h2>
+    <h2>Microplastics map: color code indicates the predominant type per location</h2>
     
     <!-- Buttons to navigate to specific locations -->
     <div>
@@ -115,7 +115,6 @@
                                 }).addTo(map)
                                 .bindPopup(
                                     `<b>${name}</b><br>
-                                    Predominant Type: ${predominantType}<br>
                                     Cellulose acetate: ${celluloseAcetate}<br>
                                     Acrylic: ${acrylic}<br>
                                     Polypropylene: ${polypropylene}<br>
@@ -138,15 +137,25 @@
                         results.data.forEach(row => {
                             const name = row['Polygon Name'];
                             const verticesStr = row['Vertices'];
-                            const color = row['Color'] || 'blue';
-                            const fillColor = row['Fill Color'] || 'lightblue';
-                            const fillOpacity = parseFloat(row['Fill Opacity']) || 0.5;
 
                             // Microplastic data
-                            const celluloseAcetate = row['Cellulose acetate'] || 0;
-                            const acrylic = row['Acrylic'] || 0;
-                            const polypropylene = row['Polypropylene'] || 0;
-                            const polycarbonate = row['Polycarbonate'] || 0;
+                            const celluloseAcetate = parseFloat(row['Cellulose acetate']) || 0;
+                            const acrylic = parseFloat(row['Acrylic']) || 0;
+                            const polypropylene = parseFloat(row['Polypropylene']) || 0;
+                            const polycarbonate = parseFloat(row['Polycarbonate']) || 0;
+
+                            // Determine the predominant microplastic type
+                            const values = {
+                                'Cellulose acetate': celluloseAcetate,
+                                'Acrylic': acrylic,
+                                'Polypropylene': polypropylene,
+                                'Polycarbonate': polycarbonate
+                            };
+                            const predominantType = Object.keys(values).reduce((a, b) => values[a] > values[b] ? a : b);
+
+                            // Set colors based on the predominant type
+                            const color = getTypeColor(predominantType);
+                            const fillColor = color;  // Use the same color for fillColor
 
                             // Parse vertices from the string
                             const vertices = verticesStr.split(';').map(v => {
@@ -158,7 +167,7 @@
                             L.polygon(vertices, {
                                 color: color,
                                 fillColor: fillColor,
-                                fillOpacity: fillOpacity
+                                fillOpacity: 0.5
                             }).addTo(map).bindPopup(
                                 `<b>${name}</b><br>
                                 Cellulose acetate: ${celluloseAcetate}<br>
@@ -171,6 +180,7 @@
                 });
             })
             .catch(error => console.error('Error fetching polygons from Google Sheet:', error));
+
 
         // Add the legend to the map
         addLegend();
