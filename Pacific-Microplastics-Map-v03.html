@@ -35,6 +35,8 @@
 
     <script>
         var map = L.map('map').setView([10, -165], 3);  // ([20.6, -157.9], 8)
+        var minSand = Infinity, maxSand = -Infinity;  // To track min and max for 'sand'
+        var minWater = Infinity, maxWater = -Infinity;  // To track min and max for 'water'
 
         // Add a tile layer (background map)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -102,110 +104,136 @@
         // URL to the Google Sheet published as CSV
         const googleSheetPOINTS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSu5Jn-bpovLOw-UrP7QhJx5fne1AQJXdBkRY4OZjguNuGBJBjZD5a7-gZ4ZV8NAIHqt22piR40zLP8/pub?gid=0&single=true&output=csv';
 
-        // Define gradient colors for sand and water sources
-        function getSourceColor(source, total) {
+        // Modify the getSourceColor function to use the normalized value
+        function getSourceColor(source, normalizedTotal) {
             if (source === 'sand') {
-                // Adjusting the sand gradient from light to dark orange
-                var sandColor = `rgba(255, ${165 - Math.min(total / 30, 85)}, 0, 1)`; // Light to dark orange
-                return sandColor;
+                // Light Orange (255, 165, 0) to Dark Orange (255, 69, 0)
+                var r = 255; // Red stays constant
+                var g = Math.round(165 - (96 * normalizedTotal)); // Green decreases from 165 to 69
+                var b = 0; // Blue stays at 0
+                return `rgb(${r}, ${g}, ${b})`;
             } else if (source === 'water') {
-                // Adjusting the water gradient from light blue to dark blue
-                var waterColor = `rgba(0, 0, ${255 - Math.min(total * 30, 255)}, 1)`; // Light to dark blue
-                return waterColor;
+                // Adjusting the water gradient from cyan to dark blue based on normalized total
+                // Cyan (0, 255, 255) to Dark Blue (0, 0, 139)
+                var r = 0; // Red stays constant
+                var g = Math.round(205 * (1 - normalizedTotal)); // Green decreases as normalizedTotal increases
+                var b = Math.round(255 * (1 - normalizedTotal) + 180 * normalizedTotal); // Blue transitions from 255 to ___
+                return `rgb(${r}, ${g}, ${b})`;
             } else {
                 return 'gray';
             }
         }
 
-        // Modify the getQuantityColor function to use the updated gradient
+        // Function to get quantity-based color with normalization for each source
         function getQuantityColor(total, source) {
             let color = '';
             if (source === 'sand') {
-                color = getSourceColor('sand', total);
+                // Normalize the 'sand' total value between min and max, then use it to scale the color
+                const normalizedTotal = (total - minSand) / (maxSand - minSand);  // Normalize between 0 and 1
+                color = getSourceColor('sand', normalizedTotal); // Get color based on normalized value
             } else if (source === 'water') {
-                color = getSourceColor('water', total);
+                // Normalize the 'water' total value between min and max, then use it to scale the color
+                const normalizedTotal = (total - minWater) / (maxWater - minWater);  // Normalize between 0 and 1
+                color = getSourceColor('water', normalizedTotal); // Get color based on normalized value
             }
             return color;
         }
-        // Fetching and processing points data
-        fetch(googleSheetPOINTS)
-            .then(response => response.text())
-            .then(csvData => {
-                Papa.parse(csvData, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        results.data.forEach(row => {
-                            const name = row['Name'];
-                            const latitude = parseFloat(row['Latitude']);
-                            const longitude = parseFloat(row['Longitude']);
-                            const source = row['Source'].toLowerCase(); // Assume 'sand' or 'water'
-                            const total = parseFloat(row['Total']) || 0; // Get the total quantity
 
-                            // Check if latitude and longitude are valid numbers
-                            if (!isNaN(latitude) && !isNaN(longitude)) {
-                                const color = getQuantityColor(total, source); // Get color based on quantity
+    // Fetching and processing points data
+    fetch(googleSheetPOINTS)
+        .then(response => response.text())
+        .then(csvData => {
+            Papa.parse(csvData, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    // First pass: Determine min and max for sand and water sources
+                    results.data.forEach(row => {
+                        const source = row['Source'].toLowerCase(); // Assume 'sand' or 'water'
+                        const total = parseFloat(row['Total']) || 0; // Get the total quantity
 
-                                L.circleMarker([latitude, longitude], {
-                                    color: color, 
-                                    fillColor: color,
-                                    fillOpacity: 0.7,
-                                    radius: 8,
-                                    pane: 'markerPane', // Ensure markers are rendered in the correct pane
-                                    zIndexOffset: 1000  // Higher zIndex ensures markers are on top
-                                }).addTo(map)
-                                .bindPopup(
-                                    `<b>${name}</b><br>
-                                    <canvas id="chart-${latitude}-${longitude}" width="300" height="200"></canvas><br>
-                                    <small>${row['Notes'] || ' '}</small><br>
-                                    <strong>Source:</strong> ${row['Source']}<br>
-                                    <strong>Date:</strong> ${row['Date']}<br>
-                                    <strong>Unit:</strong> ${row['Unit']}<br>
-                                    <strong>Reference:</strong> ${row['Reference'] || 'N/A'}`,
-                                    { maxWidth: 400 }
-                                )
-                                .on('popupopen', function() {
-                                    const ctx = document.getElementById(`chart-${latitude}-${longitude}`).getContext('2d');
-                                    new Chart(ctx, {
-                                        type: 'bar',
-                                        data: {
-                                            labels: ['Total', 'Cellulose acetate', 'Acrylic', 'Polypropylene', 'Polycarbonate'],
-                                            datasets: [{
-                                                label: 'Qty',
-                                                data: [parseFloat(row['Total']) || 0, parseFloat(row['Cellulose acetate']) || 0, parseFloat(row['Acrylic']) || 0, parseFloat(row['Polypropylene']) || 0, parseFloat(row['Polycarbonate']) || 0],
-                                                backgroundColor: ['red','blue', 'green', 'orange', 'purple'],
-                                            }]
+                        // Track min and max values for sand and water sources
+                        if (source === 'sand') {
+                            minSand = Math.min(minSand, total);
+                            maxSand = Math.max(maxSand, total);
+                        } else if (source === 'water') {
+                            minWater = Math.min(minWater, total);
+                            maxWater = Math.max(maxWater, total);
+                        }
+                    });
+
+                    // Second pass: Add markers after determining min/max values
+                    results.data.forEach(row => {
+                        const name = row['Name'];
+                        const latitude = parseFloat(row['Latitude']);
+                        const longitude = parseFloat(row['Longitude']);
+                        const source = row['Source'].toLowerCase(); // Assume 'sand' or 'water'
+                        const total = parseFloat(row['Total']) || 0; // Get the total quantity
+
+                        // Check if latitude and longitude are valid numbers
+                        if (!isNaN(latitude) && !isNaN(longitude)) {
+                            const color = getQuantityColor(total, source); // Get color based on quantity
+
+                            L.circleMarker([latitude, longitude], {
+                                color: color, 
+                                fillColor: color,
+                                fillOpacity: 0.7,
+                                radius: 8,
+                                pane: 'markerPane', // Ensure markers are rendered in the correct pane
+                                zIndexOffset: 1000  // Higher zIndex ensures markers are on top
+                            }).addTo(map)
+                            .bindPopup(
+                                `<b>${name}</b><br>
+                                <canvas id="chart-${latitude}-${longitude}" width="300" height="200"></canvas><br>
+                                <small>${row['Notes'] || ' '}</small><br>
+                                <strong>Source:</strong> ${row['Source']}<br>
+                                <strong>Date:</strong> ${row['Date']}<br>
+                                <strong>Unit:</strong> ${row['Unit']}<br>
+                                <strong>Reference:</strong> ${row['Reference'] || 'N/A'}`,
+                                { maxWidth: 400 }
+                            )
+                            .on('popupopen', function() {
+                                const ctx = document.getElementById(`chart-${latitude}-${longitude}`).getContext('2d');
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: ['Total', 'Cellulose acetate', 'Acrylic', 'Polypropylene', 'Polycarbonate'],
+                                        datasets: [{
+                                            label: 'Qty',
+                                            data: [parseFloat(row['Total']) || 0, parseFloat(row['Cellulose acetate']) || 0, parseFloat(row['Acrylic']) || 0, parseFloat(row['Polypropylene']) || 0, parseFloat(row['Polycarbonate']) || 0],
+                                            backgroundColor: ['red','blue', 'green', 'orange', 'purple'],
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        plugins: {
+                                            legend: {
+                                                display: false,
+                                            }
                                         },
-                                        options: {
-                                            responsive: true,
-                                            plugins: {
-                                                legend: {
-                                                    display: false,
+                                        scales: {
+                                            x: {
+                                                title: {
+                                                    display: true,
+                                                    text: 'Microplastic Types'
                                                 }
                                             },
-                                            scales: {
-                                                x: {
-                                                    title: {
-                                                        display: true,
-                                                        text: 'Microplastic Types'
-                                                    }
-                                                },
-                                                y: {
-                                                    title: {
-                                                        display: true,
-                                                        text: 'Particles'
-                                                    }
+                                            y: {
+                                                title: {
+                                                    display: true,
+                                                    text: 'Particles'
                                                 }
                                             }
                                         }
-                                    });
+                                    }
                                 });
-                            }
-                        });
-                    }
-                });
-            })
-            .catch(error => console.error('Error fetching the Google Sheet:', error));
+                            });
+                        }
+                    });
+                }
+            });
+        })
+        .catch(error => console.error('Error fetching the Google Sheet:', error));
 
 
         // Function to move to a specific location and zoom level
