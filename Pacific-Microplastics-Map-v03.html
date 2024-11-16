@@ -188,12 +188,12 @@
                                 <small>${row['Notes'] || ' '}</small><br>
                                 <strong>Source:</strong> ${row['Source']}<br>
                                 <strong>Date:</strong> ${row['Date']}<br>
-                                <strong>Unit:</strong> ${row['Unit']}<br>
                                 <strong>Reference:</strong> ${row['Reference'] || 'N/A'}`,
                                 { maxWidth: 400 }
                             )
                             .on('popupopen', function() {
                                 const ctx = document.getElementById(`chart-${latitude}-${longitude}`).getContext('2d');
+                                const unit = row['Unit'];  // Get the unit from the row data
                                 new Chart(ctx, {
                                     type: 'bar',
                                     data: {
@@ -221,7 +221,7 @@
                                             y: {
                                                 title: {
                                                     display: true,
-                                                    text: 'Particles'
+                                                    text: `${unit}`  // Use the unit from the data
                                                 }
                                             }
                                         }
