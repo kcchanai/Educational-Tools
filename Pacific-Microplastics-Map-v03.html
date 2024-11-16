@@ -108,29 +108,31 @@
         // URL to the Google Sheet published as CSV
         const googleSheetPOINTS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSu5Jn-bpovLOw-UrP7QhJx5fne1AQJXdBkRY4OZjguNuGBJBjZD5a7-gZ4ZV8NAIHqt22piR40zLP8/pub?gid=0&single=true&output=csv';
 
-        // Function to determine color based on quantity
+        // Define gradient colors for sand and water sources
+        function getSourceColor(source, total) {
+            if (source === 'sand') {
+                // Adjusting the sand gradient from light to dark orange
+                var sandColor = `rgba(255, ${165 - Math.min(total / 30, 85)}, 0, 1)`; // Light to dark orange
+                return sandColor;
+            } else if (source === 'water') {
+                // Adjusting the water gradient from light blue to dark blue
+                var waterColor = `rgba(0, 0, ${255 - Math.min(total * 30, 255)}, 1)`; // Light to dark blue
+                return waterColor;
+            } else {
+                return 'gray';
+            }
+        }
+
+        // Modify the getQuantityColor function to use the updated gradient
         function getQuantityColor(total, source) {
             let color = '';
             if (source === 'sand') {
-                if (total < 1000) {  // Adjust the thresholds as needed
-                    color = 'yellow';
-                } else if (total < 5000) {
-                    color = 'orange';
-                } else {
-                    color = 'red';
-                }
+                color = getSourceColor('sand', total);
             } else if (source === 'water') {
-                if (total < 0.01) {
-                    color = 'cyan';
-                } else if (total < 1) {
-                    color = 'blue';
-                } else {
-                    color = 'purple';
-                }
+                color = getSourceColor('water', total);
             }
             return color;
         }
-
         // Fetching and processing points data
         fetch(googleSheetPOINTS)
             .then(response => response.text())
