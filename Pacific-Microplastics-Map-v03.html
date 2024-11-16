@@ -108,6 +108,29 @@
         // URL to the Google Sheet published as CSV
         const googleSheetPOINTS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSu5Jn-bpovLOw-UrP7QhJx5fne1AQJXdBkRY4OZjguNuGBJBjZD5a7-gZ4ZV8NAIHqt22piR40zLP8/pub?gid=0&single=true&output=csv';
 
+        // Function to determine color based on quantity
+        function getQuantityColor(total, source) {
+            let color = '';
+            if (source === 'sand') {
+                if (total < 1000) {  // Adjust the thresholds as needed
+                    color = 'yellow';
+                } else if (total < 5000) {
+                    color = 'orange';
+                } else {
+                    color = 'red';
+                }
+            } else if (source === 'water') {
+                if (total < 0.01) {
+                    color = 'cyan';
+                } else if (total < 1) {
+                    color = 'blue';
+                } else {
+                    color = 'purple';
+                }
+            }
+            return color;
+        }
+
         // Fetching and processing points data
         fetch(googleSheetPOINTS)
             .then(response => response.text())
@@ -121,10 +144,11 @@
                             const latitude = parseFloat(row['Latitude']);
                             const longitude = parseFloat(row['Longitude']);
                             const source = row['Source'].toLowerCase(); // Assume 'sand' or 'water'
+                            const total = parseFloat(row['Total']) || 0; // Get the total quantity
 
                             // Check if latitude and longitude are valid numbers
                             if (!isNaN(latitude) && !isNaN(longitude)) {
-                                const color = getSourceColor(source);
+                                const color = getQuantityColor(total, source); // Get color based on quantity
 
                                 L.circleMarker([latitude, longitude], {
                                     color: color, 
@@ -186,6 +210,7 @@
                 });
             })
             .catch(error => console.error('Error fetching the Google Sheet:', error));
+
 
         // Function to move to a specific location and zoom level
         function goToLocation(lat, lng, zoom) {
