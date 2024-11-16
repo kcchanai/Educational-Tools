@@ -188,7 +188,8 @@
                                 <small>${row['Notes'] || ' '}</small><br>
                                 <strong>Source:</strong> ${row['Source']}<br>
                                 <strong>Date:</strong> ${row['Date']}<br>
-                                <strong>Reference:</strong> ${row['Reference'] || 'N/A'}`,
+                                <strong>Reference:</strong> 
+                                <a href="${row['Reference']}" target="_blank">${row['Reference'] || 'N/A'}</a>`,  // Create hyperlink for reference
                                 { maxWidth: 400 }
                             )
                             .on('popupopen', function() {
