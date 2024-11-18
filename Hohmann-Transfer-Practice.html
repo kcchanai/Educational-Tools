@@ -158,9 +158,15 @@
     let spacecraftX = r * Math.cos(angle);
     let spacecraftY = r * Math.sin(angle);
 
+    // Initial conditions for Gaea (Earth)
+    let gaeaX = spacecraftX; // Same initial position as the spacecraft
+    let gaeaY = spacecraftY;
+
     // Velocity components
     let vx = -v * Math.sin(angle); // Velocity in the X direction (negative for counter-clockwise motion)
     let vy = v * Math.cos(angle);  // Velocity in the Y direction (positive for upward motion)
+    let gaeaVx = vx; // Same initial velocity as the spacecraft
+    let gaeaVy = vy;
 
     // Time step for the numerical integration
     const dt = 1e4; // seconds
@@ -202,8 +208,8 @@
             impulse1Time = elapsedTime;
         }
 
+        // Spacecraft
         let acceleration = -G * M / (r * r); // Gravitational acceleration in m/s^2
-
         let ax = acceleration * (spacecraftX / r);
         let ay = acceleration * (spacecraftY / r);
 
@@ -214,6 +220,18 @@
         spacecraftY += vy * adjustedDt;
 
         r = Math.sqrt(spacecraftX * spacecraftX + spacecraftY * spacecraftY);
+
+        // Gaea (Earth)
+        let rGaea = Math.sqrt(gaeaX * gaeaX + gaeaY * gaeaY);
+        let gaeaAcceleration = -G * M / (rGaea * rGaea);
+        let gaeaAx = gaeaAcceleration * (gaeaX / rGaea);
+        let gaeaAy = gaeaAcceleration * (gaeaY / rGaea);
+
+        gaeaVx += gaeaAx * adjustedDt;
+        gaeaVy += gaeaAy * adjustedDt;
+
+        gaeaX += gaeaVx * adjustedDt;
+        gaeaY += gaeaVy * adjustedDt;
 
         elapsedTime += adjustedDt;
 
@@ -251,10 +269,16 @@
         ctx.fillStyle = 'red';
         ctx.fill();
 
+        // Draw Gaea (Earth)
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2 + gaeaX / SCALE, canvas.height / 2 + gaeaY / SCALE, 13, 0, 2 * Math.PI);
+        ctx.fillStyle = 'dodgerblue';
+        ctx.fill();
+
         // Draw Earth's orbit (blue circle)
         ctx.beginPath();
         ctx.arc(canvas.width / 2, canvas.height / 2, EARTH_ORBIT_RADIUS / SCALE, 0, 2 * Math.PI);
-        ctx.strokeStyle = 'blue';
+        ctx.strokeStyle = 'dodgerblue';
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -267,7 +291,7 @@
 
         // Draw the spacecraft
         ctx.beginPath();
-        ctx.arc(canvas.width / 2 + spacecraftX / SCALE, canvas.height / 2 + spacecraftY / SCALE, 8, 0, 2 * Math.PI);
+        ctx.arc(canvas.width / 2 + spacecraftX / SCALE, canvas.height / 2 + spacecraftY / SCALE, 7, 0, 2 * Math.PI);
         ctx.fillStyle = 'white';
         ctx.fill();
 
@@ -323,16 +347,21 @@
 
     // Example function to reset the simulation
     function resetSimulation() {
-        // Reset the spacecraft's initial conditions
+        // Reset the initial conditions
         r = SUN_RADIUS + altitude; // Reset distance to the center of the Sun
         v = -Math.sqrt(G * M / r); // Reset orbital velocity
         angle = - Math.PI / 2; // Reset angle
         spacecraftX = r * Math.cos(angle); // Reset X position
         spacecraftY = r * Math.sin(angle); // Reset Y position
+        gaeaX = spacecraftX;
+        gaeaY = spacecraftY;
+
 
         // Reset velocity components
         vx = -v * Math.sin(angle); // Reset velocity in the X direction
         vy = v * Math.cos(angle);  // Reset velocity in the Y direction
+        gaeaVx = vx;
+        gaeaVy = vy;
 
         // Reset simulation time and elapsed time
         elapsedTime = 0;
