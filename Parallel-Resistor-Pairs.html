@@ -4,6 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parallel Resistor Pairs</title>
+
+  <!-- Include MathJax library -->
+  <script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+
+  <style>
+    /* Ensure the formula is centered and left-aligned */
+    #equation {
+      display: flex;
+      justify-content: flex-start; /* Align the content to the left */
+      width: 100%;
+      margin: 0; /* Remove any margin */
+      padding: 0; /* Remove any padding */
+    }
+
+    #equation p {
+      margin: 0; /* Remove margin to avoid extra spacing */
+      padding: 0; /* Remove padding to reduce space above and below the formula */
+    }
+
+    /* Optional: Adjust the space between the formula and other elements */
+    .content-container {
+      margin-top: 10px; /* Reduce the space above the next input */
+    }
+  </style>
+
 </head>
 <body>
   <div>
@@ -12,6 +39,12 @@
     <input type="number" id="resistanceInput" min="2" max="50" />
     <button onclick="findResistorPairs()">Find Pairs</button>
     <p id="errorMessage" style="color: red;"></p>
+
+    <!-- Display the formula using MathJax -->
+    <div id="equation">
+      <p>$$ R = \left( \frac{R_1 \; R_2}{R_1 + R_2} \right) $$</p>
+    </div>
+
     <h4>Resistor Pairs R<sub>1</sub> and R<sub>2</sub> (integer values, limited to 1kΩ)</h4>
     <ul id="resistorPairs"></ul>
   </div>

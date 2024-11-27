@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equivalent Resistance Calculator</title>
+  
+  <!-- Include MathJax library -->
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+
+  <style>
+    /* Ensure the formula is centered and left-aligned */
+    #equation {
+      display: flex;
+      justify-content: flex-start; /* Align the content to the left */
+      width: 100%;
+      margin: 0; /* Remove any margin */
+      padding: 0; /* Remove any padding */
+    }
+
+    #equation p {
+      margin: 0; /* Remove margin to avoid extra spacing */
+      padding: 0; /* Remove padding to reduce space above and below the formula */
+    }
+
+    /* Optional: Adjust the space between the formula and other elements */
+    .content-container {
+      margin-top: 10px; /* Reduce the space above the next input */
+    }
+  </style>
+</head>
+<body>
+  <h1>Equivalent Resistance Calculator</h1>
+  <p>Enter the resistance values (in ohms) for up to four resistors to calculate the equivalent resistance in parallel:</p>
+  
+  <!-- Display the formula above the input fields using MathJax -->
+  <div id="equation">
+    <p>$$ R_{eq} = \left( \frac{1}{R_1} + \frac{1}{R_2} + \frac{1}{R_3} + \frac{1}{R_4} \right)^{-1} $$</p>
+  </div>
+
+  <div class="content-container">
+    <label for="resistor1">Resistor R<sub>1</sub> (Ω): </label>
+    <input type="number" id="resistor1" min="0.01" step="0.01" placeholder="Enter value" required><br><br>
+
+    <label for="resistor2">Resistor R<sub>2</sub> (Ω): </label>
+    <input type="number" id="resistor2" min="0.01" step="0.01" placeholder="Enter value" required><br><br>
+
+    <label for="resistor3">Resistor R<sub>3</sub> (Ω): </label>
+    <input type="number" id="resistor3" min="0.01" step="0.01" placeholder="Optional"><br><br>
+
+    <label for="resistor4">Resistor R<sub>4</sub> (Ω): </label>
+    <input type="number" id="resistor4" min="0.01" step="0.01" placeholder="Optional"><br><br>
+    
+    <button onclick="calculateResistance()">Calculate Equivalent Resistance</button>
+    <p id="result" style="margin-top: 20px; font-weight: bold;"></p>
+  </div>
+
+  <script>
+    function calculateResistance() {
+      const r1 = parseFloat(document.getElementById("resistor1").value) || 0;
+      const r2 = parseFloat(document.getElementById("resistor2").value) || 0;
+      const r3 = parseFloat(document.getElementById("resistor3").value) || 0;
+      const r4 = parseFloat(document.getElementById("resistor4").value) || 0;
+      
+      const resistances = [r1, r2, r3, r4].filter(value => value > 0);
+
+      if (resistances.length === 0) {
+        document.getElementById("result").textContent = "Please enter at least one valid resistor value.";
+        return;
+      }
+
+      const reciprocalSum = resistances.reduce((sum, resistance) => sum + 1 / resistance, 0);
+      const equivalentResistance = 1 / reciprocalSum;
+
+      document.getElementById("result").textContent = 
+        `The equivalent resistance is ${equivalentResistance.toFixed(2)} Ω.`;
+    }
+  </script>
+</body>
+</html>
