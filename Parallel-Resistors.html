@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel Resistor Pairs</title>
+</head>
+<body>
+  <div>
+    <h3>Find Parallel Resistor Pairs</h3>
+    <label for="resistanceInput">Enter a resistor value (2-50 Ω): </label>
+    <input type="number" id="resistanceInput" min="2" max="50" />
+    <button onclick="findResistorPairs()">Find Pairs</button>
+    <p id="errorMessage" style="color: red;"></p>
+    <h4>Resistor Pairs (integer values, limited to 1kΩ)</h4>
+    <ul id="resistorPairs"></ul>
+  </div>
+
+  <script>
+    function findResistorPairs() {
+      const input = document.getElementById("resistanceInput").value;
+      const resistorPairsList = document.getElementById("resistorPairs");
+      const errorMessage = document.getElementById("errorMessage");
+      resistorPairsList.innerHTML = ""; // Clear previous results
+      errorMessage.textContent = ""; // Clear previous errors
+
+      const targetResistance = parseInt(input, 10);
+      if (isNaN(targetResistance) || targetResistance < 2 || targetResistance > 50) {
+        errorMessage.textContent = "Please enter a valid resistor value between 2 and 50 Ω.";
+        return;
+      }
+
+      const pairs = [];
+      for (let r1 = 1; r1 <= 1000; r1++) {
+        for (let r2 = r1; r2 <= 1000; r2++) { // r2 starts at r1 to avoid duplicate pairs
+          const parallelResistance = 1 / (1 / r1 + 1 / r2);
+
+          if (
+            parallelResistance === targetResistance &&
+            Number.isInteger(parallelResistance)
+          ) {
+            pairs.push(`(${r1} Ω, ${r2} Ω)`);
+          }
+        }
+      }
+
+      if (pairs.length > 0) {
+        pairs.forEach(pair => {
+          const listItem = document.createElement("li");
+          listItem.textContent = pair;
+          resistorPairsList.appendChild(listItem);
+        });
+      } else {
+        errorMessage.textContent = "No resistor pairs found for the given value.";
+      }
+    }
+  </script>
+</body>
+</html>
