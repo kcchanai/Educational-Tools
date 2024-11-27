@@ -7,12 +7,12 @@
 </head>
 <body>
   <div>
-    <h3>Find Parallel Resistor Pairs</h3>
-    <label for="resistanceInput">Enter a resistor value (2-50 Ω): </label>
+    <h1>Find Parallel Resistor Pairs</h1>
+    <label for="resistanceInput">Enter a resistor value R (2-50 Ω): </label>
     <input type="number" id="resistanceInput" min="2" max="50" />
     <button onclick="findResistorPairs()">Find Pairs</button>
     <p id="errorMessage" style="color: red;"></p>
-    <h4>Resistor Pairs (integer values, limited to 1kΩ)</h4>
+    <h4>Resistor Pairs R<sub>1</sub> and R<sub>2</sub> (integer values, limited to 1kΩ)</h4>
     <ul id="resistorPairs"></ul>
   </div>
 
