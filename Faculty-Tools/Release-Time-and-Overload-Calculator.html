@@ -844,7 +844,7 @@
               <div>
                 <label for="desired-te">Desired Release Time (TE)</label>
                 <input id="desired-te" name="desired-te" type="number" min="0" step="0.5" inputmode="decimal">
-                <div class="help">Decimal TE values are allowed. 9-month faculty use 27 TE per year; 11-month faculty use 36 TE per year.</div>
+                <div class="help">Decimal TE values allowed. 9-month faculty use 27 TE/year; 11-month faculty use 36 TE/year.</div>
                 <div class="field-message" id="desired-te-error"></div>
               </div>
 
@@ -878,7 +878,7 @@
                 <div class="field-message" id="indirect-rate-error"></div>
                 <div class="help">
                   Current rates:
-                  <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">University of Hawaii ORS rate page</a>
+                  <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">UH ORS rate page</a>
                 </div>
                 <div class="help status-note warn" id="ors-rate-status">
                   Using built-in default rates until live ORS defaults load.
@@ -908,7 +908,7 @@
               <div>
                 <label for="desired-instructional-te">Desired Instructional Summer TE</label>
                 <input id="desired-instructional-te" name="desired-instructional-te" type="number" min="0" step="0.5" inputmode="decimal">
-                <div class="help">Enter the desired summer instructional TE to fund.</div>
+                <div class="help">Enter desired summer instructional TE.</div>
                 <div class="field-message" id="desired-instructional-te-error"></div>
               </div>
 
@@ -930,8 +930,8 @@
                 </label>
                 <input id="instructional-cost-per-te" name="instructional-cost-per-te" type="text" inputmode="decimal" autocomplete="off">
                 <div class="help">
-                  Current summer instructional pay rates:
-                  <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">University of Hawaii summer faculty pay-rate page</a>
+                  Current summer instructional pay rates:<br>
+                  <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">UH summer faculty pay-rate page</a>
                 </div>
                 <div class="field-message" id="instructional-cost-per-te-error"></div>
               </div>
@@ -987,7 +987,7 @@
           <h3>Release Time</h3>
           <dl>
             <div class="metric-group-label">Base Release Calculation</div>
-            <div class="metric"><dt>Cost per TE (annual salary ÷ 27 or 36 TE)</dt><dd id="cost-per-te">$0.00</dd></div>
+            <div class="metric"><dt id="cost-per-te-label">Cost per TE (annual salary ÷ 27 TE)</dt><dd id="cost-per-te">$0.00</dd></div>
             <div class="metric"><dt>Release time cost (cost per TE x desired TE)</dt><dd id="release-time-cost">$0.00</dd></div>
             <div class="metric-group-label">Loaded Release Cost</div>
             <div class="metric"><dt id="release-fringe-label">Release fringe (fringe rate x release time cost)</dt><dd id="release-fringe">$0.00</dd></div>
@@ -996,7 +996,7 @@
             <div class="metric key-metric total-metric"><dt>Total release time cost (total direct cost + indirect cost)</dt><dd id="release-total-cost">$0.00</dd></div>
             <div class="metric-group-label">Funding Split</div>
             <div class="metric"><dt>Remaining funding before overload</dt><dd id="remaining-before-overload">$0.00</dd></div>
-            <div class="metric"><dt>Percent charged to extramural account<br>(release time cost x 12 ÷ months charged ÷ salary)</dt><dd id="release-extramural-percent">0.00%</dd></div>
+            <div class="metric"><dt id="release-extramural-label">Percent charged to extramural account<br>(release time cost x 12 ÷ months charged ÷ salary)</dt><dd id="release-extramural-percent">0.00%</dd></div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="release-college-percent">0.00%</dd></div>
           </dl>
         </article>
@@ -1014,7 +1014,7 @@
             <div class="metric"><dt id="instructional-indirect-label">Instructional indirect cost (45.5%)</dt><dd id="instructional-indirect-cost">$0.00</dd></div>
             <div class="metric total-metric"><dt>Instructional total cost</dt><dd id="instructional-total-cost">$0.00</dd></div>
             <div class="metric-group-label">Funding Split</div>
-            <div class="metric"><dt>Percent charged to extramural account</dt><dd id="instructional-extramural-percent">0.00%</dd></div>
+            <div class="metric"><dt>Percent charged to extramural account<br>(TE funded / TE requested)</dt><dd id="instructional-extramural-percent">0.00%</dd></div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="instructional-college-percent">0.00%</dd></div>
           </dl>
         </article>
@@ -1180,6 +1180,7 @@
       instructionalSectionCard: document.getElementById("instructional-section-card"),
       nonInstructionalSectionCard: document.getElementById("non-instructional-section-card"),
       totalsSectionCard: document.getElementById("totals-section-card"),
+      costPerTELabel: document.getElementById("cost-per-te-label"),
       costPerTE: document.getElementById("cost-per-te"),
       releaseTimeCost: document.getElementById("release-time-cost"),
       releaseFringeLabel: document.getElementById("release-fringe-label"),
@@ -1189,6 +1190,7 @@
       releaseIndirectCost: document.getElementById("release-indirect-cost"),
       releaseTotalCost: document.getElementById("release-total-cost"),
       remainingBeforeOverload: document.getElementById("remaining-before-overload"),
+      releaseExtramuralLabel: document.getElementById("release-extramural-label"),
       releaseExtramuralPercent: document.getElementById("release-extramural-percent"),
       releaseCollegePercent: document.getElementById("release-college-percent"),
       instructionalTERequested: document.getElementById("instructional-te-requested"),
@@ -1277,6 +1279,11 @@
       maximumFractionDigits: 2
     });
 
+    const compactDecimalFormatter = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+
     const liveUpdatedFormatter = new Intl.DateTimeFormat("en-US", {
       dateStyle: "long",
       timeStyle: "short"
@@ -1340,6 +1347,10 @@
 
     function formatDecimal(value) {
       return decimalFormatter.format(value);
+    }
+
+    function formatCompactDecimal(value) {
+      return compactDecimalFormatter.format(value);
     }
 
     function formatPercent(value) {
@@ -1902,6 +1913,10 @@
       elements.summaryNonInstructionalPay.textContent = formatCurrency(results.nonInstructionalPay);
       elements.summaryReleaseTotal.textContent = formatCurrency(results.releaseTotalCost);
 
+      elements.costPerTELabel.textContent = `Cost per TE (annual salary ÷ ${results.annualTeachingLoad} TE)`;
+      elements.releaseExtramuralLabel.innerHTML = results.monthsCharged > 0
+        ? `Percent charged to extramural account<br>(release time cost x 12 ÷ ${formatCompactDecimal(results.monthsCharged)} months charged ÷ salary)`
+        : "Percent charged to extramural account<br>(release time cost x 12 ÷ months charged ÷ salary)";
       elements.releaseFringeLabel.textContent = `Release fringe (${formatPercent(results.releaseFringeRatePercent)} fringe rate x release time cost)`;
       elements.releaseIndirectLabel.textContent = `Indirect cost (${formatPercent(results.indirectRatePercent)} indirect cost rate x total direct cost)`;
       elements.instructionalFringeLabel.textContent = `Instructional fringe (${formatPercent(results.overloadFringeRatePercent)})`;
@@ -2248,6 +2263,8 @@
       const instructionalExceedsFunding = desiredInstructionalTE > instructionalFundedTE + 1e-9;
 
       const results = {
+        annualTeachingLoad,
+        monthsCharged,
         costPerTE,
         releaseTimeCost,
         releaseFringe,
