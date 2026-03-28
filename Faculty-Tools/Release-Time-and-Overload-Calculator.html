@@ -937,6 +937,7 @@
                 <label for="scenario-notes">Notes / Comments</label>
                 <textarea id="scenario-notes" name="scenario-notes" placeholder="Optional notes such as grant name, faculty rank, or assumptions."></textarea>
                 <div class="help">These notes are included in copied summaries, print/PDF output, and shareable links.</div>
+                <div class="help">Scenario values may be saved in this browser and included in share links.</div>
               </div>
             </div>
           </section>
@@ -1212,6 +1213,7 @@
     };
 
     const SUMMER_RATE_PROXY_URL = "https://script.google.com/macros/s/AKfycby3BQh0o2lOd0B4iO1rrPVy75a9c6--Io7kgGPnDqkuXMfT8OJwcDjSGbiImPMnAWch6Q/exec";
+    const LOCAL_STORAGE_KEY = "release-time-overload-calculator-state-v1";
     const CUSTOM_RATE_OPTION = "__custom__";
     const BUILTIN_RATE_DEFAULTS = {
       releaseFringeRate: elements.releaseFringeRate.value,
@@ -1491,6 +1493,27 @@
       const params = buildUrlStateParams();
       const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
       window.history.replaceState({}, "", nextUrl);
+      saveStateToLocalStorage(params);
+    }
+
+    function saveStateToLocalStorage(params = buildUrlStateParams()) {
+      try {
+        if (params.toString()) {
+          window.localStorage.setItem(LOCAL_STORAGE_KEY, params.toString());
+        } else {
+          window.localStorage.removeItem(LOCAL_STORAGE_KEY);
+        }
+      } catch (error) {
+        // Ignore storage failures and keep the calculator functional.
+      }
+    }
+
+    function clearLocalSavedState() {
+      try {
+        window.localStorage.removeItem(LOCAL_STORAGE_KEY);
+      } catch (error) {
+        // Ignore storage failures and keep the calculator functional.
+      }
     }
 
     function applyPendingSummerRateState() {
@@ -1516,12 +1539,7 @@
       pendingUrlState = null;
     }
 
-    function loadStateFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      if ([...params.keys()].length === 0) {
-        return;
-      }
-
+    function applyStateFromParams(params) {
       suppressUrlSync = true;
 
       const salary = params.get("salary");
@@ -1574,6 +1592,37 @@
 
       formInteracted = true;
       suppressUrlSync = false;
+    }
+
+    function loadStateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      if ([...params.keys()].length === 0) {
+        return false;
+      }
+
+      applyStateFromParams(params);
+      return true;
+    }
+
+    function loadStateFromLocalStorage() {
+      try {
+        const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (!stored) {
+          return false;
+        }
+
+        const params = new URLSearchParams(stored);
+        if ([...params.keys()].length === 0) {
+          clearLocalSavedState();
+          return false;
+        }
+
+        applyStateFromParams(params);
+        return true;
+      } catch (error) {
+        clearLocalSavedState();
+        return false;
+      }
     }
 
     function softenLiveRateWarnings() {
@@ -2028,6 +2077,7 @@
       resetOutputs();
       restoreInitialStatus();
       syncUrlState();
+      clearLocalSavedState();
     }
 
     function calculate() {
@@ -2350,7 +2400,10 @@
     clearFieldValidationMessages();
     restoreInitialStatus();
     updateCopySummaryButton(false);
-    loadStateFromUrl();
+    const hasUrlState = loadStateFromUrl();
+    if (!hasUrlState) {
+      loadStateFromLocalStorage();
+    }
     loadOrsRates();
     loadSummerRates();
   </script>
