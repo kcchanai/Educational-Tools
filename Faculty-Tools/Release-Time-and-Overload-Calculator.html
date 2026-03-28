@@ -138,6 +138,24 @@
       font-weight: 700;
     }
 
+    .help.status-note {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: rgba(14, 93, 115, 0.08);
+      border: 1px solid rgba(14, 93, 115, 0.12);
+    }
+
+    .help.status-note.warn {
+      background: var(--warn-soft);
+      border-color: rgba(163, 83, 29, 0.18);
+    }
+
+    .help.status-note.good {
+      background: var(--good-soft);
+      border-color: rgba(30, 106, 73, 0.18);
+    }
+
     input[type="number"],
     input[type="text"],
     select {
@@ -450,6 +468,16 @@
           </div>
 
           <div>
+            <label for="summer-rate-source">Summer Rate Source</label>
+            <select id="summer-rate-source" name="summer-rate-source">
+              <option value="__custom__">Custom value</option>
+            </select>
+            <div class="help status-note warn" id="summer-rate-status">
+              Live summer rates are unavailable until a proxy URL is configured. Manual entry is enabled.
+            </div>
+          </div>
+
+          <div>
             <label for="instructional-cost-per-te">Instructional Cost per Summer TE</label>
             <input id="instructional-cost-per-te" name="instructional-cost-per-te" type="text" inputmode="decimal" autocomplete="off">
             <div class="help">
@@ -573,6 +601,8 @@
       overloadFringeRate: document.getElementById("overload-fringe-rate"),
       indirectRate: document.getElementById("indirect-rate"),
       desiredInstructionalTE: document.getElementById("desired-instructional-te"),
+      summerRateSource: document.getElementById("summer-rate-source"),
+      summerRateStatus: document.getElementById("summer-rate-status"),
       instructionalCostPerTE: document.getElementById("instructional-cost-per-te"),
       statusBox: document.getElementById("status-box"),
       summaryInstructionalPay: document.getElementById("summary-instructional-pay"),
@@ -618,6 +648,10 @@
       fundingDisplay: document.getElementById("funding-display"),
       fundingBalance: document.getElementById("funding-balance")
     };
+
+    const SUMMER_RATE_PROXY_URL = "";
+    const CUSTOM_RATE_OPTION = "__custom__";
+    let savedCustomInstructionalRate = "";
 
     const currencyFormatter = new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -741,6 +775,99 @@
       input.addEventListener("blur", () => {
         input.value = formatCurrencyInputValue(normalizeCurrencyInput(input.value));
       });
+    }
+
+    function setSummerRateStatus(message, tone) {
+      elements.summerRateStatus.className = `help status-note ${tone}`;
+      elements.summerRateStatus.textContent = message;
+    }
+
+    function appendRateOption(label, value) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = `${label} (${formatCurrency(value)})`;
+      elements.summerRateSource.appendChild(option);
+    }
+
+    function populateSummerRateOptions(rates) {
+      elements.summerRateSource.innerHTML = "";
+
+      rates.forEach((rate) => {
+        appendRateOption(rate.label, rate.value);
+      });
+
+      const customOption = document.createElement("option");
+      customOption.value = CUSTOM_RATE_OPTION;
+      customOption.textContent = "Custom value";
+      elements.summerRateSource.appendChild(customOption);
+      elements.summerRateSource.value = CUSTOM_RATE_OPTION;
+    }
+
+    function applySummerRateSourceSelection() {
+      const selected = elements.summerRateSource.value;
+
+      if (selected === CUSTOM_RATE_OPTION) {
+        elements.instructionalCostPerTE.readOnly = false;
+        elements.instructionalCostPerTE.value = savedCustomInstructionalRate;
+        return;
+      }
+
+      savedCustomInstructionalRate = elements.instructionalCostPerTE.value;
+      elements.instructionalCostPerTE.readOnly = true;
+      elements.instructionalCostPerTE.value = formatCurrencyInputValue(selected);
+    }
+
+    async function loadSummerRates() {
+      if (!SUMMER_RATE_PROXY_URL) {
+        populateSummerRateOptions([]);
+        setSummerRateStatus(
+          "Live summer rates are unavailable until a proxy URL is configured. Manual entry is enabled.",
+          "warn"
+        );
+        applySummerRateSourceSelection();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${SUMMER_RATE_PROXY_URL}?source=summer-pay-rates`, {
+          method: "GET"
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const rates = Array.isArray(payload.rates)
+          ? payload.rates.filter((rate) =>
+              rate &&
+              typeof rate.label === "string" &&
+              Number.isFinite(Number(rate.value))
+            ).map((rate) => ({
+              label: rate.label.trim(),
+              value: Number(rate.value)
+            }))
+          : [];
+
+        if (rates.length === 0) {
+          throw new Error("No usable rates returned.");
+        }
+
+        populateSummerRateOptions(rates);
+        setSummerRateStatus(
+          `Live summer rates loaded from the UH pay-rate page. Select a rank-based rate or choose Custom value.`,
+          "good"
+        );
+        applySummerRateSourceSelection();
+        calculate();
+      } catch (error) {
+        populateSummerRateOptions([]);
+        setSummerRateStatus(
+          "Live summer rates could not be loaded. Custom value entry remains available.",
+          "warn"
+        );
+        applySummerRateSourceSelection();
+      }
     }
 
     function ceilToCent(value) {
@@ -1048,7 +1175,17 @@
     attachCurrencyFormatting(elements.salary);
     attachCurrencyFormatting(elements.funding);
     attachCurrencyFormatting(elements.instructionalCostPerTE);
+    elements.summerRateSource.addEventListener("change", () => {
+      applySummerRateSourceSelection();
+      calculate();
+    });
+    elements.instructionalCostPerTE.addEventListener("input", () => {
+      if (elements.summerRateSource.value === CUSTOM_RATE_OPTION) {
+        savedCustomInstructionalRate = elements.instructionalCostPerTE.value;
+      }
+    });
     resetOutputs();
+    loadSummerRates();
   </script>
 </body>
 </html>
