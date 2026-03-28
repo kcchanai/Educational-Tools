@@ -988,11 +988,11 @@
           <dl>
             <div class="metric-group-label">Base Release Calculation</div>
             <div class="metric"><dt id="cost-per-te-label">Cost per TE (annual salary ÷ 27 TE)</dt><dd id="cost-per-te">$0.00</dd></div>
-            <div class="metric"><dt>Release time cost (cost per TE x desired TE)</dt><dd id="release-time-cost">$0.00</dd></div>
+            <div class="metric"><dt id="release-time-cost-label">Release time cost (cost per TE x desired TE)</dt><dd id="release-time-cost">$0.00</dd></div>
             <div class="metric-group-label">Loaded Release Cost</div>
-            <div class="metric"><dt id="release-fringe-label">Release fringe (fringe rate x release time cost)</dt><dd id="release-fringe">$0.00</dd></div>
+            <div class="metric"><dt id="release-fringe-label">Release fringe (fringe rate of release time cost)</dt><dd id="release-fringe">$0.00</dd></div>
             <div class="metric"><dt>Total direct cost (release time cost + fringe)</dt><dd id="release-direct-cost">$0.00</dd></div>
-            <div class="metric"><dt id="release-indirect-label">Indirect cost (indirect cost rate x total direct cost)</dt><dd id="release-indirect-cost">$0.00</dd></div>
+            <div class="metric"><dt id="release-indirect-label">Indirect cost (indirect cost rate of total direct cost)</dt><dd id="release-indirect-cost">$0.00</dd></div>
             <div class="metric key-metric total-metric"><dt>Total release time cost (total direct cost + indirect cost)</dt><dd id="release-total-cost">$0.00</dd></div>
             <div class="metric-group-label">Funding Split</div>
             <div class="metric"><dt>Remaining funding before overload</dt><dd id="remaining-before-overload">$0.00</dd></div>
@@ -1009,10 +1009,10 @@
             <div class="metric"><dt>Instructional TE funded</dt><dd id="instructional-te-funded">0.00</dd></div>
             <div class="metric-group-label">Loaded Instructional Cost</div>
             <div class="metric key-metric"><dt>Instructional faculty pay</dt><dd id="instructional-pay">$0.00</dd></div>
-            <div class="metric"><dt id="instructional-fringe-label">Instructional fringe (2.47%)</dt><dd id="instructional-fringe">$0.00</dd></div>
-            <div class="metric"><dt>Instructional direct cost</dt><dd id="instructional-direct-cost">$0.00</dd></div>
-            <div class="metric"><dt id="instructional-indirect-label">Instructional indirect cost (45.5%)</dt><dd id="instructional-indirect-cost">$0.00</dd></div>
-            <div class="metric total-metric"><dt>Instructional total cost</dt><dd id="instructional-total-cost">$0.00</dd></div>
+            <div class="metric"><dt id="instructional-fringe-label">Instructional fringe (2.47% of faculty pay)</dt><dd id="instructional-fringe">$0.00</dd></div>
+            <div class="metric"><dt>Instructional direct cost (faculty pay + fringe)</dt><dd id="instructional-direct-cost">$0.00</dd></div>
+            <div class="metric"><dt id="instructional-indirect-label">Instructional indirect cost (45.5% of direct cost)</dt><dd id="instructional-indirect-cost">$0.00</dd></div>
+            <div class="metric total-metric"><dt>Instructional total cost (direct cost + indirect cost)</dt><dd id="instructional-total-cost">$0.00</dd></div>
             <div class="metric-group-label">Funding Split</div>
             <div class="metric"><dt>Percent charged to extramural account<br>(TE funded / TE requested)</dt><dd id="instructional-extramural-percent">0.00%</dd></div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="instructional-college-percent">0.00%</dd></div>
@@ -1026,10 +1026,10 @@
             <div class="metric"><dt>Budget available for non-instructional overload</dt><dd id="non-instructional-budget">$0.00</dd></div>
             <div class="metric-group-label">Loaded Non-Instructional Cost</div>
             <div class="metric key-metric"><dt>Non-instructional faculty pay</dt><dd id="non-instructional-pay">$0.00</dd></div>
-            <div class="metric"><dt id="non-instructional-fringe-label">Non-instructional fringe (2.47%)</dt><dd id="non-instructional-fringe">$0.00</dd></div>
-            <div class="metric"><dt>Non-instructional direct cost</dt><dd id="non-instructional-direct-cost">$0.00</dd></div>
-            <div class="metric"><dt id="non-instructional-indirect-label">Non-instructional indirect cost (45.5%)</dt><dd id="non-instructional-indirect-cost">$0.00</dd></div>
-            <div class="metric total-metric"><dt>Non-instructional total cost</dt><dd id="non-instructional-total-cost">$0.00</dd></div>
+            <div class="metric"><dt id="non-instructional-fringe-label">Non-instructional fringe (2.47% of faculty pay)</dt><dd id="non-instructional-fringe">$0.00</dd></div>
+            <div class="metric"><dt>Non-instructional direct cost (faculty pay + fringe)</dt><dd id="non-instructional-direct-cost">$0.00</dd></div>
+            <div class="metric"><dt id="non-instructional-indirect-label">Non-instructional indirect cost (45.5% of direct cost)</dt><dd id="non-instructional-indirect-cost">$0.00</dd></div>
+            <div class="metric total-metric"><dt>Non-instructional total cost (direct cost + indirect cost)</dt><dd id="non-instructional-total-cost">$0.00</dd></div>
             <div class="metric-group-label">Workload Estimate</div>
             <div class="metric key-metric"><dt>Non-instructional overload days</dt><dd id="non-instructional-overload-days">0.00</dd></div>
           </dl>
@@ -1182,6 +1182,7 @@
       totalsSectionCard: document.getElementById("totals-section-card"),
       costPerTELabel: document.getElementById("cost-per-te-label"),
       costPerTE: document.getElementById("cost-per-te"),
+      releaseTimeCostLabel: document.getElementById("release-time-cost-label"),
       releaseTimeCost: document.getElementById("release-time-cost"),
       releaseFringeLabel: document.getElementById("release-fringe-label"),
       releaseFringe: document.getElementById("release-fringe"),
@@ -1914,15 +1915,18 @@
       elements.summaryReleaseTotal.textContent = formatCurrency(results.releaseTotalCost);
 
       elements.costPerTELabel.textContent = `Cost per TE (annual salary ÷ ${results.annualTeachingLoad} TE)`;
+      elements.releaseTimeCostLabel.textContent = results.desiredTE > 0
+        ? `Release time cost (cost per TE x desired ${formatCompactDecimal(results.desiredTE)} TE)`
+        : "Release time cost (cost per TE x desired TE)";
       elements.releaseExtramuralLabel.innerHTML = results.monthsCharged > 0
         ? `Percent charged to extramural account<br>(release time cost x 12 ÷ ${formatCompactDecimal(results.monthsCharged)} months charged ÷ salary)`
         : "Percent charged to extramural account<br>(release time cost x 12 ÷ months charged ÷ salary)";
-      elements.releaseFringeLabel.textContent = `Release fringe (${formatPercent(results.releaseFringeRatePercent)} fringe rate x release time cost)`;
-      elements.releaseIndirectLabel.textContent = `Indirect cost (${formatPercent(results.indirectRatePercent)} indirect cost rate x total direct cost)`;
-      elements.instructionalFringeLabel.textContent = `Instructional fringe (${formatPercent(results.overloadFringeRatePercent)})`;
-      elements.instructionalIndirectLabel.textContent = `Instructional indirect cost (${formatPercent(results.indirectRatePercent)})`;
-      elements.nonInstructionalFringeLabel.textContent = `Non-instructional fringe (${formatPercent(results.overloadFringeRatePercent)})`;
-      elements.nonInstructionalIndirectLabel.textContent = `Non-instructional indirect cost (${formatPercent(results.indirectRatePercent)})`;
+      elements.releaseFringeLabel.textContent = `Release fringe (${formatPercent(results.releaseFringeRatePercent)} of release time cost)`;
+      elements.releaseIndirectLabel.textContent = `Indirect cost (${formatPercent(results.indirectRatePercent)} of total direct cost)`;
+      elements.instructionalFringeLabel.textContent = `Instructional fringe (${formatPercent(results.overloadFringeRatePercent)} of faculty pay)`;
+      elements.instructionalIndirectLabel.textContent = `Instructional indirect cost (${formatPercent(results.indirectRatePercent)} of direct cost)`;
+      elements.nonInstructionalFringeLabel.textContent = `Non-instructional fringe (${formatPercent(results.overloadFringeRatePercent)} of faculty pay)`;
+      elements.nonInstructionalIndirectLabel.textContent = `Non-instructional indirect cost (${formatPercent(results.indirectRatePercent)} of direct cost)`;
 
       elements.costPerTE.textContent = formatCurrency(results.costPerTE);
       elements.releaseTimeCost.textContent = formatCurrency(results.releaseTimeCost);
@@ -2264,6 +2268,7 @@
 
       const results = {
         annualTeachingLoad,
+        desiredTE,
         monthsCharged,
         costPerTE,
         releaseTimeCost,
