@@ -227,6 +227,7 @@
 
     input[type="number"],
     input[type="text"],
+    textarea,
     select {
       width: 100%;
       border: 1px solid var(--line);
@@ -241,10 +242,16 @@
 
     input[type="number"]:focus,
     input[type="text"]:focus,
+    textarea:focus,
     select:focus {
       border-color: rgba(14, 93, 115, 0.58);
       box-shadow: 0 0 0 4px rgba(14, 93, 115, 0.12);
       transform: translateY(-1px);
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
     }
 
     input.field-error {
@@ -695,6 +702,75 @@
       .action-row {
         flex-direction: column;
       }
+
+      .label-with-badge {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media print {
+      :root {
+        --panel: #ffffff;
+        --panel-strong: #ffffff;
+      }
+
+      body {
+        min-height: auto;
+        background: #ffffff;
+      }
+
+      main {
+        width: 100%;
+        margin: 0;
+        gap: 12px;
+      }
+
+      .hero,
+      .panel,
+      .summary-grid.sticky,
+      .summary-card {
+        background: #ffffff !important;
+        backdrop-filter: none !important;
+        box-shadow: none !important;
+      }
+
+      .hero::after {
+        display: none;
+      }
+
+      .summary-grid.sticky {
+        position: static;
+        padding: 0;
+        border: 0;
+      }
+
+      .action-row,
+      .status,
+      .help.status-note,
+      .field-message {
+        display: none !important;
+      }
+
+      .panel,
+      .summary-card,
+      .result-card {
+        break-inside: avoid;
+        border-color: rgba(23, 34, 44, 0.18) !important;
+      }
+
+      input,
+      textarea,
+      select {
+        padding: 8px 10px;
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -853,11 +929,24 @@
               </div>
             </div>
           </section>
+
+          <section class="input-group">
+            <h3>Scenario Notes</h3>
+            <div class="group-grid">
+              <div>
+                <label for="scenario-notes">Notes / Comments</label>
+                <textarea id="scenario-notes" name="scenario-notes" placeholder="Optional notes such as grant name, faculty rank, or assumptions."></textarea>
+                <div class="help">These notes are included in copied summaries, print/PDF output, and shareable links.</div>
+              </div>
+            </div>
+          </section>
         </div>
 
         <div class="action-row">
           <button type="button" id="reset-button">Reset</button>
           <button type="button" id="copy-summary-button" disabled>Copy Summary</button>
+          <button type="button" id="copy-link-button">Copy Share Link</button>
+          <button type="button" id="print-button">Print / Save as PDF</button>
         </div>
 
         <div class="status warn" id="status-box" role="status" aria-live="polite">
@@ -1068,8 +1157,11 @@
       instructionalCostPerTE: document.getElementById("instructional-cost-per-te"),
       instructionalRateBadge: document.getElementById("instructional-rate-badge"),
       instructionalCostPerTEError: document.getElementById("instructional-cost-per-te-error"),
+      scenarioNotes: document.getElementById("scenario-notes"),
       resetButton: document.getElementById("reset-button"),
       copySummaryButton: document.getElementById("copy-summary-button"),
+      copyLinkButton: document.getElementById("copy-link-button"),
+      printButton: document.getElementById("print-button"),
       statusBox: document.getElementById("status-box"),
       summaryInstructionalPay: document.getElementById("summary-instructional-pay"),
       summaryNonInstructionalPay: document.getElementById("summary-non-instructional-pay"),
@@ -1152,6 +1244,8 @@
     let savedCustomInstructionalRate = "";
     let formInteracted = false;
     let lastCalculatedState = null;
+    let pendingUrlState = null;
+    let suppressUrlSync = false;
 
     const currencyFormatter = new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -1321,6 +1415,167 @@
       elements.instructionalRateBadge.textContent = isLiveRate ? "Using live rate" : "Using custom rate";
     }
 
+    function setCheckedRadio(name, value) {
+      const target = document.querySelector(`input[name="${name}"][value="${value}"]`);
+      if (target) {
+        target.checked = true;
+      }
+    }
+
+    function getNormalizedInputValue(input) {
+      if (input === elements.salary || input === elements.funding || input === elements.instructionalCostPerTE) {
+        return normalizeCurrencyInput(input.value);
+      }
+
+      return input.value.trim();
+    }
+
+    function buildUrlStateParams() {
+      const params = new URLSearchParams();
+      const salary = getNormalizedInputValue(elements.salary);
+      const funding = getNormalizedInputValue(elements.funding);
+      const desiredTE = getNormalizedInputValue(elements.desiredTE);
+      const monthsCharged = getNormalizedInputValue(elements.monthsCharged);
+      const releaseFringeRate = getNormalizedInputValue(elements.releaseFringeRate);
+      const overloadFringeRate = getNormalizedInputValue(elements.overloadFringeRate);
+      const indirectRate = getNormalizedInputValue(elements.indirectRate);
+      const desiredInstructionalTE = getNormalizedInputValue(elements.desiredInstructionalTE);
+      const instructionalCostPerTE = getNormalizedInputValue(elements.instructionalCostPerTE);
+      const scenarioNotes = elements.scenarioNotes.value.trim();
+      const facultyMonths = selectedValue("faculty-months");
+      const indirect = selectedValue("indirect");
+      const summerRateSource = elements.summerRateSource.value;
+
+      const hasMeaningfulInput = [
+        salary,
+        funding,
+        desiredTE,
+        monthsCharged,
+        desiredInstructionalTE,
+        instructionalCostPerTE,
+        scenarioNotes
+      ].some(Boolean);
+
+      if (!hasMeaningfulInput &&
+          facultyMonths === "9" &&
+          indirect === "yes" &&
+          summerRateSource === CUSTOM_RATE_OPTION &&
+          releaseFringeRate === BUILTIN_RATE_DEFAULTS.releaseFringeRate &&
+          overloadFringeRate === BUILTIN_RATE_DEFAULTS.overloadFringeRate &&
+          indirectRate === BUILTIN_RATE_DEFAULTS.indirectRate) {
+        return params;
+      }
+
+      if (salary) params.set("salary", salary);
+      if (funding) params.set("funding", funding);
+      if (desiredTE) params.set("desiredTE", desiredTE);
+      if (monthsCharged) params.set("monthsCharged", monthsCharged);
+      if (releaseFringeRate) params.set("releaseFringeRate", releaseFringeRate);
+      if (overloadFringeRate) params.set("overloadFringeRate", overloadFringeRate);
+      if (indirectRate) params.set("indirectRate", indirectRate);
+      if (desiredInstructionalTE) params.set("desiredInstructionalTE", desiredInstructionalTE);
+      if (instructionalCostPerTE) params.set("instructionalCostPerTE", instructionalCostPerTE);
+      if (scenarioNotes) params.set("notes", scenarioNotes);
+      if (facultyMonths) params.set("facultyMonths", facultyMonths);
+      if (indirect) params.set("indirect", indirect);
+      if (summerRateSource) params.set("summerRateSource", summerRateSource);
+
+      return params;
+    }
+
+    function syncUrlState() {
+      if (suppressUrlSync) {
+        return;
+      }
+
+      const params = buildUrlStateParams();
+      const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
+
+    function applyPendingSummerRateState() {
+      if (!pendingUrlState) {
+        return;
+      }
+
+      const requestedSource = pendingUrlState.summerRateSource;
+      const requestedCost = pendingUrlState.instructionalCostPerTE;
+
+      if (requestedCost) {
+        savedCustomInstructionalRate = requestedCost;
+      }
+
+      if (requestedSource) {
+        const matchingOption = Array.from(elements.summerRateSource.options).find((option) => option.value === requestedSource);
+        elements.summerRateSource.value = matchingOption ? requestedSource : CUSTOM_RATE_OPTION;
+      } else {
+        elements.summerRateSource.value = CUSTOM_RATE_OPTION;
+      }
+
+      applySummerRateSourceSelection();
+      pendingUrlState = null;
+    }
+
+    function loadStateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      if ([...params.keys()].length === 0) {
+        return;
+      }
+
+      suppressUrlSync = true;
+
+      const salary = params.get("salary");
+      const funding = params.get("funding");
+      const desiredTE = params.get("desiredTE");
+      const monthsCharged = params.get("monthsCharged");
+      const releaseFringeRate = params.get("releaseFringeRate");
+      const overloadFringeRate = params.get("overloadFringeRate");
+      const indirectRate = params.get("indirectRate");
+      const desiredInstructionalTE = params.get("desiredInstructionalTE");
+      const instructionalCostPerTE = params.get("instructionalCostPerTE");
+      const notes = params.get("notes");
+      const facultyMonths = params.get("facultyMonths");
+      const indirect = params.get("indirect");
+      const summerRateSource = params.get("summerRateSource");
+
+      if (salary !== null) elements.salary.value = formatCurrencyInputValue(salary);
+      if (funding !== null) elements.funding.value = formatCurrencyInputValue(funding);
+      if (desiredTE !== null) elements.desiredTE.value = desiredTE;
+      if (monthsCharged !== null) elements.monthsCharged.value = monthsCharged;
+      if (desiredInstructionalTE !== null) elements.desiredInstructionalTE.value = desiredInstructionalTE;
+      if (instructionalCostPerTE !== null) {
+        savedCustomInstructionalRate = instructionalCostPerTE;
+        elements.instructionalCostPerTE.value = formatCurrencyInputValue(instructionalCostPerTE);
+      }
+      if (notes !== null) elements.scenarioNotes.value = notes;
+
+      if (facultyMonths) setCheckedRadio("faculty-months", facultyMonths);
+      if (indirect) setCheckedRadio("indirect", indirect);
+
+      if (releaseFringeRate !== null) {
+        elements.releaseFringeRate.value = releaseFringeRate;
+        rateFieldTouched.releaseFringeRate = true;
+      }
+
+      if (overloadFringeRate !== null) {
+        elements.overloadFringeRate.value = overloadFringeRate;
+        rateFieldTouched.overloadFringeRate = true;
+      }
+
+      if (indirectRate !== null) {
+        elements.indirectRate.value = indirectRate;
+        rateFieldTouched.indirectRate = true;
+      }
+
+      pendingUrlState = {
+        summerRateSource: summerRateSource || CUSTOM_RATE_OPTION,
+        instructionalCostPerTE: instructionalCostPerTE || ""
+      };
+
+      formInteracted = true;
+      suppressUrlSync = false;
+    }
+
     function softenLiveRateWarnings() {
       if (elements.summerRateStatus.classList.contains("warn")) {
         elements.summerRateStatus.className = "help status-note quiet";
@@ -1433,7 +1688,7 @@
           "warn"
         );
         elements.summerRateUpdated.textContent = "Updated: unavailable.";
-        applySummerRateSourceSelection();
+        applyPendingSummerRateState();
         return;
       }
 
@@ -1468,7 +1723,7 @@
           `Live summer rates loaded from the UH pay-rate page. Select a rank-based rate or choose Custom value.`,
           "good"
         );
-        applySummerRateSourceSelection();
+        applyPendingSummerRateState();
         calculate();
       } catch (error) {
         populateSummerRateOptions([]);
@@ -1477,7 +1732,7 @@
           "Live summer rates could not be loaded. Custom value entry remains available.",
           "warn"
         );
-        applySummerRateSourceSelection();
+        applyPendingSummerRateState();
       }
     }
 
@@ -1654,6 +1909,7 @@
         `Desired Instructional Summer TE: ${formatDecimal(inputs.desiredInstructionalTE)}`,
         `Summer Rate Source: ${summerRateSourceLabel}`,
         `Instructional Cost per Summer TE: ${formatCurrency(inputs.instructionalCostPerTE || 0)}`,
+        ...(inputs.notes ? [`Notes / Comments: ${inputs.notes}`] : []),
         "",
         "Release Results",
         `Cost per TE: ${formatCurrency(results.costPerTE)}`,
@@ -1711,6 +1967,31 @@
       }
     }
 
+    async function copyShareLinkToClipboard() {
+      syncUrlState();
+      const shareUrl = window.location.href;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(shareUrl);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = shareUrl;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "absolute";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+
+        paintStatus("good", "Share link copied.", "The current scenario URL is ready to send.", true);
+      } catch (error) {
+        paintStatus("warn", "Copy failed.", "The share link could not be copied.", true);
+      }
+    }
+
     function resetCalculator() {
       formInteracted = false;
       lastCalculatedState = null;
@@ -1722,6 +2003,7 @@
       elements.monthsCharged.value = "";
       elements.desiredInstructionalTE.value = "";
       elements.instructionalCostPerTE.value = "";
+      elements.scenarioNotes.value = "";
       elements.instructionalCostPerTE.readOnly = false;
 
       elements.summerRateSource.value = CUSTOM_RATE_OPTION;
@@ -1745,6 +2027,7 @@
       updateCopySummaryButton(false);
       resetOutputs();
       restoreInitialStatus();
+      syncUrlState();
     }
 
     function calculate() {
@@ -1760,6 +2043,8 @@
       const instructionalCostPerTE = readNumber(elements.instructionalCostPerTE);
       const facultyMonths = Number.parseInt(selectedValue("faculty-months"), 10);
       const indirectApplies = selectedValue("indirect") === "yes";
+
+      syncUrlState();
 
       const validationErrors = {
         salary: !(annualSalary > 0) ? "Annual salary must be greater than zero." : "",
@@ -1958,10 +2243,13 @@
           indirectRatePercent,
           desiredInstructionalTE,
           summerRateSourceLabel: getSummerRateSourceLabel(),
-          instructionalCostPerTE
+          instructionalCostPerTE,
+          notes: elements.scenarioNotes.value.trim()
         },
         results
       };
+
+      syncUrlState();
 
       if (releaseExceedsFunding) {
         paintStatus(
@@ -2009,15 +2297,20 @@
       ["overloadFringeRate", elements.overloadFringeRate],
       ["indirectRate", elements.indirectRate],
       ["desiredInstructionalTE", elements.desiredInstructionalTE],
-      ["instructionalCostPerTE", elements.instructionalCostPerTE]
+      ["instructionalCostPerTE", elements.instructionalCostPerTE],
+      ["scenarioNotes", elements.scenarioNotes]
     ].forEach(([key, input]) => {
       input.addEventListener("input", () => {
-        validationTouched[key] = true;
+        if (key in validationTouched) {
+          validationTouched[key] = true;
+        }
         formInteracted = true;
         softenLiveRateWarnings();
       });
       input.addEventListener("blur", () => {
-        validationTouched[key] = true;
+        if (key in validationTouched) {
+          validationTouched[key] = true;
+        }
       });
     });
     elements.releaseFringeRate.addEventListener("input", () => {
@@ -2049,10 +2342,15 @@
     });
     elements.resetButton.addEventListener("click", resetCalculator);
     elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);
+    elements.copyLinkButton.addEventListener("click", copyShareLinkToClipboard);
+    elements.printButton.addEventListener("click", () => {
+      window.print();
+    });
     resetOutputs();
     clearFieldValidationMessages();
     restoreInitialStatus();
     updateCopySummaryButton(false);
+    loadStateFromUrl();
     loadOrsRates();
     loadSummerRates();
   </script>
