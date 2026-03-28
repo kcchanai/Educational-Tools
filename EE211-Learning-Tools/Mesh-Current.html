@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesh-Current Practice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl text-center border border-gray-200">
+        <h1 class="text-3xl font-semibold text-gray-800 mb-4">Mesh-Current Method Practice</h1>
+        <p class="text-black-600 mb-6">Determine the correct signs for the KVL equations in each mesh. (Write KVL in the direction of the mesh current.)</p>
+
+        <!-- Circuit Diagram Container -->
+        <div id="circuit-diagram-container" class="mb-8">
+            <svg id="circuit-svg" viewBox="0 0 550 350" class="w-full h-auto max-h-96 mx-auto" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <!-- Marker for the red arrowhead -->
+                    <marker id="arrowhead-red" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <polygon points="0 0, 10 5, 0 10" fill="#ef4444" />
+                    </marker>
+                    <!-- Marker for the blue arrowhead -->
+                    <marker id="arrowhead-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <polygon points="0 0, 10 5, 0 10" fill="#2d64ef" />
+                    </marker>
+                </defs>
+                
+                <!-- Circuit Wires -->
+                <line x1="50" y1="50" x2="130" y2="50" stroke="#374151" stroke-width="2" />
+                <line x1="180" y1="50" x2="350" y2="50" stroke="#374151" stroke-width="2" />
+                <line x1="400" y1="50" x2="480" y2="50" stroke="#374151" stroke-width="2" />
+                <line x1="480" y1="50" x2="480" y2="155" stroke="#374151" stroke-width="2" />
+                <line x1="480" y1="196" x2="480" y2="300" stroke="#374151" stroke-width="2" />
+                <line x1="50" y1="50" x2="50" y2="155" stroke="#374151" stroke-width="2" />
+                <line x1="50" y1="196" x2="50" y2="300" stroke="#374151" stroke-width="2" />
+                <line x1="50" y1="300" x2="480" y2="300" stroke="#374151" stroke-width="2" />
+                <line x1="265" y1="50" x2="265" y2="150" stroke="#374151" stroke-width="2" />
+                <line x1="265" y1="200" x2="265" y2="300" stroke="#374151" stroke-width="2" />
+
+                <!-- Resistors -->
+                <rect x="130" y="45" width="50" height="10" stroke="#374151" stroke-width="2" fill="none" />
+                <text x="155" y="35" text-anchor="middle" font-size="24" fill="#374151">R₁</text>
+
+                <rect x="350" y="45" width="50" height="10" stroke="#374151" stroke-width="2" fill="none" />
+                <text x="375" y="35" text-anchor="middle" font-size="24" fill="#374151">R₂</text>
+
+                <rect x="260" y="150" width="10" height="50" stroke="#374151" stroke-width="2" fill="none" />
+                <text x="240" y="185" text-anchor="middle" font-size="24" fill="#374151">R₃</text>
+
+                <!-- Dynamic Mesh Current Paths and Labels -->
+                <path id="i1-path" stroke="#ef4444" stroke-width="2" fill="none" marker-end="url(#arrowhead-red)" />
+                <text x="150" y="175" text-anchor="middle" font-size="26" fill="#ef4444">i₁</text>
+                
+                <path id="i2-path" stroke="#2d64ef" stroke-width="2" fill="none" marker-end="url(#arrowhead-blue)" />
+                <text x="375" y="175" text-anchor="middle" font-size="26" fill="#2d64ef">i₂</text>
+
+
+                <!-- Dynamic Voltage Source 1 -->
+                <g id="voltage-source-1" transform="translate(50, 175)">
+                    <circle cx="0" cy="0" r="20" stroke="#374151" stroke-width="2" fill="none" />
+                    <text id="va-plus" x="0" y="-5" text-anchor="middle" font-size="20" fill="#374151">+</text>
+                    <text id="va-minus" x="0" y="15" text-anchor="middle" font-size="20" fill="#374151">-</text>
+                </g>
+                <text x="10" y="183" text-anchor="middle" font-size="24" fill="#374151">Vₐ</text>
+
+                <!-- Dynamic Voltage Source 2 -->
+                <g id="voltage-source-2" transform="translate(480, 175)">
+                    <circle cx="0" cy="0" r="20" stroke="#374151" stroke-width="2" fill="none" />
+                    <text id="vs-plus" x="0" y="-5" text-anchor="middle" font-size="20" fill="#374151">+</text>
+                    <text id="vs-minus" x="0" y="15" text-anchor="middle" font-size="20" fill="#374151">-</text>
+                </g>
+                <text x="517" y="185" text-anchor="middle" font-size="24" fill="#374151">Vₛ</text>
+            </svg>
+        </div>
+
+        <!-- Equations and controls -->
+        <div class="space-y-6">
+            <!-- Mesh 1 Equation -->
+            <div>
+                <h2 class="text-2xl font-bold text-gray-700 mb-2">KVL for Mesh 1 (in the direction of i₁)</h2>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-2 flex-wrap text-2xl">
+                    <select id="sign-va" class="rounded-md px-2 py-1 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                    </select>
+                    <span> Vₐ + i₁ R₁ + ( i₁ </span>
+                    <select id="sign-i1i2" class="rounded-md px-2 py-1 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                    </select>
+                    <span> i₂ ) R₃ = 0</span>
+                </div>
+            </div>
+
+            <!-- Mesh 2 Equation -->
+            <div>
+                <h2 class="text-2xl font-bold text-gray-700 mb-2">KVL for Mesh 2 (in the direction of i₂)</h2>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-2 flex-wrap text-2xl">
+                    <select id="sign-vs" class="rounded-md px-2 py-1 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                    </select>
+                    <span> Vₛ + i₂ R₂ + ( i₂ </span>
+                    <select id="sign-i2i1" class="rounded-md px-2 py-1 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                    </select>
+                    <span> i₁ ) R₃ = 0</span>
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="checkAnswer()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-8">
+            Check Answer
+        </button>
+        <div id="feedback" class="text-lg font-bold mt-4"></div>
+        
+        <button onclick="generateNewProblem()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-sm transform transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 mt-4">
+            New Problem
+        </button>
+    </div>
+
+    <script>
+        // DOM element references
+        const vaPlus = document.getElementById('va-plus');
+        const vaMinus = document.getElementById('va-minus');
+        const vsPlus = document.getElementById('vs-plus');
+        const vsMinus = document.getElementById('vs-minus');
+        const i1Path = document.getElementById('i1-path');
+        const i2Path = document.getElementById('i2-path');
+        
+        const signVaSelect = document.getElementById('sign-va');
+        const signI1I2Select = document.getElementById('sign-i1i2');
+        const signVsSelect = document.getElementById('sign-vs');
+        const signI2I1Select = document.getElementById('sign-i2i1');
+        
+        const feedbackDiv = document.getElementById('feedback');
+        
+        // State variables to store the correct answers and problem configuration
+        let correctSignVa, correctSignI1I2, correctSignVs, correctSignI2I1;
+        let isVaUp, isVsUp, isI1Clockwise, isI2Clockwise;
+
+        /**
+         * Generates a new circuit problem with random voltage source polarities and mesh current directions.
+         */
+        function generateNewProblem() {
+            // Reset feedback
+            feedbackDiv.textContent = '';
+            
+            // Randomly determine problem configuration
+            isVaUp = Math.random() < 0.5; // true if + is on top for V_a
+            isVsUp = Math.random() < 0.5; // true if + is on top for V_s
+            isI1Clockwise = Math.random() < 0.5; // true for clockwise i1
+            isI2Clockwise = Math.random() < 0.5; // true for clockwise i2
+            
+            // --- Update SVG to reflect random directions and polarities ---
+            
+            // Update Voltage Source V_a polarity
+            vaPlus.textContent = isVaUp ? '+' : '-';
+            vaMinus.textContent = isVaUp ? '-' : '+';
+            
+            // Update Voltage Source V_s polarity
+            vsPlus.textContent = isVsUp ? '+' : '-';
+            vsMinus.textContent = isVsUp ? '-' : '+';
+
+            // Update Mesh Current i1 direction using the provided paths
+            if (isI1Clockwise) {
+                // Clockwise path
+                i1Path.setAttribute('d', 'M 205 175 A 55 55 0 1 1 150 120');
+            } else {
+                // Counter-clockwise path
+                i1Path.setAttribute('d', 'M 150 120 A 55 55 0 1 0 205 175');
+            }
+
+            // Update Mesh Current i2 direction using the provided paths
+            if (isI2Clockwise) {
+                // Clockwise path
+                i2Path.setAttribute('d', 'M 430 175 A 55 55 0 1 1 375 120');
+            } else {
+                // Counter-clockwise path
+                i2Path.setAttribute('d', 'M 375 120 A 55 55 0 1 0 430 175');
+            }
+
+            // --- Determine the correct answers based on the user's specific logic ---
+            
+            // User's rules for V_a
+            if (isI1Clockwise && !isVaUp) { // i1 clockwise, V_a + down
+                correctSignVa = '+';
+            } else if (!isI1Clockwise && isVaUp) { // i1 counter-clockwise, V_a + up
+                correctSignVa = '+';
+            } else {
+                correctSignVa = '-';
+            }
+            
+            // User's rules for R3 in mesh 1
+            correctSignI1I2 = (isI1Clockwise === isI2Clockwise) ? '-' : '+';
+            
+            // User's rules for V_s
+            if (isI2Clockwise && isVsUp) { // i2 clockwise, V_s + up
+                correctSignVs = '+';
+            } else if (!isI2Clockwise && !isVsUp) { // i2 counter-clockwise, V_s + down
+                correctSignVs = '+';
+            } else {
+                correctSignVs = '-';
+            }
+            
+            // User's rules for R3 in mesh 2
+            correctSignI2I1 = (isI2Clockwise === isI1Clockwise) ? '-' : '+';
+
+            // Reset dropdown selections
+            signVaSelect.value = '+';
+            signI1I2Select.value = '+';
+            signVsSelect.value = '+';
+            signI2I1Select.value = '+';
+        }
+
+        /**
+         * Checks the user's selected answers against the correct ones.
+         */
+        function checkAnswer() {
+            const userSignVa = signVaSelect.value;
+            const userSignI1I2 = signI1I2Select.value;
+            const userSignVs = signVsSelect.value;
+            const userSignI2I1 = signI2I1Select.value;
+            
+            let allCorrect = true;
+            let feedbackText = "";
+            
+            // Check Mesh 1
+            if (userSignVa !== correctSignVa) { allCorrect = false; feedbackText += `The sign for Vₐ is incorrect. `; }
+            if (userSignI1I2 !== correctSignI1I2) { allCorrect = false; feedbackText += `The sign between i₁ and i₂ is incorrect. `; }
+            
+            // Check Mesh 2
+            if (userSignVs !== correctSignVs) { allCorrect = false; feedbackText += `The sign for Vₛ is incorrect. `; }
+            if (userSignI2I1 !== correctSignI2I1) { allCorrect = false; feedbackText += `The sign between i₂ and i₁ is incorrect. `; }
+
+            if (allCorrect) {
+                feedbackDiv.textContent = "All correct! Great job!";
+                feedbackDiv.classList.remove('text-red-500');
+                feedbackDiv.classList.add('text-green-500');
+            } else {
+                feedbackDiv.textContent = feedbackText;
+                feedbackDiv.classList.remove('text-green-500');
+                feedbackDiv.classList.add('text-red-500');
+            }
+        }
+
+        // Initialize the first problem on page load
+        window.onload = generateNewProblem;
+    </script>
+</body>
+</html>

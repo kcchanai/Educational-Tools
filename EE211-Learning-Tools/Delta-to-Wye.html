@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta-Wye Circuit Transformation Tool</title>
+    <!-- Use Tailwind CSS for rapid, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom styles for the input and output fields */
+        input[type="number"], input[type="text"] {
+            @apply w-full p-2 text-center rounded-lg border-2 border-gray-300 focus:outline-none focus:border-blue-500 transition-colors duration-200;
+        }
+        /* Style for read-only fields to differentiate them */
+        input[readonly] {
+            @apply bg-gray-100 text-gray-600 cursor-not-allowed;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white rounded-2xl shadow-xl p-6 md:p-10 w-full max-w-6xl">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-center mb-6 text-gray-800">Circuit Transformation Tool</h1>
+        <p class="text-center text-lg md:text-xl text-gray-600 mb-8">
+            Enter the resistor values for a delta or wye configuration to convert between the two.
+        </p>
+
+        <!-- Main container for the two transformation sections -->
+        <div class="flex flex-col md:flex-row md:space-x-8 space-y-8 md:space-y-0">
+
+            <!-- Delta to Wye Transformation Section -->
+            <div class="bg-blue-50 p-6 rounded-2xl shadow-md w-full md:w-1/2">
+                <h2 class="text-2xl font-bold text-center mb-4 text-blue-800">Delta (&Delta;) to Wye (Y)</h2>
+                <div class="flex flex-col items-center mb-6">
+                    <!-- Placeholder image or SVG to represent Delta circuit -->
+                    <svg width="180" height="140" viewBox="0 0 180 140" xmlns="http://www.w3.org/2000/svg" class="mb-4">
+                        <polygon points="75,10 140,120 10,120" stroke="#1e40af" stroke-width="4" fill="none" />
+                        <!-- Resistor labels -->
+                        <text x="75" y="110" text-anchor="middle" font-size="20" fill="#1e40af" font-weight="bold">Ra</text>
+                        <text x="125" y="60" text-anchor="middle" font-size="20" fill="#1e40af" font-weight="bold">Rb</text>
+                        <text x="25" y="60" text-anchor="middle" font-size="20" fill="#1e40af" font-weight="bold">Rc</text>
+                        <!-- Node dots and labels -->
+                        <circle cx="75" cy="10" r="5" fill="red" />
+                        <text x="90" y="15" text-anchor="middle" font-size="20" fill="red" font-weight="bold">a</text>
+                        <circle cx="140" cy="120" r="5" fill="red" />
+                        <text x="145" y="110" text-anchor="middle" font-size="20" fill="red" font-weight="bold">c</text>
+                        <circle cx="10" cy="120" r="5" fill="red" />
+                        <text x="5" y="110" text-anchor="middle" font-size="20" fill="red" font-weight="bold">b</text>
+                    </svg>
+                    <p class="text-gray-700 text-sm mb-2 text-center">Enter the values for the Delta resistors (R<sub>a</sub>, R<sub>b</sub>, R<sub>c</sub>).</p>
+                </div>
+                
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label for="ra" class="block text-gray-700 font-medium">Resistor R<sub>a</sub> (Ω)</label>
+                        <input type="number" id="ra" placeholder="e.g., 10" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="rb" class="block text-gray-700 font-medium">Resistor R<sub>b</sub> (Ω)</label>
+                        <input type="number" id="rb" placeholder="e.g., 20" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="rc" class="block text-gray-700 font-medium">Resistor R<sub>c</sub> (Ω)</label>
+                        <input type="number" id="rc" placeholder="e.g., 30" class="mt-1" />
+                    </div>
+                </div>
+
+                <button id="convertDeltaToWyeBtn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                    Convert to Wye
+                </button>
+
+                <div class="mt-8 space-y-4">
+                    <h3 class="text-xl font-semibold text-center text-blue-800">Wye Resistors</h3>
+                    <div>
+                        <label for="r1_out" class="block text-gray-700 font-medium">Resistor R<sub>1</sub> (Ω)</label>
+                        <input type="text" id="r1_out" readonly placeholder="Result will appear here" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="r2_out" class="block text-gray-700 font-medium">Resistor R<sub>2</sub> (Ω)</label>
+                        <input type="text" id="r2_out" readonly placeholder="Result will appear here" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="r3_out" class="block text-gray-700 font-medium">Resistor R<sub>3</sub> (Ω)</label>
+                        <input type="text" id="r3_out" readonly placeholder="Result will appear here" class="mt-1" />
+                    </div>
+                </div>
+
+                <div class="text-center text-sm text-gray-800 mt-6">
+                    <h4 class="font-bold mb-2">Formulas:</h4>
+                    <p>R<sub>1</sub> = (R<sub>b</sub> * R<sub>c</sub>) / (R<sub>a</sub> + R<sub>b</sub> + R<sub>c</sub>)</p>
+                    <p>R<sub>2</sub> = (R<sub>a</sub> * R<sub>c</sub>) / (R<sub>a</sub> + R<sub>b</sub> + R<sub>c</sub>)</p>
+                    <p>R<sub>3</sub> = (R<sub>a</sub> * R<sub>b</sub>) / (R<sub>a</sub> + R<sub>b</sub> + R<sub>c</sub>)</p>
+                </div>
+            </div>
+
+            <!-- Wye to Delta Transformation Section -->
+            <div class="bg-green-50 p-6 rounded-2xl shadow-md w-full md:w-1/2">
+                <h2 class="text-2xl font-bold text-center mb-4 text-green-800">Wye (Y) to Delta (&Delta;)</h2>
+                <div class="flex flex-col items-center mb-6">
+                    <!-- Placeholder image or SVG to represent Wye circuit -->
+                    <svg width="150" height="130" viewBox="0 0 150 130" xmlns="http://www.w3.org/2000/svg" class="mb-4">
+                        <line x1="75" y1="10" x2="75" y2="70" stroke="#104e18" stroke-width="4" />
+                        <line x1="75" y1="70" x2="140" y2="120" stroke="#104e18" stroke-width="4" />
+                        <line x1="75" y1="70" x2="10" y2="120" stroke="#104e18" stroke-width="4" />
+                        <!-- Resistor labels -->
+                        <text x="95" y="45" text-anchor="middle" font-size="20" fill="#104e18" font-weight="bold">R1</text>
+                        <text x="35" y="85" text-anchor="middle" font-size="20" fill="#104e18" font-weight="bold">R2</text>
+                        <text x="115" y="85" text-anchor="middle" font-size="20" fill="#104e18" font-weight="bold">R3</text>
+                        <!-- Node dots and labels -->
+                        <circle cx="75" cy="10" r="5" fill="red" />
+                        <text x="90" y="15" text-anchor="middle" font-size="20" fill="red" font-weight="bold">a</text>
+                        <circle cx="140" cy="120" r="5" fill="red" />
+                        <text x="145" y="110" text-anchor="middle" font-size="20" fill="red" font-weight="bold">c</text>
+                        <circle cx="10" cy="120" r="5" fill="red" />
+                        <text x="5" y="110" text-anchor="middle" font-size="20" fill="red" font-weight="bold">b</text>
+                        <circle cx="75" cy="70" r="5" fill="red" />
+                    </svg>
+                    <p class="text-gray-700 text-sm mb-2 text-center">Enter the values for the Wye resistors (R<sub>1</sub>, R<sub>2</sub>, R<sub>3</sub>).</p>
+                </div>
+
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label for="r1_in" class="block text-gray-700 font-medium">Resistor R<sub>1</sub> (Ω)</label>
+                        <input type="number" id="r1_in" placeholder="e.g., 5" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="r2_in" class="block text-gray-700 font-medium">Resistor R<sub>2</sub> (Ω)</label>
+                        <input type="number" id="r2_in" placeholder="e.g., 8" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="r3_in" class="block text-gray-700 font-medium">Resistor R<sub>3</sub> (Ω)</label>
+                        <input type="number" id="r3_in" placeholder="e.g., 12" class="mt-1" />
+                    </div>
+                </div>
+
+                <button id="convertWyeToDeltaBtn" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-green-300">
+                    Convert to Delta
+                </button>
+
+                <div class="mt-8 space-y-4">
+                    <h3 class="text-xl font-semibold text-center text-green-800">Delta Resistors</h3>
+                    <div>
+                        <label for="ra_out" class="block text-gray-700 font-medium">Resistor R<sub>a</sub> (Ω)</label>
+                        <input type="text" id="ra_out" readonly placeholder="Result will appear here" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="rb_out" class="block text-gray-700 font-medium">Resistor R<sub>b</sub> (Ω)</label>
+                        <input type="text" id="rb_out" readonly placeholder="Result will appear here" class="mt-1" />
+                    </div>
+                    <div>
+                        <label for="rc_out" class="block text-gray-700 font-medium">Resistor R<sub>c</sub> (Ω)</label>
+                        <input type="text" id="rc_out" readonly placeholder="Result will appear here" class="mt-1" />
+                    </div>
+                </div>
+
+                <div class="text-center text-sm text-gray-800 mt-6">
+                    <h4 class="font-bold mb-2">Formulas:</h4>
+                    <p>R<sub>a</sub> = (R<sub>1</sub>R<sub>2</sub> + R<sub>2</sub>R<sub>3</sub> + R<sub>3</sub>R<sub>1</sub>) / R<sub>1</sub></p>
+                    <p>R<sub>b</sub> = (R<sub>1</sub>R<sub>2</sub> + R<sub>2</sub>R<sub>3</sub> + R<sub>3</sub>R<sub>1</sub>) / R<sub>2</sub></p>
+                    <p>R<sub>c</sub> = (R<sub>1</sub>R<sub>2</sub> + R<sub>2</sub>R<sub>3</sub> + R<sub>3</sub>R<sub>1</sub>) / R<sub>3</sub></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript for the logic -->
+    <script>
+        // Get all the necessary DOM elements
+        const raIn = document.getElementById('ra');
+        const rbIn = document.getElementById('rb');
+        const rcIn = document.getElementById('rc');
+        const r1Out = document.getElementById('r1_out');
+        const r2Out = document.getElementById('r2_out');
+        const r3Out = document.getElementById('r3_out');
+        const convertDeltaToWyeBtn = document.getElementById('convertDeltaToWyeBtn');
+
+        const r1In = document.getElementById('r1_in');
+        const r2In = document.getElementById('r2_in');
+        const r3In = document.getElementById('r3_in');
+        const raOut = document.getElementById('ra_out');
+        const rbOut = document.getElementById('rb_out');
+        const rcOut = document.getElementById('rc_out');
+        const convertWyeToDeltaBtn = document.getElementById('convertWyeToDeltaBtn');
+
+        /**
+         * Converts Delta to Wye circuit values.
+         * R1 = (Rb * Rc) / (Ra + Rb + Rc)
+         * R2 = (Ra * Rc) / (Ra + Rb + Rc)
+         * R3 = (Ra * Rb) / (Ra + Rb + Rc)
+         */
+        convertDeltaToWyeBtn.addEventListener('click', () => {
+            try {
+                const ra = parseFloat(raIn.value);
+                const rb = parseFloat(rbIn.value);
+                const rc = parseFloat(rcIn.value);
+                const sum = ra + rb + rc;
+
+                if (isNaN(ra) || isNaN(rb) || isNaN(rc) || ra <= 0 || rb <= 0 || rc <= 0) {
+                    r1Out.value = r2Out.value = r3Out.value = "Invalid Input";
+                    return;
+                }
+
+                if (sum === 0) {
+                    r1Out.value = r2Out.value = r3Out.value = "Error: Sum of resistances is zero";
+                    return;
+                }
+
+                const r1 = (rb * rc) / sum;
+                const r2 = (ra * rc) / sum;
+                const r3 = (ra * rb) / sum;
+
+                // Display results formatted to 3 decimal places
+                r1Out.value = r1.toFixed(3);
+                r2Out.value = r2.toFixed(3);
+                r3Out.value = r3.toFixed(3);
+            } catch (error) {
+                r1Out.value = r2Out.value = r3Out.value = "An error occurred";
+            }
+        });
+
+        /**
+         * Converts Wye to Delta circuit values.
+         * Ra = (R1*R2 + R2*R3 + R3*R1) / R1
+         * Rb = (R1*R2 + R2*R3 + R3*R1) / R2
+         * Rc = (R1*R2 + R2*R3 + R3*R1) / R3
+         */
+        convertWyeToDeltaBtn.addEventListener('click', () => {
+            try {
+                const r1 = parseFloat(r1In.value);
+                const r2 = parseFloat(r2In.value);
+                const r3 = parseFloat(r3In.value);
+
+                if (isNaN(r1) || isNaN(r2) || isNaN(r3) || r1 <= 0 || r2 <= 0 || r3 <= 0) {
+                    raOut.value = rbOut.value = rcOut.value = "Invalid Input";
+                    return;
+                }
+                
+                const numerator = r1 * r2 + r2 * r3 + r3 * r1;
+
+                if (r1 === 0 || r2 === 0 || r3 === 0) {
+                    raOut.value = rbOut.value = rcOut.value = "Error: Division by zero";
+                    return;
+                }
+
+                const ra = numerator / r1;
+                const rb = numerator / r2;
+                const rc = numerator / r3;
+
+                // Display results formatted to 3 decimal places
+                raOut.value = ra.toFixed(3);
+                rbOut.value = rb.toFixed(3);
+                rcOut.value = rc.toFixed(3);
+            } catch (error) {
+                raOut.value = rbOut.value = rcOut.value = "An error occurred";
+            }
+        });
+    </script>
+</body>
+</html>

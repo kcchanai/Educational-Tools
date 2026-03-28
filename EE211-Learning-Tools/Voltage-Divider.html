@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Voltage Divider</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1a202c;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+        .circuit-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Resistor styling */
+        .resistor {
+            width: 30px;
+            height: 80px;
+            border: 4px solid #1a202c;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        /* NEW Voltage source styling: now a circle */
+        .voltage-source-circle {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #1a202c;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 5px;
+        }
+
+        /* Line styling for connections */
+        .h-line {
+            height: 4px;
+            background-color: #1a202c;
+        }
+        .v-line {
+            width: 4px;
+            background-color: #1a202c;
+        }
+
+        /* Value displays */
+        .value-display-container {
+            position: absolute;
+            top: 50%;
+            left: calc(100% + 10px);
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="container relative bg-white rounded-xl shadow-lg p-6 md:p-10 text-center space-y-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Interactive Voltage Divider</h1>
+        <p class="text-black-600 mb-8">
+            Adjust the load resistor value and see how the voltages and currents change.
+        </p>
+
+        <!-- Circuit Diagram Grid -->
+        <div class="grid grid-cols-3 gap-8 justify-items-center items-center">
+            <!-- Column 1: Voltage Source -->
+            <div class="circuit-column">
+                <div class="relative flex flex-col items-center">
+                    <!-- Updated voltage source with circle and plus/minus signs -->
+                    <div class="voltage-source-circle flex items-center justify-center">
+                        <span class="text-2xl font-bold -mt-2">+</span>
+                        <span class="text-2xl font-bold -mb-2">-</span>
+                    </div>
+                    <!-- Combined display for voltage and current -->
+                    <div class="absolute top-1/2 left-[calc(100%+5px)] -translate-y-1/2 flex flex-col gap-1 whitespace-nowrap">
+                        <span id="voltage-source-display" class="font-medium text-gray-700"></span>
+                        <span id="current-source-display" class="font-medium text-gray-700"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Series Resistors -->
+            <div class="circuit-column">
+                <!-- Top resistor (R1) -->
+                <div class="relative mb-6">
+                    <div id="resistor1" class="resistor"></div>
+                    <div class="value-display-container">
+                        <span id="r1_value_display" class="font-medium text-gray-700"></span>
+                        <span id="v1_value_display" class="font-medium text-gray-700"></span>
+                        <span id="i1_value_display" class="font-medium text-gray-700"></span>
+                    </div>
+                </div>
+
+                <!-- Bottom resistor (R2) -->
+                <div class="relative mt-6">
+                    <div id="resistor2" class="resistor"></div>
+                    <div class="value-display-container">
+                        <span id="r2_value_display" class="font-medium text-gray-700"></span>
+                        <span id="v2_value_display" class="font-medium text-gray-700"></span>
+                        <span id="i2_value_display" class="font-medium text-gray-700"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: Load Resistor -->
+            <div class="circuit-column">
+                <div class="relative" style="margin-top: 120px;">
+                    <div id="resistorLoad" class="resistor"></div>
+                    <div class="value-display-container">
+                        <span id="rLoad_value_display" class="font-medium text-gray-700"></span>
+                        <span id="vLoad_value_display" class="font-medium text-gray-700"></span>
+                        <span id="iLoad_value_display" class="font-medium text-gray-700"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lines (traces) connecting the circuit elements. -->
+        <div class="line v-line absolute h-[calc(5%)] top-[110px] left-[49.8%]"></div>
+        <div class="line v-line absolute h-[calc(9%)] top-[215px] left-[49.8%]"></div>
+        <div class="line v-line absolute h-[calc(5%)] top-[340px] left-[49.8%]"></div>
+        <div class="line v-line absolute h-[calc(18%)] top-[110px] left-[18%]"></div>
+        <div class="line v-line absolute h-[calc(17%)] top-[268px] left-[18%]"></div>
+        <div class="line v-line absolute h-[calc(4%)] top-[238px] left-[81.5%]"></div>
+        <div class="line v-line absolute h-[calc(5%)] top-[340px] left-[81.5%]"></div>
+        <div class="line h-line absolute w-[calc(32%)] top-[110px] left-[18%]"></div>
+        <div class="line h-line absolute w-[calc(31.8%)] top-[238px] left-[50%]"></div>
+        <div class="line h-line absolute w-[calc(63.9%)] top-[365px] left-[18%]"></div>
+
+        <!-- Slider and Value Display -->
+        <div class="flex flex-col items-center mt-8 space-y-4">
+            <label for="loadSlider" class="text-lg font-medium text-gray-700">
+                Adjust Load Resistor: <span id="sliderValue">10 kΩ</span>
+            </label>
+            <input type="range" id="loadSlider" min="0" max="10000" value="10000" class="w-full md:w-3/4 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer">
+        </div>
+        
+        <!-- Reshuffle Button -->
+        <div class="flex flex-col items-center mt-8">
+            <button id="reshuffleButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors duration-200">
+                Reshuffle Resistors
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get references to all the HTML elements
+            const r1Display = document.getElementById('r1_value_display');
+            const r2Display = document.getElementById('r2_value_display');
+            const rLoadDisplay = document.getElementById('rLoad_value_display');
+            const v1Display = document.getElementById('v1_value_display');
+            const v2Display = document.getElementById('v2_value_display');
+            const vLoadDisplay = document.getElementById('vLoad_value_display');
+            const i1Display = document.getElementById('i1_value_display');
+            const i2Display = document.getElementById('i2_value_display');
+            const iLoadDisplay = document.getElementById('iLoad_value_display');
+            const slider = document.getElementById('loadSlider');
+            const sliderValueDisplay = document.getElementById('sliderValue');
+            const voltageSourceDisplay = document.getElementById('voltage-source-display');
+            const currentSourceDisplay = document.getElementById('current-source-display');
+            const reshuffleButton = document.getElementById('reshuffleButton');
+
+            // Circuit constants
+            const SOURCE_VOLTAGE = 10;
+            const SERIES_RESISTOR_VALUES = [20, 30, 40];
+
+            let r1, r2;
+            let rLoad;
+            
+            // Logarithmic slider constants
+            const minR = 1;      // Minimum resistance value (1 Ohm)
+            const maxR = 10000;  // Maximum resistance value (10 kOhm)
+            const logMinR = Math.log10(minR);
+            const logMaxR = Math.log10(maxR);
+
+            // Function to format numbers for display (e.g., 10000 -> 10 kΩ)
+            function formatResistance(value) {
+                if (value >= 1000000) {
+                    return (value / 1000000).toPrecision(3) + ' MΩ';
+                }
+                if (value >= 1000) {
+                    return (value / 1000).toPrecision(3) + ' kΩ';
+                }
+                return value.toPrecision(3) + ' Ω';
+            }
+            
+            // Function to format current for display with 3 significant figures
+            function formatCurrent(value) {
+                if (value >= 1) {
+                    return value.toPrecision(3) + ' A';
+                }
+                if (value >= 0.001) {
+                    return (value * 1000).toPrecision(3) + ' mA';
+                }
+                if (value >= 0.000001) {
+                    return (value * 1000000).toPrecision(3) + ' µA';
+                }
+                return value.toPrecision(3) + ' A';
+            }
+
+            // Main calculation and update function
+            function updateCircuit() {
+                // Convert linear slider value to logarithmic resistance value
+                const logValue = logMinR + (slider.value / slider.max) * (logMaxR - logMinR);
+                rLoad = Math.pow(10, logValue);
+
+                // --- Circuit Analysis Calculations ---
+                const rParallel = (r2 * rLoad) / (r2 + rLoad);
+                const rTotal = r1 + rParallel;
+                const iTotal = SOURCE_VOLTAGE / rTotal;
+                const vParallel = iTotal * rParallel;
+                const v1 = iTotal * r1;
+                const i2 = vParallel / r2;
+                const iLoad = vParallel / rLoad;
+
+                // --- Update the UI with the calculated values ---
+                // Voltage Source Display
+                voltageSourceDisplay.textContent = `V: ${SOURCE_VOLTAGE} V`;
+                currentSourceDisplay.textContent = `i: ${formatCurrent(iTotal)}`;
+
+                r1Display.textContent = `R₁: ${r1} Ω`;
+                v1Display.textContent = `V₁: ${v1.toPrecision(3)} V`;
+                i1Display.textContent = `i₁: ${formatCurrent(iTotal)}`;
+                
+                r2Display.textContent = `R₂: ${r2} Ω`;
+                v2Display.textContent = `V₂: ${vParallel.toPrecision(3)} V`;
+                i2Display.textContent = `i₂: ${formatCurrent(i2)}`;
+                
+                rLoadDisplay.textContent = `R₃: ${formatResistance(rLoad)}`;
+                vLoadDisplay.textContent = `V₃: ${vParallel.toPrecision(3)} V`;
+                iLoadDisplay.textContent = `i₃: ${formatCurrent(iLoad)}`;
+
+                // Update the slider's displayed value
+                sliderValueDisplay.textContent = formatResistance(rLoad);
+            }
+
+            // Function to set up a new problem (randomize R1 and R2)
+            function setupProblem() {
+                // Determine which resistor is 10Ω and which is a random value
+                const isR1_10 = Math.random() < 0.5;
+                const randomIndex = Math.floor(Math.random() * SERIES_RESISTOR_VALUES.length);
+                const randomOtherValue = SERIES_RESISTOR_VALUES[randomIndex];
+
+                if (isR1_10) {
+                    r1 = 10;
+                    r2 = randomOtherValue;
+                } else {
+                    r1 = randomOtherValue;
+                    r2 = 10;
+                }
+                
+                updateCircuit();
+            }
+
+            // Add event listener to the slider
+            slider.addEventListener('input', updateCircuit);
+
+            // Add event listener to the reshuffle button
+            reshuffleButton.addEventListener('click', setupProblem);
+
+            // Initial setup when the page loads
+            setupProblem();
+        });
+    </script>
+</body>
+</html>

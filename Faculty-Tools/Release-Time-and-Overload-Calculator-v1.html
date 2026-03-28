@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Release Time and Overload Calculator</title>
+  <style>
+    :root {
+      --bg-top: #f4efe4;
+      --bg-bottom: #d9e8ef;
+      --panel: rgba(255, 255, 255, 0.88);
+      --panel-strong: rgba(255, 255, 255, 0.96);
+      --ink: #17222c;
+      --muted: #5a6976;
+      --line: rgba(23, 34, 44, 0.12);
+      --accent: #0e5d73;
+      --accent-soft: rgba(14, 93, 115, 0.12);
+      --warn-soft: rgba(163, 83, 29, 0.14);
+      --bad-soft: rgba(142, 38, 56, 0.14);
+      --good-soft: rgba(30, 106, 73, 0.14);
+      --shadow: 0 24px 60px rgba(21, 40, 49, 0.14);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.65), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 210, 140, 0.28), transparent 24%),
+        linear-gradient(165deg, var(--bg-top), var(--bg-bottom));
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 32px auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      overflow: hidden;
+      position: relative;
+      padding: 32px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -60px -80px auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14, 93, 115, 0.22), transparent 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3.35rem);
+      line-height: 1.06;
+      max-width: 12ch;
+    }
+
+    .hero p {
+      margin: 14px 0 0;
+      max-width: 64ch;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    .panel h2 {
+      margin: 0 0 18px;
+      font-size: 1.15rem;
+      letter-spacing: 0.02em;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    label,
+    legend {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.94rem;
+      font-weight: 700;
+    }
+
+    .help {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .help a {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--panel-strong);
+      color: var(--ink);
+      font: inherit;
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus {
+      border-color: rgba(14, 93, 115, 0.58);
+      box-shadow: 0 0 0 4px rgba(14, 93, 115, 0.12);
+      transform: translateY(-1px);
+    }
+
+    fieldset {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .choice-group {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .choice {
+      position: relative;
+    }
+
+    .choice input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .choice span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 12px 14px;
+      text-align: center;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+      font-weight: 700;
+      color: var(--ink);
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .choice input:checked + span {
+      border-color: rgba(14, 93, 115, 0.72);
+      background: rgba(14, 93, 115, 0.1);
+      box-shadow: 0 10px 22px rgba(14, 93, 115, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .choice span:hover {
+      transform: translateY(-1px);
+    }
+
+    .status {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: var(--radius-md);
+      line-height: 1.5;
+      border: 1px solid transparent;
+      background: var(--accent-soft);
+    }
+
+    .status.good {
+      background: var(--good-soft);
+      border-color: rgba(30, 106, 73, 0.18);
+    }
+
+    .status.warn {
+      background: var(--warn-soft);
+      border-color: rgba(163, 83, 29, 0.18);
+    }
+
+    .status.bad {
+      background: var(--bad-soft);
+      border-color: rgba(142, 38, 56, 0.18);
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.98rem;
+    }
+
+    .results {
+      display: grid;
+      gap: 16px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-card {
+      padding: 18px;
+      border-radius: var(--radius-md);
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+    }
+
+    .summary-card.primary {
+      background: linear-gradient(155deg, rgba(14, 93, 115, 0.14), rgba(255, 255, 255, 0.96));
+      border-color: rgba(14, 93, 115, 0.2);
+    }
+
+    .summary-card h3 {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .summary-card .value {
+      font-size: clamp(1.4rem, 2.2vw, 2rem);
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .summary-card .note {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .result-card {
+      padding: 20px;
+      border-radius: var(--radius-md);
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+    }
+
+    .result-card h3 {
+      margin: 0 0 16px;
+      font-size: 1rem;
+    }
+
+    dl {
+      margin: 0;
+    }
+
+    .metric {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 11px 0;
+      border-top: 1px solid var(--line);
+      align-items: baseline;
+    }
+
+    .metric:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    dt {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    dd {
+      margin: 0;
+      text-align: right;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .footnote {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .grid,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .panel {
+        padding: 22px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Faculty Budgeting Tool</p>
+      <h1>Release Time and Summer Overload Calculator</h1>
+      <p>
+        Enter salary, faculty term, funding, requested release time, and whether indirect costs apply.
+        The calculator shows each release-time and overload component, caps overload so the final total stays
+        at least one cent below the funding amount, and estimates summer overload days.
+      </p>
+    </section>
+
+    <section class="grid">
+      <form class="panel" id="calculator-form" novalidate>
+        <h2>Inputs</h2>
+        <div class="form-grid">
+          <div>
+            <label for="salary">Annual Salary</label>
+            <input id="salary" name="salary" type="text" inputmode="decimal" autocomplete="off">
+          </div>
+
+          <fieldset>
+            <legend>Faculty Term</legend>
+            <div class="choice-group">
+              <label class="choice">
+                <input type="radio" name="faculty-months" value="9" checked>
+                <span>9-Month</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="faculty-months" value="11">
+                <span>11-Month</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div>
+            <label for="funding">Funding Amount</label>
+            <input id="funding" name="funding" type="text" inputmode="decimal" autocomplete="off">
+          </div>
+
+          <div>
+            <label for="desired-te">Desired Release Time (TE)</label>
+            <input id="desired-te" name="desired-te" type="number" min="0" step="0.5" inputmode="decimal">
+            <div class="help">Decimal TE values are allowed. 9-month faculty use 27 TE per year; 11-month faculty use 36 TE per year.</div>
+          </div>
+
+          <div>
+            <label for="release-fringe-rate">Release Fringe Rate (%)</label>
+            <input id="release-fringe-rate" name="release-fringe-rate" type="number" min="0" step="0.01" inputmode="decimal" value="59.5">
+          </div>
+
+          <div>
+            <label for="overload-fringe-rate">Overload Fringe Rate (%)</label>
+            <input id="overload-fringe-rate" name="overload-fringe-rate" type="number" min="0" step="0.01" inputmode="decimal" value="2.47">
+          </div>
+
+          <div>
+            <label for="indirect-rate">Indirect Cost Rate (%)</label>
+            <input id="indirect-rate" name="indirect-rate" type="number" min="0" step="0.01" inputmode="decimal" value="45.5">
+            <div class="help">
+              Current rates:
+              <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">University of Hawaii ORS rate page</a>
+            </div>
+          </div>
+
+          <fieldset>
+            <legend>Apply Indirect Costs?</legend>
+            <div class="choice-group">
+              <label class="choice">
+                <input type="radio" name="indirect" value="yes" checked>
+                <span>Yes</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="indirect" value="no">
+                <span>No</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="status warn" id="status-box" role="status" aria-live="polite">
+          <strong>Enter values to begin.</strong>
+          Salary and funding must be greater than zero. Desired release time may be zero or higher.
+        </div>
+      </form>
+
+      <section class="results">
+        <div class="summary-grid">
+          <article class="summary-card primary">
+            <h3>Initial Summer Overload Pay</h3>
+            <div class="value" id="summary-initial-overload-pay">$0.00</div>
+            <div class="note">This is the amount paid directly to faculty before fringe and indirect costs.</div>
+          </article>
+          <article class="summary-card">
+            <h3>Total Release Time Cost</h3>
+            <div class="value" id="summary-release-total">$0.00</div>
+            <div class="note">Release direct cost plus any indirect cost.</div>
+          </article>
+          <article class="summary-card">
+            <h3>Total Overload Cost</h3>
+            <div class="value" id="summary-overload-total">$0.00</div>
+            <div class="note">Budget impact after overload fringe and any indirect cost.</div>
+          </article>
+        </div>
+
+        <article class="panel result-card">
+          <h3>Release Time</h3>
+          <dl>
+            <div class="metric"><dt>Cost per TE</dt><dd id="cost-per-te">$0.00</dd></div>
+            <div class="metric"><dt>Release time cost (cost per TE x desired TE)</dt><dd id="release-time-cost">$0.00</dd></div>
+            <div class="metric"><dt id="release-fringe-label">Release fringe (59.5%)</dt><dd id="release-fringe">$0.00</dd></div>
+            <div class="metric"><dt>Total direct cost</dt><dd id="release-direct-cost">$0.00</dd></div>
+            <div class="metric"><dt id="release-indirect-label">Indirect cost (45.5%)</dt><dd id="release-indirect-cost">$0.00</dd></div>
+            <div class="metric"><dt>Total release time cost</dt><dd id="release-total-cost">$0.00</dd></div>
+            <div class="metric"><dt>Remaining funding before overload</dt><dd id="remaining-before-overload">$0.00</dd></div>
+          </dl>
+        </article>
+
+        <article class="panel result-card">
+          <h3>Summer Overload</h3>
+          <dl>
+            <div class="metric"><dt>Initial summer overload pay (paid to faculty)</dt><dd id="initial-overload-pay">$0.00</dd></div>
+            <div class="metric"><dt id="overload-fringe-label">Overload fringe (2.47%)</dt><dd id="overload-fringe">$0.00</dd></div>
+            <div class="metric"><dt>Overload direct cost</dt><dd id="overload-direct-cost">$0.00</dd></div>
+            <div class="metric"><dt id="overload-indirect-label">Overload indirect cost (45.5%)</dt><dd id="overload-indirect-cost">$0.00</dd></div>
+            <div class="metric"><dt>Total overload cost</dt><dd id="overload-total-cost">$0.00</dd></div>
+            <div class="metric"><dt>Summer overload days</dt><dd id="summer-overload-days">0.00</dd></div>
+          </dl>
+          <div class="footnote">
+            The formula to compute the number of days for <code>X</code>-month faculty with annual salary
+            <code>Y</code> to earn overload <code>Z</code> is:
+            <code>($Z) * (1 year / $Y) * (X months / 1 year) * (1 year / 12 months) * (52 weeks / 1 year) * (40 hours / 1 week) * (1 day / 8 hours)</code>
+            = <code>65 * X * Z / 3 / Y</code>.
+          </div>
+        </article>
+
+        <article class="panel result-card">
+          <h3>Totals</h3>
+          <dl>
+            <div class="metric"><dt>Total release time cost</dt><dd id="totals-release">$0.00</dd></div>
+            <div class="metric"><dt>Total overload cost</dt><dd id="totals-overload">$0.00</dd></div>
+            <div class="metric"><dt>Combined total cost</dt><dd id="combined-total">$0.00</dd></div>
+            <div class="metric"><dt>Combined total rounded up to nearest cent</dt><dd id="rounded-combined-total">$0.00</dd></div>
+            <div class="metric"><dt>Funding amount</dt><dd id="funding-display">$0.00</dd></div>
+            <div class="metric"><dt>Funding remaining / shortfall</dt><dd id="funding-balance">$0.00</dd></div>
+          </dl>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const elements = {
+      form: document.getElementById("calculator-form"),
+      salary: document.getElementById("salary"),
+      funding: document.getElementById("funding"),
+      desiredTE: document.getElementById("desired-te"),
+      releaseFringeRate: document.getElementById("release-fringe-rate"),
+      overloadFringeRate: document.getElementById("overload-fringe-rate"),
+      indirectRate: document.getElementById("indirect-rate"),
+      statusBox: document.getElementById("status-box"),
+      summaryInitialOverloadPay: document.getElementById("summary-initial-overload-pay"),
+      summaryReleaseTotal: document.getElementById("summary-release-total"),
+      summaryOverloadTotal: document.getElementById("summary-overload-total"),
+      costPerTE: document.getElementById("cost-per-te"),
+      releaseTimeCost: document.getElementById("release-time-cost"),
+      releaseFringeLabel: document.getElementById("release-fringe-label"),
+      releaseFringe: document.getElementById("release-fringe"),
+      releaseDirectCost: document.getElementById("release-direct-cost"),
+      releaseIndirectLabel: document.getElementById("release-indirect-label"),
+      releaseIndirectCost: document.getElementById("release-indirect-cost"),
+      releaseTotalCost: document.getElementById("release-total-cost"),
+      remainingBeforeOverload: document.getElementById("remaining-before-overload"),
+      initialOverloadPay: document.getElementById("initial-overload-pay"),
+      overloadFringeLabel: document.getElementById("overload-fringe-label"),
+      overloadFringe: document.getElementById("overload-fringe"),
+      overloadDirectCost: document.getElementById("overload-direct-cost"),
+      overloadIndirectLabel: document.getElementById("overload-indirect-label"),
+      overloadIndirectCost: document.getElementById("overload-indirect-cost"),
+      overloadTotalCost: document.getElementById("overload-total-cost"),
+      summerOverloadDays: document.getElementById("summer-overload-days"),
+      totalsRelease: document.getElementById("totals-release"),
+      totalsOverload: document.getElementById("totals-overload"),
+      combinedTotal: document.getElementById("combined-total"),
+      roundedCombinedTotal: document.getElementById("rounded-combined-total"),
+      fundingDisplay: document.getElementById("funding-display"),
+      fundingBalance: document.getElementById("funding-balance")
+    };
+
+    const currencyFormatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD"
+    });
+
+    const dayFormatter = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    const percentFormatter = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+
+    const valueTargets = {
+      summaryInitialOverloadPay: "currency",
+      summaryReleaseTotal: "currency",
+      summaryOverloadTotal: "currency",
+      costPerTE: "currency",
+      releaseTimeCost: "currency",
+      releaseFringe: "currency",
+      releaseDirectCost: "currency",
+      releaseIndirectCost: "currency",
+      releaseTotalCost: "currency",
+      remainingBeforeOverload: "currency",
+      initialOverloadPay: "currency",
+      overloadFringe: "currency",
+      overloadDirectCost: "currency",
+      overloadIndirectCost: "currency",
+      overloadTotalCost: "currency",
+      totalsRelease: "currency",
+      totalsOverload: "currency",
+      combinedTotal: "currency",
+      roundedCombinedTotal: "currency",
+      fundingDisplay: "currency",
+      fundingBalance: "currency",
+      summerOverloadDays: "days"
+    };
+
+    function readNumber(input) {
+      const normalized = input.value.replace(/[$,\s]/g, "");
+      const value = Number.parseFloat(normalized);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    function selectedValue(name) {
+      return document.querySelector(`input[name="${name}"]:checked`)?.value ?? "";
+    }
+
+    function formatCurrency(value) {
+      return currencyFormatter.format(value);
+    }
+
+    function formatDays(value) {
+      return dayFormatter.format(value);
+    }
+
+    function formatPercent(value) {
+      return `${percentFormatter.format(value)}%`;
+    }
+
+    function normalizeCurrencyInput(value) {
+      const cleaned = value.replace(/[^0-9.]/g, "");
+      const [wholePart = "", ...decimalParts] = cleaned.split(".");
+      const decimalPart = decimalParts.join("").slice(0, 2);
+
+      if (!wholePart && !decimalPart) {
+        return "";
+      }
+
+      return decimalPart ? `${wholePart}.${decimalPart}` : wholePart;
+    }
+
+    function formatCurrencyInputValue(value) {
+      if (!value) {
+        return "";
+      }
+
+      const numericValue = Number.parseFloat(value);
+      if (!Number.isFinite(numericValue)) {
+        return "";
+      }
+
+      return currencyFormatter.format(numericValue);
+    }
+
+    function attachCurrencyFormatting(input) {
+      input.addEventListener("focus", () => {
+        const normalized = normalizeCurrencyInput(input.value);
+        input.value = normalized;
+      });
+
+      input.addEventListener("input", () => {
+        input.value = normalizeCurrencyInput(input.value);
+      });
+
+      input.addEventListener("blur", () => {
+        input.value = formatCurrencyInputValue(normalizeCurrencyInput(input.value));
+      });
+    }
+
+    function ceilToCent(value) {
+      return Math.ceil((value - 1e-9) * 100) / 100;
+    }
+
+    function resetOutputs() {
+      for (const [key, type] of Object.entries(valueTargets)) {
+        elements[key].textContent = type === "days" ? "0.00" : "$0.00";
+      }
+    }
+
+    function paintStatus(tone, title, message) {
+      elements.statusBox.className = `status ${tone}`;
+      elements.statusBox.innerHTML = `<strong>${title}</strong>${message}`;
+    }
+
+    function renderResults(results) {
+      elements.summaryInitialOverloadPay.textContent = formatCurrency(results.initialOverloadPay);
+      elements.summaryReleaseTotal.textContent = formatCurrency(results.releaseTotalCost);
+      elements.summaryOverloadTotal.textContent = formatCurrency(results.overloadTotalCost);
+
+      elements.releaseFringeLabel.textContent = `Release fringe (${formatPercent(results.releaseFringeRatePercent)})`;
+      elements.releaseIndirectLabel.textContent = `Indirect cost (${formatPercent(results.indirectRatePercent)})`;
+      elements.overloadFringeLabel.textContent = `Overload fringe (${formatPercent(results.overloadFringeRatePercent)})`;
+      elements.overloadIndirectLabel.textContent = `Overload indirect cost (${formatPercent(results.indirectRatePercent)})`;
+
+      elements.costPerTE.textContent = formatCurrency(results.costPerTE);
+      elements.releaseTimeCost.textContent = formatCurrency(results.releaseTimeCost);
+      elements.releaseFringe.textContent = formatCurrency(results.releaseFringe);
+      elements.releaseDirectCost.textContent = formatCurrency(results.releaseDirectCost);
+      elements.releaseIndirectCost.textContent = formatCurrency(results.releaseIndirectCost);
+      elements.releaseTotalCost.textContent = formatCurrency(results.releaseTotalCost);
+      elements.remainingBeforeOverload.textContent = formatCurrency(results.remainingBeforeOverload);
+
+      elements.initialOverloadPay.textContent = formatCurrency(results.initialOverloadPay);
+      elements.overloadFringe.textContent = formatCurrency(results.overloadFringe);
+      elements.overloadDirectCost.textContent = formatCurrency(results.overloadDirectCost);
+      elements.overloadIndirectCost.textContent = formatCurrency(results.overloadIndirectCost);
+      elements.overloadTotalCost.textContent = formatCurrency(results.overloadTotalCost);
+      elements.summerOverloadDays.textContent = formatDays(results.summerOverloadDays);
+
+      elements.totalsRelease.textContent = formatCurrency(results.releaseTotalCost);
+      elements.totalsOverload.textContent = formatCurrency(results.overloadTotalCost);
+      elements.combinedTotal.textContent = formatCurrency(results.combinedTotal);
+      elements.roundedCombinedTotal.textContent = formatCurrency(results.roundedCombinedTotal);
+      elements.fundingDisplay.textContent = formatCurrency(results.fundingAmount);
+      elements.fundingBalance.textContent = formatCurrency(results.fundingBalance);
+    }
+
+    function calculate() {
+      const annualSalary = readNumber(elements.salary);
+      const fundingAmount = readNumber(elements.funding);
+      const desiredTE = readNumber(elements.desiredTE);
+      const releaseFringeRatePercent = readNumber(elements.releaseFringeRate);
+      const overloadFringeRatePercent = readNumber(elements.overloadFringeRate);
+      const indirectRatePercent = readNumber(elements.indirectRate);
+      const facultyMonths = Number.parseInt(selectedValue("faculty-months"), 10);
+      const indirectApplies = selectedValue("indirect") === "yes";
+
+      const validationErrors = [];
+
+      if (!(annualSalary > 0)) {
+        validationErrors.push("Annual salary must be greater than zero.");
+      }
+
+      if (!(fundingAmount > 0)) {
+        validationErrors.push("Funding amount must be greater than zero.");
+      }
+
+      if (desiredTE === null || desiredTE < 0) {
+        validationErrors.push("Desired release time must be zero or greater.");
+      }
+
+      if (releaseFringeRatePercent === null || releaseFringeRatePercent < 0) {
+        validationErrors.push("Release fringe rate must be zero or greater.");
+      }
+
+      if (overloadFringeRatePercent === null || overloadFringeRatePercent < 0) {
+        validationErrors.push("Overload fringe rate must be zero or greater.");
+      }
+
+      if (indirectRatePercent === null || indirectRatePercent < 0) {
+        validationErrors.push("Indirect cost rate must be zero or greater.");
+      }
+
+      if (![9, 11].includes(facultyMonths)) {
+        validationErrors.push("Faculty term must be either 9 months or 11 months.");
+      }
+
+      if (validationErrors.length > 0) {
+        resetOutputs();
+        paintStatus(
+          "warn",
+          "Enter valid values to calculate.",
+          validationErrors.join(" ")
+        );
+        if (Number.isFinite(fundingAmount)) {
+          elements.fundingDisplay.textContent = formatCurrency(Math.max(fundingAmount, 0));
+        }
+        return;
+      }
+
+      const annualTeachingLoad = facultyMonths === 11 ? 36 : 27;
+      const releaseFringeRate = releaseFringeRatePercent / 100;
+      const overloadFringeRate = overloadFringeRatePercent / 100;
+      const indirectRate = indirectRatePercent / 100;
+      const costPerTE = annualSalary / annualTeachingLoad;
+      const releaseTimeCost = costPerTE * desiredTE;
+      const releaseFringe = releaseTimeCost * releaseFringeRate;
+      const releaseDirectCost = releaseTimeCost + releaseFringe;
+      const releaseIndirectCost = indirectApplies ? releaseDirectCost * indirectRate : 0;
+      const releaseTotalCost = releaseDirectCost + releaseIndirectCost;
+      const remainingBeforeOverload = fundingAmount - releaseTotalCost;
+
+      let initialOverloadPay = 0;
+      let overloadFringe = 0;
+      let overloadDirectCost = 0;
+      let overloadIndirectCost = 0;
+      let overloadTotalCost = 0;
+      let summerOverloadDays = 0;
+      let combinedTotal = releaseTotalCost;
+
+      if (releaseTotalCost <= fundingAmount) {
+        const maxCombinedTotal = Math.max(fundingAmount - 0.01, 0);
+        const overloadLoadFactor = (1 + overloadFringeRate) * (indirectApplies ? 1 + indirectRate : 1);
+        initialOverloadPay = Math.max(0, (maxCombinedTotal - releaseTotalCost) / overloadLoadFactor);
+        overloadFringe = initialOverloadPay * overloadFringeRate;
+        overloadDirectCost = initialOverloadPay + overloadFringe;
+        overloadIndirectCost = indirectApplies ? overloadDirectCost * indirectRate : 0;
+        overloadTotalCost = overloadDirectCost + overloadIndirectCost;
+        combinedTotal = releaseTotalCost + overloadTotalCost;
+        summerOverloadDays = (65 * facultyMonths * initialOverloadPay) / (3 * annualSalary);
+      }
+
+      const roundedCombinedTotal = ceilToCent(combinedTotal);
+      const fundingBalance = fundingAmount - roundedCombinedTotal;
+
+      renderResults({
+        costPerTE,
+        releaseTimeCost,
+        releaseFringe,
+        releaseDirectCost,
+        releaseIndirectCost,
+        releaseTotalCost,
+        remainingBeforeOverload,
+        initialOverloadPay,
+        overloadFringe,
+        overloadDirectCost,
+        overloadIndirectCost,
+        overloadTotalCost,
+        combinedTotal,
+        roundedCombinedTotal,
+        fundingAmount,
+        fundingBalance,
+        summerOverloadDays,
+        releaseFringeRatePercent,
+        overloadFringeRatePercent,
+        indirectRatePercent
+      });
+
+      if (releaseTotalCost > fundingAmount) {
+        paintStatus(
+          "bad",
+          "Release time exceeds available funding.",
+          `Release time alone is short by ${formatCurrency(Math.abs(remainingBeforeOverload))}. Overload is set to $0.00.`
+        );
+        return;
+      }
+
+      if (fundingBalance < 0) {
+        paintStatus(
+          "bad",
+          "Calculated total exceeds funding after rounding.",
+          `The rounded total is over budget by ${formatCurrency(Math.abs(fundingBalance))}.`
+        );
+        return;
+      }
+
+      if (desiredTE === 0) {
+        paintStatus(
+          "good",
+          "No release time requested.",
+          `All available budget, less the one-cent cap, is applied to overload. Remaining balance after rounding: ${formatCurrency(fundingBalance)}.`
+        );
+        return;
+      }
+
+      paintStatus(
+        "good",
+        "Scenario is fundable.",
+        `Remaining balance after rounding is ${formatCurrency(fundingBalance)}. Overload pay is capped so the final rounded total stays at least one cent below the funding amount.`
+      );
+    }
+
+    elements.form.addEventListener("input", calculate);
+    elements.form.addEventListener("change", calculate);
+    attachCurrencyFormatting(elements.salary);
+    attachCurrencyFormatting(elements.funding);
+    resetOutputs();
+  </script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passive Sign Convention</title>
+    <!-- Use Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1a202c;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+        }
+        
+        .correct-bg { background-color: #d1fae5; }
+        .incorrect-bg { background-color: #fee2e2; }
+
+        /* Custom styling for the message box */
+        #messageBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+        }
+        
+        .diagram-container {
+            position: relative;
+            width: 256px; /* w-64 */
+            height: 160px; /* h-40 */
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            border-width: 4px;
+            border-color: #94a3b8; /* border-gray-400 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Glossy effect for the container */
+            background: linear-gradient(135deg, #eef2f5 0%, #d5dde6 100%);
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .voltage-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: #2563eb; /* Changed to blue */
+            top: 40%;
+            left: 20%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        .lead {
+            position: absolute;
+            width: 20px;
+            height: 4px;
+            background-color: #4a5568;
+        }
+
+        .voltage-sign {
+            position: absolute;
+            font-size: 1.5rem;
+            color: #2563eb; /* Changed to blue */
+            font-weight: bold;
+        }
+
+        .current-arrow {
+            position: absolute;
+            font-size: 1.5rem;
+            color: red;
+        }
+        
+        /* New class for dynamically positioned current text */
+        .dynamic-current-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: red; /* Changed to red */
+            white-space: nowrap; /* Prevents text from wrapping */
+        }
+
+        /* Custom glossy button styling */
+        .glossy-button {
+            background: linear-gradient(180deg, #4299e1 0%, #2b6cb0 100%);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .glossy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        /* Active state with darker gradient and pronounced shadow/ring */
+        .active-glossy-button {
+            background: linear-gradient(180deg, #2b6cb0 0%, #3182ce 100%);
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            outline: none;
+            border: 4px solid #00508C; /* Deeper blue outline for selection */
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container bg-white rounded-xl shadow-lg p-6 md:p-10 text-center space-y-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Passive Sign Convention Practice</h1>
+        <p class="text-gray-600 mb-8">
+            Select the correct power equation and calculate the power for the circuit element shown below.
+        </p>
+
+        <!-- Circuit Element Diagram -->
+        <div class="diagram-container">
+            <span id="vText" class="voltage-text"></span>
+            <span id="iText" class="dynamic-current-text"></span>
+
+            <!-- Horizontal Leads on the left -->
+            <div id="topLead" class="lead" style="left: -20px; top: 40px;"></div>
+            <div id="bottomLead" class="lead" style="left: -20px; bottom: 40px;"></div>
+
+            <!-- Dynamically positioned voltage signs and current arrow -->
+            <span id="plusSign" class="voltage-sign"></span>
+            <span id="minusSign" class="voltage-sign"></span>
+            <span id="iArrow" class="current-arrow"></span>
+        </div>
+
+        <!-- Problem Statement -->
+        <div class="space-y-4">
+            <div id="problemStatement" class="text-xl font-medium text-gray-700"></div>
+        </div>
+        
+        <!-- User Input Section -->
+        <div class="space-y-6">
+            <!-- Equation Selection -->
+            <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
+                <button id="pViButton" class="w-full md:w-auto px-6 py-3 rounded-lg glossy-button text-white font-semibold">
+                    p = v i
+                </button>
+                <button id="pMinusViButton" class="w-full md:w-auto px-6 py-3 rounded-lg glossy-button text-white font-semibold">
+                    p = - v i
+                </button>
+            </div>
+
+            <!-- Calculation Input -->
+            <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+                <label for="powerInput" class="text-lg font-medium text-gray-700">Calculated Power (W):</label>
+                <input type="number" id="powerInput" class="w-full md:w-40 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center shadow-sm" placeholder="Enter value">
+            </div>
+
+            <!-- Check Answer Button -->
+            <button id="checkAnswerButton" class="w-full md:w-auto px-8 py-4 rounded-lg shadow-lg bg-green-500 text-white font-bold text-lg transition-transform transform hover:scale-105">
+                Check Answer
+            </button>
+        </div>
+
+        <!-- Feedback and Next Problem Buttons -->
+        <div class="space-y-4">
+            <div id="feedback" class="p-4 rounded-lg text-center font-semibold text-lg" style="display: none;"></div>
+            <button id="nextProblemButton" class="w-full md:w-auto px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 bg-gray-400 text-white font-semibold" style="display: none;">
+                Next Problem
+            </button>
+        </div>
+    </div>
+    
+    <!-- Custom Modal/Message Box -->
+    <div id="messageBox" class="p-6 bg-white rounded-lg shadow-2xl space-y-4" style="display: none;">
+        <p id="messageText" class="text-lg font-semibold text-gray-800 text-center"></p>
+        <p id="messageDetails" class="text-sm text-gray-600 text-center"></p>
+        <button id="closeMessageBox" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">OK</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const problemStatementEl = document.getElementById('problemStatement');
+            const vTextEl = document.getElementById('vText');
+            const iTextEl = document.getElementById('iText');
+            const plusSignEl = document.getElementById('plusSign');
+            const minusSignEl = document.getElementById('minusSign');
+            const iArrowEl = document.getElementById('iArrow');
+            const pViButton = document.getElementById('pViButton');
+            const pMinusViButton = document.getElementById('pMinusViButton');
+            const powerInput = document.getElementById('powerInput');
+            const checkAnswerButton = document.getElementById('checkAnswerButton');
+            const feedbackEl = document.getElementById('feedback');
+            const nextProblemButton = document.getElementById('nextProblemButton');
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            const messageDetails = document.getElementById('messageDetails');
+            const closeMessageBox = document.getElementById('closeMessageBox');
+
+            let voltage, current, isPassive, correctEquation;
+            let isVoltageTopPositive, isCurrentOnTop, isCurrentRight;
+
+            // Function to show the custom message box
+            function showMessageBox(text, details) {
+                messageText.textContent = text;
+                messageDetails.textContent = details;
+                messageBox.style.display = 'block';
+            }
+
+            // Function to hide the custom message box
+            closeMessageBox.addEventListener('click', () => {
+                messageBox.style.display = 'none';
+            });
+            
+            function generateProblem() {
+                // Generate random voltage and current values (positive or negative)
+                voltage = Math.floor(Math.random() * 20) - 10;
+                if (voltage === 0) voltage = 1;
+                current = Math.floor(Math.random() * 10) - 5;
+                if (current === 0) current = 1;
+
+                // Randomly determine voltage polarity and current direction
+                isVoltageTopPositive = Math.random() < 0.5; // True if + is on top, False if on bottom
+                isCurrentOnTop = Math.random() < 0.5; // True if arrow is on top lead, False if on bottom
+                isCurrentRight = Math.random() < 0.5; // True if arrow points right (into element)
+
+                // Update diagram visuals
+                // Position voltage signs
+                if (isVoltageTopPositive) {
+                    plusSignEl.style.top = '25px';
+                    minusSignEl.style.top = '90px';
+                } else {
+                    plusSignEl.style.top = '90px';
+                    minusSignEl.style.top = '25px';
+                }
+                plusSignEl.style.left = '10%';
+                minusSignEl.style.left = '10%';
+                plusSignEl.textContent = '+';
+                minusSignEl.textContent = '-';
+
+                // Position current arrow and label to the left of the leads
+                if (isCurrentOnTop) {
+                    iTextEl.style.top = '30px';
+                    iArrowEl.style.top = '30px';
+                } else {
+                    iTextEl.style.top = '100px';
+                    iArrowEl.style.top = '100px';
+                }
+                
+                if (isCurrentRight) {
+                    iArrowEl.className = 'fas fa-arrow-right current-arrow';
+                    iArrowEl.style.left = '-65px';
+                    iTextEl.textContent = `i = ${current} A`;
+                    iTextEl.style.left = '-140px';
+                } else {
+                    iArrowEl.className = 'fas fa-arrow-left current-arrow';
+                    iArrowEl.style.left = '-65px';
+                    iTextEl.textContent = `i = ${current} A`;
+                    iTextEl.style.left = '-140px';
+                }
+
+                // Determine if it's passive sign convention
+                isPassive = (isCurrentRight && isCurrentOnTop && isVoltageTopPositive) || 
+                            (isCurrentRight && !isCurrentOnTop && !isVoltageTopPositive) ||
+                            (!isCurrentRight && isCurrentOnTop && !isVoltageTopPositive) ||
+                            (!isCurrentRight && !isCurrentOnTop && isVoltageTopPositive);
+                
+                correctEquation = isPassive ? 'p = v i' : 'p = - v i';
+
+                // Update the diagram with new values
+                vTextEl.textContent = `v = ${voltage} V`;
+                problemStatementEl.textContent = 'Please select the correct equation and calculate the power.';
+
+                // Reset UI elements and remove highlight rings
+                pViButton.classList.remove('active-glossy-button');
+                pMinusViButton.classList.remove('active-glossy-button');
+                powerInput.value = '';
+                feedbackEl.style.display = 'none';
+                nextProblemButton.style.display = 'none';
+                checkAnswerButton.style.display = 'block';
+            }
+            
+            pViButton.addEventListener('click', () => {
+                // Add classes for the selected button
+                pViButton.classList.add('active-glossy-button');
+                
+                // Remove classes from the other button
+                pMinusViButton.classList.remove('active-glossy-button');
+            });
+
+            pMinusViButton.addEventListener('click', () => {
+                // Add classes for the selected button
+                pMinusViButton.classList.add('active-glossy-button');
+
+                // Remove classes from the other button
+                pViButton.classList.remove('active-glossy-button');
+            });
+
+            checkAnswerButton.addEventListener('click', () => {
+                const selectedEquation = pViButton.classList.contains('active-glossy-button') ? 'p = v i' : (pMinusViButton.classList.contains('active-glossy-button') ? 'p = - v i' : null);
+                const userPower = parseFloat(powerInput.value);
+
+                if (!selectedEquation) {
+                    showMessageBox('No Equation Selected', 'Please select a power equation before checking your answer.');
+                    return;
+                }
+                
+                if (isNaN(userPower)) {
+                    showMessageBox('No Power Value Entered', 'Please enter a numerical value for the calculated power.');
+                    return;
+                }
+
+                const expectedPower = selectedEquation === 'p = v i' ? voltage * current : -voltage * current;
+                const isEquationCorrect = selectedEquation === correctEquation;
+                const isPowerCorrect = Math.abs(userPower - expectedPower) < 0.001;
+                
+                let feedbackText, feedbackDetails;
+                let isCorrect = isEquationCorrect && isPowerCorrect;
+
+                if (isCorrect) {
+                    feedbackEl.className = 'p-4 rounded-lg text-center font-semibold text-lg correct-bg';
+                    feedbackEl.style.display = 'block';
+                    feedbackText = 'Correct!';
+                    
+                    const signInterpretation = expectedPower > 0 ? 'delivered to the element' : 'extracted from the element';
+                    feedbackDetails = `You correctly identified the equation and calculated the power. The power is ${Math.abs(expectedPower)} W and is being ${signInterpretation}.`;
+                } else {
+                    feedbackEl.className = 'p-4 rounded-lg text-center font-semibold text-lg incorrect-bg';
+                    feedbackEl.style.display = 'block';
+                    feedbackText = 'Incorrect.';
+
+                    let interactionDetail;
+                    if (isPassive) {
+                      if (isCurrentRight) {
+                        interactionDetail = "entering the positive terminal";
+                      } else {
+                        interactionDetail = "leaving the negative terminal";
+                      }
+                    } else { // Not passive
+                      if (isCurrentRight) {
+                        interactionDetail = "entering the negative terminal";
+                      } else {
+                        interactionDetail = "leaving the positive terminal";
+                      }
+                    }
+                    
+                    feedbackDetails = `Your selected equation is incorrect. Remember the passive sign convention: use p=vi when the current enters the positive terminal (or leaves the negative terminal). Otherwise, use p=-vi. In this case, the current is ${interactionDetail}, so the correct equation is ${correctEquation}.`;
+                }
+                
+                showMessageBox(feedbackText, feedbackDetails);
+                
+                if (isCorrect) {
+                    checkAnswerButton.style.display = 'none';
+                    nextProblemButton.classList.remove('bg-gray-400');
+                    nextProblemButton.classList.add('bg-green-500');
+                    nextProblemButton.style.display = 'block';
+                }
+            });
+
+            nextProblemButton.addEventListener('click', generateProblem);
+
+            // Initial problem generation
+            generateProblem();
+        });
+    </script>
+</body>
+</html>

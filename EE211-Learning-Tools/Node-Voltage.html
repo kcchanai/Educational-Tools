@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node-Voltage Practice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl text-center border border-gray-200">
+        <h1 class="text-3xl font-semibold text-black-800 mb-4">Node-Voltage Method Practice</h1>
+        <p class="text-black-600 mb-6">Determine the correct signs for the KCL equation at node a. (Current out is positive.)</p>
+
+        <!-- Circuit Diagram Container -->
+        <div id="circuit-diagram-container" class="mb-8">
+            <svg id="circuit-svg" viewBox="0 0 400 300" class="w-full h-auto max-h-80 mx-auto" preserveAspectRatio="xMidYMid meet">
+
+                <!-- Wires connecting components -->
+                <line x1="50" y1="100" x2="105" y2="100" stroke="#374151" stroke-width="2" />
+                <line x1="155" y1="100" x2="350" y2="100" stroke="#374151" stroke-width="2" />
+                <line x1="165" y1="100" x2="195" y2="100" stroke="#374151" stroke-width="2" />
+                <line x1="50" y1="205" x2="50" y2="250" stroke="#374151" stroke-width="2" />
+                <line x1="350" y1="205" x2="350" y2="250" stroke="#374151" stroke-width="2" />
+                <line x1="50" y1="250" x2="350" y2="250" stroke="#374151" stroke-width="2" />
+                <line x1="200" y1="105" x2="200" y2="150" stroke="#374151" stroke-width="2" />
+                <line x1="200" y1="201" x2="200" y2="250" stroke="#374151" stroke-width="2" />
+                <line x1="50" y1="99" x2="50" y2="145" stroke="#374151" stroke-width="2" />
+                <line x1="350" y1="99" x2="350" y2="145" stroke="#374151" stroke-width="2" />
+
+                <!-- Node a -->
+                <circle cx="200" cy="100" r="5" fill="#ef4444" />
+                <text x="215" y="125" text-anchor="middle" font-size="24" fill="#ef4444">a</text>
+                
+                <!-- Node b (reference) -->
+                <circle cx="200" cy="250" r="5" fill="#10b981" />
+                <text x="270" y="280" text-anchor="middle" font-size="24" fill="#10b981">b (reference)</text>
+                
+                <!-- Component labels and values -->
+                <text x="130" y="85" text-anchor="middle" font-size="28" fill="#374151">R₁</text>
+                <text x="225" y="185" text-anchor="middle" font-size="28" fill="#374151">R₂</text>
+                <text x="395" y="180" text-anchor="middle" font-size="28" fill="#374151">iₛ</text>
+                <text x="0" y="180" text-anchor="middle" font-size="28" fill="#374151">Vₛ</text>
+                <text x="200" y="85" text-anchor="middle" font-size="28" fill="#374151">Vₐ</text>
+
+
+                <!-- Resistor symbols (now narrow rectangles) -->
+                <rect x="105" y="95" width="50" height="10" stroke="#374151" stroke-width="2" fill="none" />
+                <rect x="195" y="150" width="10" height="50" stroke="#374151" stroke-width="2" fill="none" />
+                
+                <!-- Voltage source symbol (now a circle with plus/minus signs) -->
+                <g id="voltage-source-symbol">
+                    <circle cx="50" cy="175" r="30" stroke="#374151" stroke-width="2" fill="none" />
+                    <text x="50" y="165" text-anchor="middle" font-size="20" fill="#374151">+</text>
+                    <text x="50" y="195" text-anchor="middle" font-size="20" fill="#374151">-</text>
+                </g>
+                
+                <!-- Current source symbol -->
+                <g id="current-source-symbol">
+                    <circle cx="350" cy="175" r="30" stroke="#374151" stroke-width="2" fill="none" />
+                    <path id="current-arrow" d="M 350 155 V 195 M 345 190 L 350 195 L 355 190" stroke="#374151" stroke-width="2" fill="none" />
+                </g>
+                
+            </svg>
+        </div>
+
+        <!-- Equation and controls -->
+        <div class="flex flex-col items-center justify-center space-y-4">
+            <div class="text-2xl md:text-3xl font-mono text-gray-800 flex items-center flex-wrap justify-center space-x-2">
+                <span> (Vₐ </span>
+                <select id="sign1" class="rounded-md px-2 py-1 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="+">+</option>
+                    <option value="-">-</option>
+                </select>
+                <span> Vₛ)/R₁ </span>
+                <select id="sign2" class="rounded-md px-2 py-1 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="+">+</option>
+                    <option value="-">-</option>
+                </select>
+                <span> Vₐ/R₂ </span>
+                <select id="sign3" class="rounded-md px-2 py-1 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="+">+</option>
+                    <option value="-">-</option>
+                </select>
+                <span> iₛ = 0</span>
+            </div>
+            
+            <button onclick="checkAnswer()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                Check Answer
+            </button>
+            <div id="feedback" class="text-lg font-bold mt-4"></div>
+            
+            <button onclick="generateNewProblem()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-sm transform transition-transform duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                New Problem
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // DOM element references
+        const voltageSourceSymbol = document.getElementById('voltage-source-symbol');
+        const currentArrow = document.getElementById('current-arrow');
+        const sign1Select = document.getElementById('sign1');
+        const sign2Select = document.getElementById('sign2');
+        const sign3Select = document.getElementById('sign3');
+        const feedbackDiv = document.getElementById('feedback');
+        
+        // State variables to store the correct answers
+        let correctSign1, correctSign2, correctSign3;
+
+        /**
+         * Generates a new circuit problem with random source directions.
+         */
+        function generateNewProblem() {
+            // Reset feedback
+            feedbackDiv.textContent = '';
+            
+            // Randomly determine voltage source polarity
+            const isVsPositiveUp = Math.random() < 0.5;
+            if (isVsPositiveUp) {
+                // If the positive terminal is UP, current out of node a is positive.
+                // The potential at the top of R1 is Va. The potential at the bottom of R1 is Vs.
+                // The current leaving node 'a' is (Va - (-Vs))/R1 = (Va+Vs)/R1.
+                // The equation is given as (Va-Vs)/R1, so we need a negative sign in front.
+                // CORRECTION: The current leaving node 'a' is (Va - Vs_top)/R1. If Vs_top is Vs, the term is (Va-Vs)/R1.
+                // The potential at the top of the source is Va, and at the bottom is Vs.
+                // If the + is at the top, Vs is the potential difference V_top - V_bottom. V_top = Va, V_bottom is the potential at the other side of R1.
+                // Let's re-examine this.
+                // KCL is sum of currents OUT of node 'a' = 0.
+                // Current 1 (through R1): (Va - V_top_of_R1)/R1.
+                // The potential at the top of R1 is the potential at the positive terminal of Vs.
+                // Let the voltage source be V_source. The voltage at the top of V_source is Vs and at the bottom is 0 (relative to the reference node).
+                // Thus the current through R1 is (Va - Vs) / R1. The sign is positive because current is assumed to be leaving node a.
+                // The logic was correct, the comment was confusing. The problem is with the SVG and the term.
+                // The current flowing *from* the voltage source *to* node 'a' would be positive if the positive terminal is up.
+                // Since our current is defined as leaving node 'a', this current is entering, so the sign is negative.
+                // Correct logic:
+                // If positive is UP, current enters node 'a'.
+                // So the sign is NEGATIVE.
+                correctSign1 = '-';
+                
+                // Update SVG to show positive terminal up
+                voltageSourceSymbol.innerHTML = `
+                    <circle cx="50" cy="175" r="30" stroke="#374151" stroke-width="2" fill="none" />
+                    <text x="50" y="165" text-anchor="middle" font-size="20" fill="#374151">+</text>
+                    <text x="50" y="195" text-anchor="middle" font-size="20" fill="#374151">-</text>
+                `;
+            } else {
+                // If positive is DOWN, current leaves node 'a'.
+                // So the sign is POSITIVE.
+                correctSign1 = '+';
+                
+                // Update SVG to show negative terminal up
+                voltageSourceSymbol.innerHTML = `
+                    <circle cx="50" cy="175" r="30" stroke="#374151" stroke-width="2" fill="none" />
+                    <text x="50" y="165" text-anchor="middle" font-size="20" fill="#374151">-</text>
+                    <text x="50" y="195" text-anchor="middle" font-size="20" fill="#374151">+</text>
+                `;
+            }
+
+            // Randomly determine current source direction
+            const isIsPointingDown = Math.random() < 0.5;
+            if (isIsPointingDown) {
+                // The current source flows out of node a.
+                // Correct sign for i_s term is POSITIVE because current leaves node 'a'.
+                correctSign3 = '+';
+                currentArrow.setAttribute('d', 'M 350 155 V 195 M 345 190 L 350 195 L 355 190');
+            } else {
+                // The current source flows into node a.
+                // Correct sign for i_s term is NEGATIVE because current enters node 'a'.
+                correctSign3 = '-';
+                currentArrow.setAttribute('d', 'M 350 195 V 155 M 345 160 L 350 155 L 355 160');
+            }
+
+            // Correct sign for the V_a/R2 term is always positive, as we assume current leaves node 'a'.
+            correctSign2 = '+';
+
+            // Reset dropdown selections
+            sign1Select.value = '+';
+            sign2Select.value = '+';
+            sign3Select.value = '+';
+        }
+
+        /**
+         * Checks the user's selected answers against the correct ones.
+         */
+        function checkAnswer() {
+            const userSign1 = sign1Select.value;
+            const userSign2 = sign2Select.value;
+            const userSign3 = sign3Select.value;
+            
+            let allCorrect = true;
+            let feedbackText = "";
+            
+            // Check sign for V_s term
+            if (userSign1 === correctSign1) {
+                feedbackText += "Sign 1: Correct! ";
+            } else {
+                feedbackText += `Sign 1: Incorrect. The correct sign is '${correctSign1}'. `;
+                allCorrect = false;
+            }
+            
+            // Check sign for V_a/R2 term
+            if (userSign2 === correctSign2) {
+                feedbackText += "Sign 2: Correct! ";
+            } else {
+                feedbackText += `Sign 2: Incorrect. The correct sign is '${correctSign2}'. `;
+                allCorrect = false;
+            }
+            
+            // Check sign for i_s term
+            if (userSign3 === correctSign3) {
+                feedbackText += "Sign 3: Correct! ";
+            } else {
+                feedbackText += `Sign 3: Incorrect. The correct sign is '${correctSign3}'. `;
+                allCorrect = false;
+            }
+
+            feedbackDiv.textContent = feedbackText;
+            if (allCorrect) {
+                feedbackDiv.classList.remove('text-red-500');
+                feedbackDiv.classList.add('text-green-500');
+            } else {
+                feedbackDiv.classList.remove('text-green-500');
+                feedbackDiv.classList.add('text-red-500');
+            }
+        }
+
+        // Initialize the first problem on page load
+        window.onload = generateNewProblem;
+    </script>
+</body>
+</html>

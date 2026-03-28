@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ohm's Law Calculator Practice</title>
+    <!-- Use Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for arrow icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1a202c;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .correct-bg { background-color: #d1fae5; }
+        .incorrect-bg { background-color: #fee2e2; }
+
+        /* Custom styling for the message box */
+        #messageBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem; /* Spacing between the three parts of the diagram */
+            height: 160px;
+            margin-bottom: 2rem;
+        }
+        
+        /* New styling to create the resistor with leads */
+        .resistor-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .resistor-lead {
+            width: 4px;
+            height: 20px;
+            background-color: #1a202c;
+        }
+
+        .resistor-box {
+            width: 30px;
+            height: 120px;
+            border: 4px solid #1a202c;
+            background-color: transparent;
+            border-radius: 5px;
+        }
+        
+        .value-text {
+            font-weight: bold;
+            font-size: 1.125rem;
+            white-space: nowrap;
+        }
+
+        .current-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .voltage-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* New styles to create the polarity signs and voltage value group */
+        .voltage-display-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            height: 120px; /* Match the resistor height for perfect alignment */
+        }
+
+        .current-arrow {
+            color: red;
+            font-size: 1.5rem;
+        }
+
+        .glossy-button {
+            background: linear-gradient(180deg, #4299e1 0%, #2b6cb0 100%);
+            box-shadow: 0 44px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .glossy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        /* Active state with darker gradient and pronounced shadow/ring */
+        .active-glossy-button {
+            background: linear-gradient(180deg, #2b6cb0 0%, #3182ce 100%);
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            outline: none;
+            border: 4px solid #00508C; /* Deeper blue outline for selection */
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="container bg-white rounded-xl shadow-lg p-6 md:p-10 text-center space-y-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Ohm's Law Practice</h1>
+        <p class="text-gray-600 mb-8">
+            Select the correct equation and solve for the missing value.
+        </p>
+
+        <!-- Circuit Element Diagram -->
+        <div class="diagram-container">
+            <!-- Current Arrow and Text Group -->
+            <div class="current-group">
+                <span id="iArrow" class="current-arrow"></span>
+                <span id="iText" class="value-text" style="color: red;"></span>
+            </div>
+            
+            <!-- Resistor with leads and its label -->
+            <div class="flex items-center space-x-4">
+                <div class="resistor-container">
+                    <div class="resistor-lead"></div>
+                    <div class="resistor-box"></div>
+                    <div class="resistor-lead"></div>
+                </div>
+                <!-- Resistor value now to the right -->
+                <span id="rText" class="value-text"></span>
+            </div>
+
+            <!-- Voltage signs and text group -->
+            <div class="voltage-display-container">
+                <span id="plusSign" class="voltage-sign text-2xl font-bold text-blue-600">+</span>
+                <span id="vText" class="value-text" style="color: #2563eb;"></span>
+                <span id="minusSign" class="voltage-sign text-2xl font-bold text-blue-600">-</span>
+            </div>
+        </div>
+
+        <!-- Equation Selection -->
+        <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
+            <button id="pViButton" class="w-full md:w-auto px-6 py-3 rounded-lg glossy-button text-white font-semibold">
+                V = iR
+            </button>
+            <button id="pMinusViButton" class="w-full md:w-auto px-6 py-3 rounded-lg glossy-button text-white font-semibold">
+                V = -iR
+            </button>
+        </div>
+
+        <!-- User Input Section -->
+        <div id="inputSection" class="space-y-6">
+            <div id="voltageInputGroup" class="flex flex-col items-center">
+                <label for="voltageInput" class="text-lg font-medium text-gray-700">Voltage (V):</label>
+                <input type="number" id="voltageInput" class="w-full md:w-40 px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center shadow-sm" placeholder="Enter V">
+            </div>
+            <div id="currentInputGroup" class="flex flex-col items-center">
+                <label for="currentInput" class="text-lg font-medium text-gray-700">Current (A):</label>
+                <input type="number" id="currentInput" class="w-full md:w-40 px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center shadow-sm" placeholder="Enter I">
+            </div>
+            <div id="resistanceInputGroup" class="flex flex-col items-center">
+                <label for="resistanceInput" class="text-lg font-medium text-gray-700">Resistance (Ω):</label>
+                <input type="number" id="resistanceInput" class="w-full md:w-40 px-4 py-2 mt-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center shadow-sm" placeholder="Enter R">
+            </div>
+
+            <!-- Check Answer Button -->
+            <button id="checkAnswerButton" class="w-full md:w-auto px-8 py-4 rounded-lg shadow-lg bg-green-500 text-white font-bold text-lg transition-transform transform hover:scale-105">
+                Check Answer
+            </button>
+        </div>
+
+        <!-- Feedback and Next Problem Buttons -->
+        <div class="space-y-4">
+            <div id="feedback" class="p-4 rounded-lg text-center font-semibold text-lg" style="display: none;"></div>
+            <button id="nextProblemButton" class="w-full md:w-auto px-6 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 bg-gray-400 text-white font-semibold" style="display: none;">
+                Next Problem
+            </button>
+        </div>
+    </div>
+    
+    <!-- Custom Modal/Message Box -->
+    <div id="messageBox" class="p-6 bg-white rounded-lg shadow-2xl space-y-4" style="display: none;">
+        <p id="messageText" class="text-lg font-semibold text-gray-800 text-center"></p>
+        <p id="messageDetails" class="text-sm text-gray-600 text-center"></p>
+        <button id="closeMessageBox" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">OK</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const vTextEl = document.getElementById('vText');
+            const iTextEl = document.getElementById('iText');
+            const rTextEl = document.getElementById('rText');
+            const iArrowEl = document.getElementById('iArrow');
+            const plusSignEl = document.getElementById('plusSign');
+            const minusSignEl = document.getElementById('minusSign');
+            
+            // Input elements and their parent containers
+            const voltageInputGroup = document.getElementById('voltageInputGroup');
+            const currentInputGroup = document.getElementById('currentInputGroup');
+            const resistanceInputGroup = document.getElementById('resistanceInputGroup');
+            const voltageInput = document.getElementById('voltageInput');
+            const currentInput = document.getElementById('currentInput');
+            const resistanceInput = document.getElementById('resistanceInput');
+
+            const checkAnswerButton = document.getElementById('checkAnswerButton');
+            const feedbackEl = document.getElementById('feedback');
+            const nextProblemButton = document.getElementById('nextProblemButton');
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            const messageDetails = document.getElementById('messageDetails');
+            const closeMessageBox = document.getElementById('closeMessageBox');
+
+            const pViButton = document.getElementById('pViButton');
+            const pMinusViButton = document.getElementById('pMinusViButton');
+
+            let problemType;
+            let expectedAnswer;
+            let isPassive;
+            
+            // New arrays for random value generation
+            const viValues = [1, 2, -1, -2];
+            const rValues = [1, 2]; // Resistance must be a positive value
+
+            // Function to show the custom message box
+            function showMessageBox(text, details) {
+                messageText.textContent = text;
+                messageDetails.textContent = details;
+                messageBox.style.display = 'block';
+            }
+
+            // Function to hide the custom message box
+            closeMessageBox.addEventListener('click', () => {
+                messageBox.style.display = 'none';
+            });
+            
+            function generateProblem() {
+                // Randomly select which variable to solve for (0=V, 1=I, 2=R)
+                problemType = Math.floor(Math.random() * 3);
+                
+                // Randomly determine the arrow direction (up or down)
+                const isArrowUp = Math.random() < 0.5;
+
+                // Randomly determine voltage polarity (+ on top or bottom)
+                const isVoltageTopPositive = Math.random() < 0.5;
+
+                // Passive sign convention is followed if the current enters the positive terminal.
+                // This means the arrow points UP when the PLUS sign is UP, or
+                // the arrow points DOWN when the PLUS sign is DOWN.
+                isPassive = (isArrowUp === isVoltageTopPositive);
+
+                // Reset all input fields and text elements
+                voltageInput.value = '';
+                currentInput.value = '';
+                resistanceInput.value = '';
+                vTextEl.textContent = '';
+                iTextEl.textContent = '';
+                rTextEl.textContent = '';
+                
+                // Reset equation buttons
+                pViButton.classList.remove('active-glossy-button');
+                pMinusViButton.classList.remove('active-glossy-button');
+
+                // Update voltage polarity display
+                if (isVoltageTopPositive) {
+                    plusSignEl.textContent = '+';
+                    minusSignEl.textContent = '-';
+                } else {
+                    plusSignEl.textContent = '-';
+                    minusSignEl.textContent = '+';
+                }
+
+                let V, I, R;
+
+                // Hide all input groups initially
+                voltageInputGroup.style.display = 'none';
+                currentInputGroup.style.display = 'none';
+                resistanceInputGroup.style.display = 'none';
+
+                // Set known values and calculate the unknown
+                switch (problemType) {
+                    case 0: // Solve for V
+                        // Get random values for I and R from the new arrays
+                        I = viValues[Math.floor(Math.random() * viValues.length)];
+                        R = rValues[Math.floor(Math.random() * rValues.length)];
+                        // V depends on passive sign convention
+                        V = isPassive ? -(I * R) : (I * R);
+                        iTextEl.textContent = `i = ${I} A`;
+                        rTextEl.textContent = `R = ${R} Ω`;
+                        vTextEl.textContent = 'V = ?';
+                        voltageInputGroup.style.display = 'flex';
+                        expectedAnswer = V;
+                        break;
+                    case 1: // Solve for I
+                        // Get random values for V and R from the new arrays
+                        V = viValues[Math.floor(Math.random() * viValues.length)];
+                        R = rValues[Math.floor(Math.random() * rValues.length)];
+                        // I depends on passive sign convention
+                        I = isPassive ? -(V / R) : (V / R);
+                        vTextEl.textContent = `v = ${V} V`;
+                        rTextEl.textContent = `R = ${R} Ω`;
+                        iTextEl.textContent = 'i = ?';
+                        currentInputGroup.style.display = 'flex';
+                        expectedAnswer = I;
+                        break;
+                    case 2: // Solve for R
+                        // Get random values for V and I from the new arrays
+                        V = viValues[Math.floor(Math.random() * viValues.length)];
+                        I = viValues[Math.floor(Math.random() * viValues.length)];
+                        // R is always a positive value, regardless of the sign convention.
+                        R = Math.abs(V / I);
+                        vTextEl.textContent = `v = ${V} V`;
+                        iTextEl.textContent = `i = ${I} A`;
+                        rTextEl.textContent = 'R = ?';
+                        resistanceInputGroup.style.display = 'flex';
+                        expectedAnswer = R;
+                        break;
+                }
+                
+                // Update the arrow direction
+                if (isArrowUp) {
+                    iArrowEl.className = 'fas fa-arrow-up current-arrow';
+                } else {
+                    iArrowEl.className = 'fas fa-arrow-down current-arrow';
+                }
+
+                // Reset UI elements
+                feedbackEl.style.display = 'none';
+                nextProblemButton.style.display = 'none';
+                checkAnswerButton.style.display = 'block';
+            }
+
+            pViButton.addEventListener('click', () => {
+                pViButton.classList.add('active-glossy-button');
+                pMinusViButton.classList.remove('active-glossy-button');
+            });
+            pMinusViButton.addEventListener('click', () => {
+                pMinusViButton.classList.add('active-glossy-button');
+                pViButton.classList.remove('active-glossy-button');
+            });
+
+            checkAnswerButton.addEventListener('click', () => {
+                const selectedEquation = pViButton.classList.contains('active-glossy-button') ? 'v=iR' : (pMinusViButton.classList.contains('active-glossy-button') ? 'v=-iR' : null);
+                
+                let userAnswer;
+                
+                if (!selectedEquation) {
+                    showMessageBox('No Equation Selected', 'Please select an Ohm\'s Law equation before checking your answer.');
+                    return;
+                }
+
+                // Check if the chosen equation matches YOUR specific rule
+                const isEquationCorrect = (!isPassive && selectedEquation === 'v=iR') || (isPassive && selectedEquation === 'v=-iR');
+
+                switch (problemType) {
+                    case 0: // Solving for V
+                        userAnswer = parseFloat(voltageInput.value);
+                        break;
+                    case 1: // Solving for I
+                        userAnswer = parseFloat(currentInput.value);
+                        break;
+                    case 2: // Solving for R
+                        userAnswer = parseFloat(resistanceInput.value);
+                        break;
+                }
+
+                if (isNaN(userAnswer)) {
+                    showMessageBox('Missing Value', 'Please enter a numerical value for the missing variable.');
+                    return;
+                }
+
+                // Check if the user's numerical answer is correct, independent of the equation they chose.
+                const isNumericalAnswerCorrect = Math.abs(userAnswer - expectedAnswer) < 0.001;
+
+                // Determine the overall correctness
+                const isCorrect = isEquationCorrect && isNumericalAnswerCorrect;
+                
+                if (isCorrect) {
+                    // Both equation and number are correct
+                    feedbackEl.className = 'p-4 rounded-lg text-center font-semibold text-lg correct-bg';
+                    feedbackEl.textContent = 'Correct!';
+                    feedbackEl.style.display = 'block';
+                    showMessageBox('Correct!', `Your equation and answer are correct! The value is ${expectedAnswer.toFixed(2)}.`);
+                } else {
+                    // Something is wrong, let's figure out what and provide specific feedback
+                    feedbackEl.className = 'p-4 rounded-lg text-center font-semibold text-lg incorrect-bg';
+                    feedbackEl.textContent = 'Incorrect.';
+                    feedbackEl.style.display = 'block';
+                    
+                    let detail = "";
+                    if (isEquationCorrect && !isNumericalAnswerCorrect) {
+                            detail = `The equation is correct, but the numerical value is incorrect. The correct answer is ${expectedAnswer.toFixed(2)}.`;
+                    } else if (!isEquationCorrect && isNumericalAnswerCorrect) {
+                            detail = `The equation is incorrect, but you have the right numerical value! The rule is to use ${!isPassive ? 'V = iR' : 'V = -iR'} because the current arrow is${!isPassive ? '' : ' not'} entering the positive terminal.`;
+                    } else {
+                            detail = `Both the equation and the numerical value are incorrect. The correct equation is ${!isPassive ? 'V = iR' : 'V = -iR'} and the correct value is ${expectedAnswer.toFixed(2)}.`;
+                    }
+                    
+                    showMessageBox('Incorrect.', detail);
+                }
+                
+                checkAnswerButton.style.display = 'none';
+                nextProblemButton.classList.remove('bg-gray-400');
+                nextProblemButton.classList.add('bg-green-500');
+                nextProblemButton.style.display = 'block';
+            });
+
+            nextProblemButton.addEventListener('click', generateProblem);
+
+            // Initial problem generation
+            generateProblem();
+        });
+    </script>
+</body>
+</html>
