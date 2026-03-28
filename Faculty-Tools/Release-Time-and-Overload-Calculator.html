@@ -652,9 +652,11 @@
 
     .equation-line {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: center;
-      gap: 4px 6px;
+      gap: 2px 4px;
+      white-space: nowrap;
+      overflow-x: auto;
     }
 
     .equation-op {
@@ -662,19 +664,33 @@
       color: var(--accent);
     }
 
+    .equation-inline {
+      display: inline;
+    }
+
+    .equation-line > * {
+      display: inline;
+    }
+
+    .equation-line::before {
+      content: "(Z $) ÷ (Y $/year) x (M months/year) ÷ (12 months/year) x (52 weeks/year) x (40 hours/week) ÷ (8 hours/day) = (52 x 40 x M x Z) / (12 x 8 x Y)";
+      display: inline;
+      font-size: 0.76rem;
+      color: var(--ink);
+    }
+
     .equation-group {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
     }
 
     .equation-break {
-      flex-basis: 100%;
-      height: 0;
+      display: none;
     }
 
     .equation-paren {
-      font-size: 1.05em;
+      font-size: 1em;
       line-height: 1;
       color: var(--ink);
     }
@@ -722,6 +738,41 @@
 
     .equation-text-frac > span:last-child {
       padding-top: 1px;
+    }
+
+    .equation-line::before {
+      content: none !important;
+      display: none !important;
+    }
+
+    .equation-block,
+    .equation-line,
+    .equation-line * {
+      font-size: 0.68rem !important;
+    }
+
+    .equation-frac {
+      line-height: 1.02;
+    }
+
+    .equation-frac > span:first-child {
+      padding: 0 1px 1px;
+    }
+
+    .equation-frac > span:last-child {
+      padding: 0 1px 0;
+    }
+
+    .equation-text-frac {
+      line-height: 1;
+    }
+
+    .equation-text-frac > span:first-child {
+      padding: 0 0 1px;
+    }
+
+    .equation-text-frac > span:last-child {
+      padding-top: 0;
     }
 
     @media (max-width: 900px) {
