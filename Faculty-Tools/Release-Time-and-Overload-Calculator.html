@@ -363,8 +363,84 @@
       padding-top: 14px;
       border-top: 1px solid var(--line);
       color: var(--muted);
-      font-size: 0.88rem;
+      font-size: 0;
       line-height: 1.55;
+    }
+
+    .footnote > div,
+    .footnote .equation-block,
+    .footnote .equation-block * {
+      font-size: 0.88rem;
+    }
+
+    .equation-block {
+      margin-top: 8px;
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+    }
+
+    .equation-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 10px;
+    }
+
+    .equation-op {
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .equation-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .equation-paren {
+      font-size: 1.35em;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .equation-frac {
+      display: inline-grid;
+      grid-template-rows: auto auto;
+      justify-items: center;
+      align-items: center;
+      min-width: max-content;
+      line-height: 1.15;
+      text-align: center;
+    }
+
+    .equation-frac > span:first-child {
+      padding: 0 3px 2px;
+      border-bottom: 1px solid currentColor;
+    }
+
+    .equation-frac > span:last-child {
+      padding: 2px 3px 0;
+    }
+
+    .equation-text-frac {
+      display: inline-grid;
+      grid-template-rows: auto auto;
+      justify-items: center;
+      align-items: center;
+      line-height: 1.05;
+      text-align: center;
+    }
+
+    .equation-text-frac > span:first-child {
+      padding: 0 2px 2px;
+      border-bottom: 1px solid currentColor;
+    }
+
+    .equation-text-frac > span:last-child {
+      padding-top: 2px;
     }
 
     @media (max-width: 900px) {
@@ -532,7 +608,7 @@
         <article class="panel result-card">
           <h3>Release Time</h3>
           <dl>
-            <div class="metric"><dt>Cost per TE (annual salary ÷ 9-month or 11-month term)</dt><dd id="cost-per-te">$0.00</dd></div>
+            <div class="metric"><dt>Cost per TE (annual salary ÷ 27 or 36 TE)</dt><dd id="cost-per-te">$0.00</dd></div>
             <div class="metric"><dt>Release time cost (cost per TE x desired TE)</dt><dd id="release-time-cost">$0.00</dd></div>
             <div class="metric"><dt id="release-fringe-label">Release fringe (fringe rate x release time cost)</dt><dd id="release-fringe">$0.00</dd></div>
             <div class="metric"><dt>Total direct cost (release time cost + fringe)</dt><dd id="release-direct-cost">$0.00</dd></div>
@@ -571,6 +647,87 @@
             <div class="metric"><dt>Non-instructional overload days</dt><dd id="non-instructional-overload-days">0.00</dd></div>
           </dl>
           <div class="footnote">
+            <div>The number of days for <code>M</code>-month faculty with <code>Y</code> annual salary to earn overload <code>Z</code>:</div>
+            <div class="equation-block" aria-label="Non-instructional overload days equation">
+              <div class="equation-line">
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span>Z $</span>
+                  <span class="equation-paren">)</span>
+                </span>
+                <span class="equation-op">÷</span>
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span class="equation-frac">
+                    <span>Y $</span>
+                    <span>year</span>
+                  </span>
+                  <span class="equation-paren">)</span>
+                </span>
+                <span class="equation-op">x</span>
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span class="equation-frac">
+                    <span>M months</span>
+                    <span>year</span>
+                  </span>
+                  <span class="equation-paren">)</span>
+                </span>
+                <span class="equation-op">÷</span>
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span class="equation-frac">
+                    <span>12 months</span>
+                    <span>year</span>
+                  </span>
+                  <span class="equation-paren">)</span>
+                </span>
+                <span class="equation-op">x</span>
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span class="equation-frac">
+                    <span>52 weeks</span>
+                    <span>year</span>
+                  </span>
+                  <span class="equation-paren">)</span>
+                </span>
+                <span class="equation-op">x</span>
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span class="equation-frac">
+                    <span>40 hours</span>
+                    <span>week</span>
+                  </span>
+                  <span class="equation-paren">)</span>
+                </span>
+                <span class="equation-op">÷</span>
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span class="equation-frac">
+                    <span>8 hours</span>
+                    <span>day</span>
+                  </span>
+                  <span class="equation-paren">)</span>
+                </span>
+                <span class="equation-op">=</span>
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span class="equation-text-frac">
+                    <span>52 x 40</span>
+                    <span>12 x 8</span>
+                  </span>
+                  <span class="equation-paren">)</span>
+                </span>
+                <span class="equation-group">
+                  <span class="equation-paren">(</span>
+                  <span class="equation-frac">
+                    <span>M x Z</span>
+                    <span>Y</span>
+                  </span>
+                  <span class="equation-paren">)</span>
+                </span>
+              </div>
+            </div>
             The number of days for <code>M</code>-month faculty with <code>Y</code> annual salary to earn overload <code>Z</code>:
             <code>(Z $) ÷ (Y $/year) x (M months/year) ÷ (12 months/year) x (52 weeks/year) x (40 hours/week) ÷ (8 hours/day)</code>
             = <code>(52 x 40 ÷ 12 ÷ 8) x (M x Z ÷ Y)</code>.
