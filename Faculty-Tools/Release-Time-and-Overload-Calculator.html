@@ -580,26 +580,26 @@
     }
 
     .footnote {
-      margin-top: 12px;
-      padding-top: 12px;
+      margin-top: 10px;
+      padding-top: 10px;
       border-top: 1px solid var(--line);
       color: var(--muted);
       font-size: 0;
-      line-height: 1.45;
+      line-height: 1.35;
     }
 
     .footnote > div,
     .footnote .equation-block,
     .footnote .equation-block * {
-      font-size: 0.82rem;
+      font-size: 0.76rem;
     }
 
     .equation-block {
-      margin-top: 7px;
-      padding: 11px 13px;
+      margin-top: 6px;
+      padding: 9px 11px;
       border-radius: var(--radius-sm);
       border: 1px solid rgba(23, 34, 44, 0.08);
-      background: rgba(255, 255, 255, 0.58);
+      background: rgba(255, 255, 255, 0.42);
       color: var(--ink);
     }
 
@@ -607,7 +607,7 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 6px 8px;
+      gap: 4px 6px;
     }
 
     .equation-op {
@@ -621,8 +621,13 @@
       gap: 4px;
     }
 
+    .equation-break {
+      flex-basis: 100%;
+      height: 0;
+    }
+
     .equation-paren {
-      font-size: 1.2em;
+      font-size: 1.05em;
       line-height: 1;
       color: var(--ink);
     }
@@ -646,12 +651,12 @@
     }
 
     .equation-frac > span:first-child {
-      padding: 0 3px 2px;
+      padding: 0 2px 1px;
       border-bottom: 1px solid currentColor;
     }
 
     .equation-frac > span:last-child {
-      padding: 2px 3px 0;
+      padding: 1px 2px 0;
     }
 
     .equation-text-frac {
@@ -664,12 +669,12 @@
     }
 
     .equation-text-frac > span:first-child {
-      padding: 0 2px 2px;
+      padding: 0 1px 1px;
       border-bottom: 1px solid currentColor;
     }
 
     .equation-text-frac > span:last-child {
-      padding-top: 2px;
+      padding-top: 1px;
     }
 
     @media (max-width: 900px) {
@@ -993,6 +998,7 @@
                   </span>
                   <span class="equation-paren">)</span>
                 </span>
+                <span class="equation-break" aria-hidden="true"></span>
                 <span class="equation-op">=</span>
                 <span class="equation-group">
                   <span class="equation-paren">(</span>
