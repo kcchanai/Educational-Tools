@@ -115,7 +115,29 @@
 
     .form-grid {
       display: grid;
-      gap: 16px;
+      gap: 14px;
+    }
+
+    .input-group {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(23, 34, 44, 0.08);
+    }
+
+    .input-group h3 {
+      margin: 0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .group-grid {
+      display: grid;
+      gap: 14px;
     }
 
     label,
@@ -127,10 +149,10 @@
     }
 
     .help {
-      margin-top: 6px;
+      margin-top: 5px;
       color: var(--muted);
-      font-size: 0.88rem;
-      line-height: 1.4;
+      font-size: 0.82rem;
+      line-height: 1.35;
     }
 
     .help a {
@@ -139,8 +161,8 @@
     }
 
     .help.status-note {
-      margin-top: 8px;
-      padding: 10px 12px;
+      margin-top: 7px;
+      padding: 8px 10px;
       border-radius: var(--radius-sm);
       background: rgba(14, 93, 115, 0.08);
       border: 1px solid rgba(14, 93, 115, 0.12);
@@ -163,9 +185,9 @@
     }
 
     .live-update {
-      margin-top: 6px;
+      margin-top: 5px;
       color: var(--muted);
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       line-height: 1.35;
     }
 
@@ -239,8 +261,8 @@
 
     .field-message {
       min-height: 1.2em;
-      margin-top: 6px;
-      font-size: 0.84rem;
+      margin-top: 5px;
+      font-size: 0.8rem;
       line-height: 1.35;
       color: #8e2638;
     }
@@ -525,6 +547,23 @@
       color: var(--ink);
     }
 
+    .metric-group-label {
+      margin: 10px 0 4px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(23, 34, 44, 0.1);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .metric-group-label:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
     .metric.total-metric {
       margin-top: 6px;
       padding-top: 12px;
@@ -541,26 +580,26 @@
     }
 
     .footnote {
-      margin-top: 14px;
-      padding-top: 14px;
+      margin-top: 12px;
+      padding-top: 12px;
       border-top: 1px solid var(--line);
       color: var(--muted);
       font-size: 0;
-      line-height: 1.55;
+      line-height: 1.45;
     }
 
     .footnote > div,
     .footnote .equation-block,
     .footnote .equation-block * {
-      font-size: 0.88rem;
+      font-size: 0.82rem;
     }
 
     .equation-block {
-      margin-top: 8px;
-      padding: 14px 16px;
+      margin-top: 7px;
+      padding: 11px 13px;
       border-radius: var(--radius-sm);
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      background: rgba(255, 255, 255, 0.58);
       color: var(--ink);
     }
 
@@ -568,7 +607,7 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 8px 10px;
+      gap: 6px 8px;
     }
 
     .equation-op {
@@ -583,9 +622,17 @@
     }
 
     .equation-paren {
-      font-size: 1.35em;
+      font-size: 1.2em;
       line-height: 1;
       color: var(--ink);
+    }
+
+    #release-section-card h3,
+    #instructional-section-card h3,
+    #non-instructional-section-card h3,
+    #totals-section-card h3 {
+      background: rgba(14, 93, 115, 0.1);
+      color: var(--accent);
     }
 
     .equation-frac {
@@ -671,116 +718,136 @@
       <form class="panel" id="calculator-form" novalidate>
         <h2>Inputs</h2>
         <div class="form-grid">
-          <div>
-            <label for="salary">Annual Salary</label>
-            <input id="salary" name="salary" type="text" inputmode="decimal" autocomplete="off">
-            <div class="field-message" id="salary-error"></div>
-          </div>
+          <section class="input-group">
+            <h3>Faculty and Funding</h3>
+            <div class="group-grid">
+              <div>
+                <label for="salary">Annual Salary</label>
+                <input id="salary" name="salary" type="text" inputmode="decimal" autocomplete="off">
+                <div class="field-message" id="salary-error"></div>
+              </div>
 
-          <fieldset>
-            <legend>Faculty Term</legend>
-            <div class="choice-group">
-              <label class="choice">
-                <input type="radio" name="faculty-months" value="9" checked>
-                <span>9-Month</span>
-              </label>
-              <label class="choice">
-                <input type="radio" name="faculty-months" value="11">
-                <span>11-Month</span>
-              </label>
+              <fieldset>
+                <legend>Faculty Term</legend>
+                <div class="choice-group">
+                  <label class="choice">
+                    <input type="radio" name="faculty-months" value="9" checked>
+                    <span>9-Month</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="faculty-months" value="11">
+                    <span>11-Month</span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <div>
+                <label for="funding">Funding Amount</label>
+                <input id="funding" name="funding" type="text" inputmode="decimal" autocomplete="off">
+                <div class="field-message" id="funding-error"></div>
+              </div>
             </div>
-          </fieldset>
+          </section>
 
-          <div>
-            <label for="funding">Funding Amount</label>
-            <input id="funding" name="funding" type="text" inputmode="decimal" autocomplete="off">
-            <div class="field-message" id="funding-error"></div>
-          </div>
+          <section class="input-group">
+            <h3>Release Time Inputs</h3>
+            <div class="group-grid">
+              <div>
+                <label for="desired-te">Desired Release Time (TE)</label>
+                <input id="desired-te" name="desired-te" type="number" min="0" step="0.5" inputmode="decimal">
+                <div class="help">Decimal TE values are allowed. 9-month faculty use 27 TE per year; 11-month faculty use 36 TE per year.</div>
+                <div class="field-message" id="desired-te-error"></div>
+              </div>
 
-          <div>
-            <label for="desired-te">Desired Release Time (TE)</label>
-            <input id="desired-te" name="desired-te" type="number" min="0" step="0.5" inputmode="decimal">
-            <div class="help">Decimal TE values are allowed. 9-month faculty use 27 TE per year; 11-month faculty use 36 TE per year.</div>
-            <div class="field-message" id="desired-te-error"></div>
-          </div>
-
-          <div>
-            <label for="months-charged">Months Charged to the Account</label>
-            <input id="months-charged" name="months-charged" type="number" min="0" step="0.1" inputmode="decimal">
-            <div class="help">Example: 1 semester for a 9-month faculty would be 4.5 months.</div>
-            <div class="field-message" id="months-charged-error"></div>
-          </div>
-
-          <div>
-            <label for="release-fringe-rate">Release Fringe Rate (%)</label>
-            <input id="release-fringe-rate" name="release-fringe-rate" type="number" min="0" step="0.01" inputmode="decimal" value="59.5">
-            <div class="field-message" id="release-fringe-rate-error"></div>
-          </div>
-
-          <div>
-            <label for="overload-fringe-rate">Overload Fringe Rate (%)</label>
-            <input id="overload-fringe-rate" name="overload-fringe-rate" type="number" min="0" step="0.01" inputmode="decimal" value="2.47">
-            <div class="field-message" id="overload-fringe-rate-error"></div>
-          </div>
-
-          <div>
-            <label for="indirect-rate">Indirect Cost Rate (%)</label>
-            <input id="indirect-rate" name="indirect-rate" type="number" min="0" step="0.01" inputmode="decimal" value="45.5">
-            <div class="field-message" id="indirect-rate-error"></div>
-            <div class="help">
-              Current rates:
-              <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">University of Hawaii ORS rate page</a>
+              <div>
+                <label for="months-charged">Months Charged to the Account</label>
+                <input id="months-charged" name="months-charged" type="number" min="0" step="0.1" inputmode="decimal">
+                <div class="help">Example: 1 semester for a 9-month faculty would be 4.5 months.</div>
+                <div class="field-message" id="months-charged-error"></div>
+              </div>
             </div>
-            <div class="help status-note warn" id="ors-rate-status">
-              Using built-in default rates until live ORS defaults load.
-            </div>
-            <div class="live-update" id="ors-rate-updated">Updated: unavailable.</div>
-          </div>
+          </section>
 
-          <div>
-            <label for="desired-instructional-te">Desired Instructional Summer TE</label>
-            <input id="desired-instructional-te" name="desired-instructional-te" type="number" min="0" step="0.5" inputmode="decimal">
-            <div class="help">Enter the desired summer instructional TE to fund.</div>
-            <div class="field-message" id="desired-instructional-te-error"></div>
-          </div>
+          <section class="input-group">
+            <h3>Rate Inputs</h3>
+            <div class="group-grid">
+              <div>
+                <label for="release-fringe-rate">Release Fringe Rate (%)</label>
+                <input id="release-fringe-rate" name="release-fringe-rate" type="number" min="0" step="0.01" inputmode="decimal" value="59.5">
+                <div class="field-message" id="release-fringe-rate-error"></div>
+              </div>
 
-          <div>
-            <label for="summer-rate-source">Summer Rate Source</label>
-            <select id="summer-rate-source" name="summer-rate-source">
-              <option value="__custom__">Custom value</option>
-            </select>
-            <div class="help status-note warn" id="summer-rate-status">
-              Live summer rates are unavailable until a proxy URL is configured. Manual entry is enabled.
-            </div>
-            <div class="live-update" id="summer-rate-updated">Updated: unavailable.</div>
-          </div>
+              <div>
+                <label for="overload-fringe-rate">Overload Fringe Rate (%)</label>
+                <input id="overload-fringe-rate" name="overload-fringe-rate" type="number" min="0" step="0.01" inputmode="decimal" value="2.47">
+                <div class="field-message" id="overload-fringe-rate-error"></div>
+              </div>
 
-          <div>
-            <label for="instructional-cost-per-te" class="label-with-badge">
-              <span>Instructional Cost per Summer TE</span>
-              <span class="rate-badge custom" id="instructional-rate-badge">Using custom rate</span>
-            </label>
-            <input id="instructional-cost-per-te" name="instructional-cost-per-te" type="text" inputmode="decimal" autocomplete="off">
-            <div class="help">
-              Current summer instructional pay rates:
-              <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">University of Hawaii summer faculty pay-rate page</a>
-            </div>
-            <div class="field-message" id="instructional-cost-per-te-error"></div>
-          </div>
+              <div>
+                <label for="indirect-rate">Indirect Cost Rate (%)</label>
+                <input id="indirect-rate" name="indirect-rate" type="number" min="0" step="0.01" inputmode="decimal" value="45.5">
+                <div class="field-message" id="indirect-rate-error"></div>
+                <div class="help">
+                  Current rates:
+                  <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">University of Hawaii ORS rate page</a>
+                </div>
+                <div class="help status-note warn" id="ors-rate-status">
+                  Using built-in default rates until live ORS defaults load.
+                </div>
+                <div class="live-update" id="ors-rate-updated">Updated: unavailable.</div>
+              </div>
 
-          <fieldset>
-            <legend>Apply Indirect Costs?</legend>
-            <div class="choice-group">
-              <label class="choice">
-                <input type="radio" name="indirect" value="yes" checked>
-                <span>Yes</span>
-              </label>
-              <label class="choice">
-                <input type="radio" name="indirect" value="no">
-                <span>No</span>
-              </label>
+              <fieldset>
+                <legend>Apply Indirect Costs?</legend>
+                <div class="choice-group">
+                  <label class="choice">
+                    <input type="radio" name="indirect" value="yes" checked>
+                    <span>Yes</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="indirect" value="no">
+                    <span>No</span>
+                  </label>
+                </div>
+              </fieldset>
             </div>
-          </fieldset>
+          </section>
+
+          <section class="input-group">
+            <h3>Summer Instructional Inputs</h3>
+            <div class="group-grid">
+              <div>
+                <label for="desired-instructional-te">Desired Instructional Summer TE</label>
+                <input id="desired-instructional-te" name="desired-instructional-te" type="number" min="0" step="0.5" inputmode="decimal">
+                <div class="help">Enter the desired summer instructional TE to fund.</div>
+                <div class="field-message" id="desired-instructional-te-error"></div>
+              </div>
+
+              <div>
+                <label for="summer-rate-source">Summer Rate Source</label>
+                <select id="summer-rate-source" name="summer-rate-source">
+                  <option value="__custom__">Custom value</option>
+                </select>
+                <div class="help status-note warn" id="summer-rate-status">
+                  Live summer rates are unavailable until a proxy URL is configured. Manual entry is enabled.
+                </div>
+                <div class="live-update" id="summer-rate-updated">Updated: unavailable.</div>
+              </div>
+
+              <div>
+                <label for="instructional-cost-per-te" class="label-with-badge">
+                  <span>Instructional Cost per Summer TE</span>
+                  <span class="rate-badge custom" id="instructional-rate-badge">Using custom rate</span>
+                </label>
+                <input id="instructional-cost-per-te" name="instructional-cost-per-te" type="text" inputmode="decimal" autocomplete="off">
+                <div class="help">
+                  Current summer instructional pay rates:
+                  <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">University of Hawaii summer faculty pay-rate page</a>
+                </div>
+                <div class="field-message" id="instructional-cost-per-te-error"></div>
+              </div>
+            </div>
+          </section>
         </div>
 
         <div class="action-row">
@@ -816,12 +883,15 @@
         <article class="panel result-card" id="release-section-card">
           <h3>Release Time</h3>
           <dl>
+            <div class="metric-group-label">Base Release Calculation</div>
             <div class="metric"><dt>Cost per TE (annual salary ÷ 27 or 36 TE)</dt><dd id="cost-per-te">$0.00</dd></div>
             <div class="metric"><dt>Release time cost (cost per TE x desired TE)</dt><dd id="release-time-cost">$0.00</dd></div>
+            <div class="metric-group-label">Loaded Release Cost</div>
             <div class="metric"><dt id="release-fringe-label">Release fringe (fringe rate x release time cost)</dt><dd id="release-fringe">$0.00</dd></div>
             <div class="metric"><dt>Total direct cost (release time cost + fringe)</dt><dd id="release-direct-cost">$0.00</dd></div>
             <div class="metric"><dt id="release-indirect-label">Indirect cost (indirect cost rate x total direct cost)</dt><dd id="release-indirect-cost">$0.00</dd></div>
             <div class="metric key-metric total-metric"><dt>Total release time cost (total direct cost + indirect cost)</dt><dd id="release-total-cost">$0.00</dd></div>
+            <div class="metric-group-label">Funding Split</div>
             <div class="metric"><dt>Remaining funding before overload</dt><dd id="remaining-before-overload">$0.00</dd></div>
             <div class="metric"><dt>Percent charged to extramural account<br>(release time cost x 12 ÷ months charged ÷ salary)</dt><dd id="release-extramural-percent">0.00%</dd></div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="release-college-percent">0.00%</dd></div>
@@ -831,13 +901,16 @@
         <article class="panel result-card" id="instructional-section-card">
           <h3>Instructional Summer Overload</h3>
           <dl>
+            <div class="metric-group-label">Requested Instructional Load</div>
             <div class="metric"><dt>Instructional TE requested</dt><dd id="instructional-te-requested">0.00</dd></div>
             <div class="metric"><dt>Instructional TE funded</dt><dd id="instructional-te-funded">0.00</dd></div>
+            <div class="metric-group-label">Loaded Instructional Cost</div>
             <div class="metric key-metric"><dt>Instructional faculty pay</dt><dd id="instructional-pay">$0.00</dd></div>
             <div class="metric"><dt id="instructional-fringe-label">Instructional fringe (2.47%)</dt><dd id="instructional-fringe">$0.00</dd></div>
             <div class="metric"><dt>Instructional direct cost</dt><dd id="instructional-direct-cost">$0.00</dd></div>
             <div class="metric"><dt id="instructional-indirect-label">Instructional indirect cost (45.5%)</dt><dd id="instructional-indirect-cost">$0.00</dd></div>
             <div class="metric total-metric"><dt>Instructional total cost</dt><dd id="instructional-total-cost">$0.00</dd></div>
+            <div class="metric-group-label">Funding Split</div>
             <div class="metric"><dt>Percent charged to extramural account</dt><dd id="instructional-extramural-percent">0.00%</dd></div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="instructional-college-percent">0.00%</dd></div>
           </dl>
@@ -846,12 +919,15 @@
         <article class="panel result-card" id="non-instructional-section-card">
           <h3>Non-Instructional Overload</h3>
           <dl>
+            <div class="metric-group-label">Available Budget</div>
             <div class="metric"><dt>Budget available for non-instructional overload</dt><dd id="non-instructional-budget">$0.00</dd></div>
+            <div class="metric-group-label">Loaded Non-Instructional Cost</div>
             <div class="metric key-metric"><dt>Non-instructional faculty pay</dt><dd id="non-instructional-pay">$0.00</dd></div>
             <div class="metric"><dt id="non-instructional-fringe-label">Non-instructional fringe (2.47%)</dt><dd id="non-instructional-fringe">$0.00</dd></div>
             <div class="metric"><dt>Non-instructional direct cost</dt><dd id="non-instructional-direct-cost">$0.00</dd></div>
             <div class="metric"><dt id="non-instructional-indirect-label">Non-instructional indirect cost (45.5%)</dt><dd id="non-instructional-indirect-cost">$0.00</dd></div>
             <div class="metric total-metric"><dt>Non-instructional total cost</dt><dd id="non-instructional-total-cost">$0.00</dd></div>
+            <div class="metric-group-label">Workload Estimate</div>
             <div class="metric key-metric"><dt>Non-instructional overload days</dt><dd id="non-instructional-overload-days">0.00</dd></div>
           </dl>
           <div class="footnote">
@@ -945,6 +1021,7 @@
         <article class="panel result-card" id="totals-section-card">
           <h3>Totals</h3>
           <dl>
+            <div class="metric-group-label">Combined Totals</div>
             <div class="metric"><dt>Total release time cost</dt><dd id="totals-release">$0.00</dd></div>
             <div class="metric"><dt>Instructional overload total cost</dt><dd id="totals-instructional">$0.00</dd></div>
             <div class="metric"><dt>Non-instructional overload total cost</dt><dd id="totals-non-instructional">$0.00</dd></div>
