@@ -184,6 +184,24 @@
       box-shadow: 0 0 0 4px rgba(142, 38, 56, 0.12);
     }
 
+    input.field-alert {
+      border-color: rgba(142, 38, 56, 0.72);
+      background: rgba(142, 38, 56, 0.08);
+      box-shadow: 0 0 0 4px rgba(142, 38, 56, 0.12);
+    }
+
+    .field-message {
+      min-height: 1.2em;
+      margin-top: 6px;
+      font-size: 0.84rem;
+      line-height: 1.35;
+      color: #8e2638;
+    }
+
+    .field-message:empty {
+      display: none;
+    }
+
     fieldset {
       margin: 0;
       padding: 0;
@@ -262,6 +280,17 @@
       font-size: 0.98rem;
     }
 
+    .status.compact {
+      padding: 10px 12px;
+      font-size: 0.92rem;
+    }
+
+    .status.compact strong {
+      display: inline;
+      margin: 0 6px 0 0;
+      font-size: 0.92rem;
+    }
+
     .results {
       display: grid;
       gap: 16px;
@@ -273,10 +302,22 @@
       gap: 14px;
     }
 
+    .summary-grid.sticky {
+      position: sticky;
+      top: 18px;
+      z-index: 2;
+      padding: 10px;
+      border-radius: var(--radius-lg);
+      background: rgba(244, 239, 228, 0.94);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      box-shadow: 0 18px 42px rgba(21, 40, 49, 0.12);
+    }
+
     .summary-card {
       padding: 18px;
       border-radius: var(--radius-md);
-      background: var(--panel-strong);
+      background: rgba(255, 255, 255, 0.99);
       border: 1px solid var(--line);
     }
 
@@ -326,6 +367,37 @@
     .result-card h3 {
       margin: 0 0 16px;
       font-size: 1rem;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .action-row button {
+      flex: 1;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--panel-strong);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .action-row button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(14, 93, 115, 0.4);
+      box-shadow: 0 8px 18px rgba(14, 93, 115, 0.1);
+    }
+
+    .action-row button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      box-shadow: none;
     }
 
     dl {
@@ -449,9 +521,17 @@
         grid-template-columns: 1fr;
       }
 
+      .summary-grid.sticky {
+        position: static;
+      }
+
       .hero,
       .panel {
         padding: 22px;
+      }
+
+      .action-row {
+        flex-direction: column;
       }
     }
 
@@ -484,6 +564,7 @@
           <div>
             <label for="salary">Annual Salary</label>
             <input id="salary" name="salary" type="text" inputmode="decimal" autocomplete="off">
+            <div class="field-message" id="salary-error"></div>
           </div>
 
           <fieldset>
@@ -503,33 +584,39 @@
           <div>
             <label for="funding">Funding Amount</label>
             <input id="funding" name="funding" type="text" inputmode="decimal" autocomplete="off">
+            <div class="field-message" id="funding-error"></div>
           </div>
 
           <div>
             <label for="desired-te">Desired Release Time (TE)</label>
             <input id="desired-te" name="desired-te" type="number" min="0" step="0.5" inputmode="decimal">
             <div class="help">Decimal TE values are allowed. 9-month faculty use 27 TE per year; 11-month faculty use 36 TE per year.</div>
+            <div class="field-message" id="desired-te-error"></div>
           </div>
 
           <div>
             <label for="months-charged">Months Charged to the Account</label>
             <input id="months-charged" name="months-charged" type="number" min="0" step="0.1" inputmode="decimal">
             <div class="help">Example: 1 semester for a 9-month faculty would be 4.5 months.</div>
+            <div class="field-message" id="months-charged-error"></div>
           </div>
 
           <div>
             <label for="release-fringe-rate">Release Fringe Rate (%)</label>
             <input id="release-fringe-rate" name="release-fringe-rate" type="number" min="0" step="0.01" inputmode="decimal" value="59.5">
+            <div class="field-message" id="release-fringe-rate-error"></div>
           </div>
 
           <div>
             <label for="overload-fringe-rate">Overload Fringe Rate (%)</label>
             <input id="overload-fringe-rate" name="overload-fringe-rate" type="number" min="0" step="0.01" inputmode="decimal" value="2.47">
+            <div class="field-message" id="overload-fringe-rate-error"></div>
           </div>
 
           <div>
             <label for="indirect-rate">Indirect Cost Rate (%)</label>
             <input id="indirect-rate" name="indirect-rate" type="number" min="0" step="0.01" inputmode="decimal" value="45.5">
+            <div class="field-message" id="indirect-rate-error"></div>
             <div class="help">
               Current rates:
               <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">University of Hawaii ORS rate page</a>
@@ -543,6 +630,7 @@
             <label for="desired-instructional-te">Desired Instructional Summer TE</label>
             <input id="desired-instructional-te" name="desired-instructional-te" type="number" min="0" step="0.5" inputmode="decimal">
             <div class="help">Enter the desired summer instructional TE to fund.</div>
+            <div class="field-message" id="desired-instructional-te-error"></div>
           </div>
 
           <div>
@@ -562,6 +650,7 @@
               Current summer instructional pay rates:
               <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">University of Hawaii summer faculty pay-rate page</a>
             </div>
+            <div class="field-message" id="instructional-cost-per-te-error"></div>
           </div>
 
           <fieldset>
@@ -579,6 +668,11 @@
           </fieldset>
         </div>
 
+        <div class="action-row">
+          <button type="button" id="reset-button">Reset</button>
+          <button type="button" id="copy-summary-button" disabled>Copy Summary</button>
+        </div>
+
         <div class="status warn" id="status-box" role="status" aria-live="polite">
           <strong>Enter values to begin.</strong>
           Salary and funding must be greater than zero. Desired release time may be zero or higher.
@@ -586,21 +680,21 @@
       </form>
 
       <section class="results">
-        <div class="summary-grid">
-          <article class="summary-card primary">
-            <h3>Instructional Overload Pay</h3>
-            <div class="value" id="summary-instructional-pay">$0.00</div>
-            <div class="note">Instructional summer overload pay paid directly to faculty.</div>
-          </article>
-          <article class="summary-card">
-            <h3>Non-Instructional Overload Pay</h3>
-            <div class="value" id="summary-non-instructional-pay">$0.00</div>
-            <div class="note">Remaining non-instructional overload pay paid directly to faculty.</div>
-          </article>
+        <div class="summary-grid sticky">
           <article class="summary-card" id="summary-release-card">
             <h3>Total Release Time Cost</h3>
             <div class="value" id="summary-release-total">$0.00</div>
             <div class="note">Release direct cost plus any indirect cost.</div>
+          </article>
+          <article class="summary-card">
+            <h3>Instructional Overload Pay</h3>
+            <div class="value" id="summary-instructional-pay">$0.00</div>
+            <div class="note">Instructional summer overload paid to faculty.</div>
+          </article>
+          <article class="summary-card">
+            <h3>Non-Instructional Overload Pay</h3>
+            <div class="value" id="summary-non-instructional-pay">$0.00</div>
+            <div class="note">Remaining non-instructional overload paid to faculty.</div>
           </article>
         </div>
 
@@ -753,17 +847,28 @@
     const elements = {
       form: document.getElementById("calculator-form"),
       salary: document.getElementById("salary"),
+      salaryError: document.getElementById("salary-error"),
       funding: document.getElementById("funding"),
+      fundingError: document.getElementById("funding-error"),
       desiredTE: document.getElementById("desired-te"),
+      desiredTEError: document.getElementById("desired-te-error"),
       monthsCharged: document.getElementById("months-charged"),
+      monthsChargedError: document.getElementById("months-charged-error"),
       releaseFringeRate: document.getElementById("release-fringe-rate"),
+      releaseFringeRateError: document.getElementById("release-fringe-rate-error"),
       overloadFringeRate: document.getElementById("overload-fringe-rate"),
+      overloadFringeRateError: document.getElementById("overload-fringe-rate-error"),
       indirectRate: document.getElementById("indirect-rate"),
+      indirectRateError: document.getElementById("indirect-rate-error"),
       desiredInstructionalTE: document.getElementById("desired-instructional-te"),
+      desiredInstructionalTEError: document.getElementById("desired-instructional-te-error"),
       summerRateSource: document.getElementById("summer-rate-source"),
       summerRateStatus: document.getElementById("summer-rate-status"),
       orsRateStatus: document.getElementById("ors-rate-status"),
       instructionalCostPerTE: document.getElementById("instructional-cost-per-te"),
+      instructionalCostPerTEError: document.getElementById("instructional-cost-per-te-error"),
+      resetButton: document.getElementById("reset-button"),
+      copySummaryButton: document.getElementById("copy-summary-button"),
       statusBox: document.getElementById("status-box"),
       summaryInstructionalPay: document.getElementById("summary-instructional-pay"),
       summaryNonInstructionalPay: document.getElementById("summary-non-instructional-pay"),
@@ -816,6 +921,23 @@
       overloadFringeRate: elements.overloadFringeRate.value,
       indirectRate: elements.indirectRate.value
     };
+    const INITIAL_STATUS = {
+      tone: "warn",
+      title: "Enter values to begin.",
+      message: "Salary and funding must be greater than zero. Desired release time may be zero or higher."
+    };
+    const liveRateDefaults = { ...BUILTIN_RATE_DEFAULTS };
+    const validationTouched = {
+      salary: false,
+      funding: false,
+      desiredTE: false,
+      monthsCharged: false,
+      releaseFringeRate: false,
+      overloadFringeRate: false,
+      indirectRate: false,
+      desiredInstructionalTE: false,
+      instructionalCostPerTE: false
+    };
     const rateFieldTouched = {
       releaseFringeRate: false,
       overloadFringeRate: false,
@@ -823,6 +945,8 @@
     };
     let suppressRateFieldTracking = false;
     let savedCustomInstructionalRate = "";
+    let formInteracted = false;
+    let lastCalculatedState = null;
 
     const currencyFormatter = new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -933,6 +1057,45 @@
       return currencyFormatter.format(numericValue);
     }
 
+    function getFieldValidationMap() {
+      return {
+        salary: { input: elements.salary, message: elements.salaryError },
+        funding: { input: elements.funding, message: elements.fundingError },
+        desiredTE: { input: elements.desiredTE, message: elements.desiredTEError },
+        monthsCharged: { input: elements.monthsCharged, message: elements.monthsChargedError },
+        releaseFringeRate: { input: elements.releaseFringeRate, message: elements.releaseFringeRateError },
+        overloadFringeRate: { input: elements.overloadFringeRate, message: elements.overloadFringeRateError },
+        indirectRate: { input: elements.indirectRate, message: elements.indirectRateError },
+        desiredInstructionalTE: { input: elements.desiredInstructionalTE, message: elements.desiredInstructionalTEError },
+        instructionalCostPerTE: { input: elements.instructionalCostPerTE, message: elements.instructionalCostPerTEError }
+      };
+    }
+
+    function setFieldValidationMessage(key, message, shouldShow) {
+      const field = getFieldValidationMap()[key];
+      if (!field) {
+        return;
+      }
+
+      field.input.classList.toggle("field-error", Boolean(message) && shouldShow);
+      field.message.textContent = Boolean(message) && shouldShow ? message : "";
+    }
+
+    function clearFieldValidationMessages() {
+      Object.keys(getFieldValidationMap()).forEach((key) => {
+        setFieldValidationMessage(key, "", false);
+      });
+    }
+
+    function updateCopySummaryButton(isEnabled) {
+      elements.copySummaryButton.disabled = !isEnabled;
+    }
+
+    function getSummerRateSourceLabel() {
+      const selectedOption = elements.summerRateSource.options[elements.summerRateSource.selectedIndex];
+      return selectedOption ? selectedOption.textContent : "Custom value";
+    }
+
     function attachCurrencyFormatting(input) {
       input.addEventListener("focus", () => {
         const normalized = normalizeCurrencyInput(input.value);
@@ -946,6 +1109,36 @@
       input.addEventListener("blur", () => {
         input.value = formatCurrencyInputValue(normalizeCurrencyInput(input.value));
       });
+    }
+
+    function shouldShowValidationMessage(key, context) {
+      if (validationTouched[key]) {
+        return true;
+      }
+
+      if (key === "salary" || key === "funding" || key === "desiredTE") {
+        return context.formInteracted;
+      }
+
+      if (key === "monthsCharged") {
+        return context.desiredTE > 0;
+      }
+
+      if (key === "instructionalCostPerTE") {
+        return context.desiredInstructionalTE > 0;
+      }
+
+      return false;
+    }
+
+    function renderValidationErrors(validationErrors, context) {
+      Object.entries(validationErrors).forEach(([key, message]) => {
+        setFieldValidationMessage(key, message, shouldShowValidationMessage(key, context));
+      });
+    }
+
+    function restoreInitialStatus() {
+      paintStatus(INITIAL_STATUS.tone, INITIAL_STATUS.title, INITIAL_STATUS.message);
     }
 
     function setSummerRateStatus(message, tone) {
@@ -1091,6 +1284,9 @@
         setRateInputValue(elements.releaseFringeRate, "releaseFringeRate", releaseFringeRate);
         setRateInputValue(elements.overloadFringeRate, "overloadFringeRate", overloadFringeRate);
         setRateInputValue(elements.indirectRate, "indirectRate", indirectRate);
+        liveRateDefaults.releaseFringeRate = String(releaseFringeRate);
+        liveRateDefaults.overloadFringeRate = String(overloadFringeRate);
+        liveRateDefaults.indirectRate = String(indirectRate);
 
         setOrsRateStatus(
           "Live ORS default rates loaded. You can still overwrite any rate manually.",
@@ -1128,18 +1324,18 @@
       setInstructionalFundingAlert(false);
     }
 
-    function paintStatus(tone, title, message) {
-      elements.statusBox.className = `status ${tone}`;
+    function paintStatus(tone, title, message, compact = false) {
+      elements.statusBox.className = `status ${tone}${compact ? " compact" : ""}`;
       elements.statusBox.innerHTML = `<strong>${title}</strong>${message}`;
     }
 
     function setReleaseFundingAlert(isActive) {
-      elements.desiredTE.classList.toggle("field-error", isActive);
+      elements.desiredTE.classList.toggle("field-alert", isActive);
       elements.summaryReleaseCard.classList.toggle("danger", isActive);
     }
 
     function setInstructionalFundingAlert(isActive) {
-      elements.desiredInstructionalTE.classList.toggle("field-error", isActive);
+      elements.desiredInstructionalTE.classList.toggle("field-alert", isActive);
     }
 
     function renderResults(results) {
@@ -1191,6 +1387,119 @@
       elements.fundingBalance.textContent = formatCurrency(results.fundingBalance);
     }
 
+    function buildCopySummaryText(state) {
+      const { inputs, results } = state;
+      const summerRateSourceLabel = inputs.summerRateSourceLabel;
+
+      return [
+        "Release Time and Overload Calculator Summary",
+        "",
+        "Inputs",
+        `Annual Salary: ${formatCurrency(inputs.annualSalary)}`,
+        `Faculty Term: ${inputs.facultyMonths}-month`,
+        `Funding Amount: ${formatCurrency(inputs.fundingAmount)}`,
+        `Desired Release Time (TE): ${formatDecimal(inputs.desiredTE)}`,
+        `Months Charged to the Account: ${formatDecimal(inputs.monthsCharged)}`,
+        `Apply Indirect Costs: ${inputs.indirectApplies ? "Yes" : "No"}`,
+        `Release Fringe Rate: ${formatPercent(inputs.releaseFringeRatePercent)}`,
+        `Overload Fringe Rate: ${formatPercent(inputs.overloadFringeRatePercent)}`,
+        `Indirect Cost Rate: ${formatPercent(inputs.indirectRatePercent)}`,
+        `Desired Instructional Summer TE: ${formatDecimal(inputs.desiredInstructionalTE)}`,
+        `Summer Rate Source: ${summerRateSourceLabel}`,
+        `Instructional Cost per Summer TE: ${formatCurrency(inputs.instructionalCostPerTE || 0)}`,
+        "",
+        "Release Results",
+        `Cost per TE: ${formatCurrency(results.costPerTE)}`,
+        `Release Time Cost: ${formatCurrency(results.releaseTimeCost)}`,
+        `Total Release Time Cost: ${formatCurrency(results.releaseTotalCost)}`,
+        `Remaining Funding Before Overload: ${formatCurrency(results.remainingBeforeOverload)}`,
+        `Percent Charged to Extramural Account: ${formatPercent(results.releaseExtramuralPercent)}`,
+        `Percent Charged to College: ${formatPercent(results.releaseCollegePercent)}`,
+        "",
+        "Instructional Overload",
+        `Instructional TE Requested: ${formatDecimal(results.desiredInstructionalTE)}`,
+        `Instructional TE Funded: ${formatDecimal(results.instructionalFundedTE)}`,
+        `Instructional Faculty Pay: ${formatCurrency(results.instructionalPay)}`,
+        `Instructional Total Cost: ${formatCurrency(results.instructionalTotalCost)}`,
+        `Percent Charged to Extramural Account: ${formatPercent(results.instructionalExtramuralPercent)}`,
+        `Percent Charged to College: ${formatPercent(results.instructionalCollegePercent)}`,
+        "",
+        "Non-Instructional Overload",
+        `Non-Instructional Faculty Pay: ${formatCurrency(results.nonInstructionalPay)}`,
+        `Non-Instructional Total Cost: ${formatCurrency(results.nonInstructionalTotalCost)}`,
+        `Non-Instructional Overload Days: ${formatDays(results.nonInstructionalOverloadDays)}`,
+        "",
+        "Totals",
+        `Total Overload Cost: ${formatCurrency(results.totalOverloadCost)}`,
+        `Combined Total Cost: ${formatCurrency(results.roundedCombinedTotal)}`,
+        `Funding Remaining / Shortfall: ${formatCurrency(results.fundingBalance)}`
+      ].join("\n");
+    }
+
+    async function copySummaryToClipboard() {
+      if (!lastCalculatedState) {
+        return;
+      }
+
+      const text = buildCopySummaryText(lastCalculatedState);
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "absolute";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+
+        paintStatus("good", "Summary copied.", "Clipboard summary is ready.", true);
+      } catch (error) {
+        paintStatus("warn", "Copy failed.", "Clipboard access was unavailable.", true);
+      }
+    }
+
+    function resetCalculator() {
+      formInteracted = false;
+      lastCalculatedState = null;
+      savedCustomInstructionalRate = "";
+
+      elements.salary.value = "";
+      elements.funding.value = "";
+      elements.desiredTE.value = "";
+      elements.monthsCharged.value = "";
+      elements.desiredInstructionalTE.value = "";
+      elements.instructionalCostPerTE.value = "";
+      elements.instructionalCostPerTE.readOnly = false;
+
+      elements.summerRateSource.value = CUSTOM_RATE_OPTION;
+      applySummerRateSourceSelection();
+
+      suppressRateFieldTracking = true;
+      elements.releaseFringeRate.value = liveRateDefaults.releaseFringeRate;
+      elements.overloadFringeRate.value = liveRateDefaults.overloadFringeRate;
+      elements.indirectRate.value = liveRateDefaults.indirectRate;
+      suppressRateFieldTracking = false;
+
+      Object.keys(validationTouched).forEach((key) => {
+        validationTouched[key] = false;
+      });
+
+      Object.keys(rateFieldTouched).forEach((key) => {
+        rateFieldTouched[key] = false;
+      });
+
+      clearFieldValidationMessages();
+      updateCopySummaryButton(false);
+      resetOutputs();
+      restoreInitialStatus();
+    }
+
     function calculate() {
       const annualSalary = readNumber(elements.salary);
       const fundingAmount = readNumber(elements.funding);
@@ -1205,58 +1514,68 @@
       const facultyMonths = Number.parseInt(selectedValue("faculty-months"), 10);
       const indirectApplies = selectedValue("indirect") === "yes";
 
-      const validationErrors = [];
+      const validationErrors = {
+        salary: !(annualSalary > 0) ? "Annual salary must be greater than zero." : "",
+        funding: !(fundingAmount > 0) ? "Funding amount must be greater than zero." : "",
+        desiredTE: desiredTE === null || desiredTE < 0 ? "Desired release time must be zero or greater." : "",
+        monthsCharged: (desiredTE ?? 0) > 0 && !(monthsCharged > 0)
+          ? "Months charged to the account must be greater than zero when desired release time is greater than zero."
+          : "",
+        releaseFringeRate: releaseFringeRatePercent === null || releaseFringeRatePercent < 0
+          ? "Release fringe rate must be zero or greater."
+          : "",
+        overloadFringeRate: overloadFringeRatePercent === null || overloadFringeRatePercent < 0
+          ? "Overload fringe rate must be zero or greater."
+          : "",
+        indirectRate: indirectRatePercent === null || indirectRatePercent < 0
+          ? "Indirect cost rate must be zero or greater."
+          : "",
+        desiredInstructionalTE: desiredInstructionalTEInput !== null && desiredInstructionalTEInput < 0
+          ? "Desired instructional summer TE must be zero or greater."
+          : "",
+        instructionalCostPerTE: desiredInstructionalTE > 0 && !(instructionalCostPerTE > 0)
+          ? "Instructional cost per Summer TE must be greater than zero when desired instructional summer TE is greater than zero."
+          : ""
+      };
 
-      if (!(annualSalary > 0)) {
-        validationErrors.push("Annual salary must be greater than zero.");
-      }
+      const hasValidationErrors = Object.values(validationErrors).some(Boolean);
+      renderValidationErrors(validationErrors, {
+        formInteracted,
+        desiredTE: desiredTE ?? 0,
+        desiredInstructionalTE
+      });
 
-      if (!(fundingAmount > 0)) {
-        validationErrors.push("Funding amount must be greater than zero.");
-      }
-
-      if (desiredTE === null || desiredTE < 0) {
-        validationErrors.push("Desired release time must be zero or greater.");
-      }
-
-      if ((desiredTE ?? 0) > 0 && !(monthsCharged > 0)) {
-        validationErrors.push("Months charged to the account must be greater than zero when desired release time is greater than zero.");
-      }
-
-      if (releaseFringeRatePercent === null || releaseFringeRatePercent < 0) {
-        validationErrors.push("Release fringe rate must be zero or greater.");
-      }
-
-      if (overloadFringeRatePercent === null || overloadFringeRatePercent < 0) {
-        validationErrors.push("Overload fringe rate must be zero or greater.");
-      }
-
-      if (indirectRatePercent === null || indirectRatePercent < 0) {
-        validationErrors.push("Indirect cost rate must be zero or greater.");
-      }
-
-      if (desiredInstructionalTEInput !== null && desiredInstructionalTEInput < 0) {
-        validationErrors.push("Desired instructional summer TE must be zero or greater.");
-      }
-
-      if (desiredInstructionalTE > 0 && !(instructionalCostPerTE > 0)) {
-        validationErrors.push("Instructional cost per TE must be greater than zero when desired instructional summer TE is greater than zero.");
-      }
-
-      if (![9, 11].includes(facultyMonths)) {
-        validationErrors.push("Faculty term must be either 9 months or 11 months.");
-      }
-
-      if (validationErrors.length > 0) {
+      if (hasValidationErrors || ![9, 11].includes(facultyMonths)) {
+        lastCalculatedState = null;
+        updateCopySummaryButton(false);
         resetOutputs();
+        setReleaseFundingAlert(false);
+        setInstructionalFundingAlert(false);
+
+        const hasAnyWorkInput = [
+          annualSalary,
+          fundingAmount,
+          desiredTE,
+          monthsCharged,
+          desiredInstructionalTEInput,
+          instructionalCostPerTE
+        ].some((value) => value !== null);
+
+        if (!formInteracted && !hasAnyWorkInput) {
+          restoreInitialStatus();
+          return;
+        }
+
         paintStatus(
           "warn",
           "Enter valid values to calculate.",
-          validationErrors.join(" ")
+          Object.values(validationErrors).filter(Boolean).join(" ")
         );
+
         if (Number.isFinite(fundingAmount)) {
           elements.fundingDisplay.textContent = formatCurrency(Math.max(fundingAmount, 0));
         }
+
         return;
       }
 
@@ -1314,6 +1633,7 @@
         instructionalDirectCost = instructionalPay + instructionalFringe;
         instructionalIndirectCost = indirectApplies ? instructionalDirectCost * indirectRate : 0;
         instructionalFundedTE = instructionalCostPerTE > 0 ? instructionalPay / instructionalCostPerTE : 0;
+
         if (desiredInstructionalTE > 0) {
           instructionalExtramuralPercent = (instructionalFundedTE * 100) / desiredInstructionalTE;
           instructionalCollegePercent = 100 - instructionalExtramuralPercent;
@@ -1336,7 +1656,7 @@
       const releaseExceedsFunding = releaseTotalCost > fundingAmount;
       const instructionalExceedsFunding = desiredInstructionalTE > instructionalFundedTE + 1e-9;
 
-      renderResults({
+      const results = {
         costPerTE,
         releaseTimeCost,
         releaseFringe,
@@ -1370,10 +1690,30 @@
         releaseFringeRatePercent,
         overloadFringeRatePercent,
         indirectRatePercent
-      });
+      };
 
+      renderResults(results);
+      updateCopySummaryButton(true);
       setReleaseFundingAlert(releaseExceedsFunding);
       setInstructionalFundingAlert(instructionalExceedsFunding);
+
+      lastCalculatedState = {
+        inputs: {
+          annualSalary,
+          facultyMonths,
+          fundingAmount,
+          desiredTE,
+          monthsCharged,
+          indirectApplies,
+          releaseFringeRatePercent,
+          overloadFringeRatePercent,
+          indirectRatePercent,
+          desiredInstructionalTE,
+          summerRateSourceLabel: getSummerRateSourceLabel(),
+          instructionalCostPerTE
+        },
+        results
+      };
 
       if (releaseExceedsFunding) {
         paintStatus(
@@ -1405,12 +1745,32 @@
       paintStatus(
         "good",
         "Scenario is fundable.",
-        `Available overload budget after the penny cap is ${formatCurrency(availableOverloadBudget)}. ${formatDecimal(instructionalFundedTE)} instructional TE is funded, ${formatCurrency(nonInstructionalBudget)} flows to non-instructional overload, and the remaining balance after rounding is ${formatCurrency(fundingBalance)}.`
+        `Remaining balance after rounding is ${formatCurrency(fundingBalance)}.`,
+        true
       );
     }
 
     elements.form.addEventListener("input", calculate);
     elements.form.addEventListener("change", calculate);
+    [
+      ["salary", elements.salary],
+      ["funding", elements.funding],
+      ["desiredTE", elements.desiredTE],
+      ["monthsCharged", elements.monthsCharged],
+      ["releaseFringeRate", elements.releaseFringeRate],
+      ["overloadFringeRate", elements.overloadFringeRate],
+      ["indirectRate", elements.indirectRate],
+      ["desiredInstructionalTE", elements.desiredInstructionalTE],
+      ["instructionalCostPerTE", elements.instructionalCostPerTE]
+    ].forEach(([key, input]) => {
+      input.addEventListener("input", () => {
+        validationTouched[key] = true;
+        formInteracted = true;
+      });
+      input.addEventListener("blur", () => {
+        validationTouched[key] = true;
+      });
+    });
     elements.releaseFringeRate.addEventListener("input", () => {
       if (!suppressRateFieldTracking) {
         rateFieldTouched.releaseFringeRate = true;
@@ -1438,7 +1798,12 @@
         savedCustomInstructionalRate = elements.instructionalCostPerTE.value;
       }
     });
+    elements.resetButton.addEventListener("click", resetCalculator);
+    elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);
     resetOutputs();
+    clearFieldValidationMessages();
+    restoreInitialStatus();
+    updateCopySummaryButton(false);
     loadOrsRates();
     loadSummerRates();
   </script>
