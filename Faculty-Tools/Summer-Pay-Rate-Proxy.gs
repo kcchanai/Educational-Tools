@@ -1,5 +1,6 @@
 /**
- * Google Apps Script proxy for live summer instructional pay rates.
+ * Google Apps Script proxy for live summer instructional pay rates
+ * and ORS default rate values.
  *
  * Deployment:
  * 1. Create a new Apps Script project.
@@ -9,28 +10,46 @@
  *    Release-Time-and-Overload-Calculator.html.
  */
 const SUMMER_PAY_RATE_URL = "https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp";
+const ORS_RATES_URL = "https://research.hawaii.edu/ors/resources/rates/";
 
 function doGet(e) {
   const source = e && e.parameter ? e.parameter.source : "";
 
-  if (source !== "summer-pay-rates") {
+  if (source === "summer-pay-rates") {
+    const html = UrlFetchApp.fetch(SUMMER_PAY_RATE_URL, {
+      muteHttpExceptions: true,
+      followRedirects: true
+    }).getContentText();
+
+    const rates = extractRatesFromHtml(html);
+
     return jsonResponse({
-      error: "Unsupported source.",
-      supportedSources: ["summer-pay-rates"]
+      sourceUrl: SUMMER_PAY_RATE_URL,
+      fetchedAt: new Date().toISOString(),
+      rates: rates
     });
   }
 
-  const html = UrlFetchApp.fetch(SUMMER_PAY_RATE_URL, {
-    muteHttpExceptions: true,
-    followRedirects: true
-  }).getContentText();
+  if (source === "ors-rates") {
+    const html = UrlFetchApp.fetch(ORS_RATES_URL, {
+      muteHttpExceptions: true,
+      followRedirects: true
+    }).getContentText();
 
-  const rates = extractRatesFromHtml(html);
+    const parsedRates = extractOrsRatesFromHtml(html);
+
+    return jsonResponse({
+      sourceUrl: ORS_RATES_URL,
+      fetchedAt: new Date().toISOString(),
+      releaseFringeRate: parsedRates.releaseFringeRate,
+      overloadFringeRate: parsedRates.overloadFringeRate,
+      indirectRate: parsedRates.indirectRate
+    });
+  }
 
   return jsonResponse({
-    sourceUrl: SUMMER_PAY_RATE_URL,
-    fetchedAt: new Date().toISOString(),
-    rates: rates
+    error: "Unsupported source.",
+    supportedSources: ["summer-pay-rates", "ors-rates"]
   });
 }
 
@@ -123,5 +142,82 @@ function dedupeRates(rates) {
 
     seen[key] = true;
     return true;
+  });
+}
+
+function extractOrsRatesFromHtml(html) {
+  const text = htmlToPlainText(html);
+  const indirectRate = extractIndirectRate(text);
+  const fringeRates = extractCompositeFringeRates(text);
+
+  return {
+    releaseFringeRate: fringeRates.faculty,
+    overloadFringeRate: fringeRates.overload,
+    indirectRate: indirectRate
+  };
+}
+
+function htmlToPlainText(html) {
+  return html
+    .replace(/<\/(tr|p|div|li|h[1-6]|table|section|article|ul|ol)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&#8211;/g, "-")
+    .replace(/&ndash;/gi, "-")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n+/g, "\n")
+    .trim();
+}
+
+function extractIndirectRate(text) {
+  const rowMatch = text.match(
+    /Research,\s*On[\s\-–—]*Campus(?:\s*\d+)?\s+All,\s*except\s*Kakaako\s+((?:[0-9]+(?:\.[0-9]+)?%\s+)+)MTDC/i
+  );
+
+  if (!rowMatch) {
+    throw new Error("Research, On-Campus row not found in F&A section.");
+  }
+
+  const rates = extractPercentages(rowMatch[1]);
+
+  if (rates.length === 0) {
+    throw new Error("No F&A percentages found in Research, On-Campus row.");
+  }
+
+  return rates[rates.length - 1];
+}
+
+function extractCompositeFringeRates(text) {
+  const costSharingIndex = text.indexOf("Cost Sharing Fringe Benefit Rates");
+  const fringeBoundary = costSharingIndex === -1 ? text : text.slice(0, costSharingIndex);
+  const compositeIndex = fringeBoundary.lastIndexOf("Composite");
+
+  if (compositeIndex === -1) {
+    throw new Error("Composite fringe row not found.");
+  }
+
+  const compositeSlice = fringeBoundary.slice(compositeIndex, compositeIndex + 200);
+  const rates = extractPercentages(compositeSlice).slice(0, 6);
+
+  if (rates.length < 6) {
+    throw new Error("Composite fringe row did not yield enough percentages.");
+  }
+
+  return {
+    faculty: rates[0],
+    overload: rates[5]
+  };
+}
+
+function extractPercentages(text) {
+  const matches = text.match(/([0-9]+(?:\.[0-9]+)?)%/g) || [];
+
+  return matches.map(function (entry) {
+    return Number(entry.replace("%", ""));
+  }).filter(function (value) {
+    return isFinite(value);
   });
 }

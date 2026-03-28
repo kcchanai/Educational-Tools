@@ -459,6 +459,9 @@
               Current rates:
               <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">University of Hawaii ORS rate page</a>
             </div>
+            <div class="help status-note warn" id="ors-rate-status">
+              Using built-in default rates until live ORS defaults load.
+            </div>
           </div>
 
           <div>
@@ -603,6 +606,7 @@
       desiredInstructionalTE: document.getElementById("desired-instructional-te"),
       summerRateSource: document.getElementById("summer-rate-source"),
       summerRateStatus: document.getElementById("summer-rate-status"),
+      orsRateStatus: document.getElementById("ors-rate-status"),
       instructionalCostPerTE: document.getElementById("instructional-cost-per-te"),
       statusBox: document.getElementById("status-box"),
       summaryInstructionalPay: document.getElementById("summary-instructional-pay"),
@@ -651,6 +655,17 @@
 
     const SUMMER_RATE_PROXY_URL = "https://script.google.com/macros/s/AKfycby3BQh0o2lOd0B4iO1rrPVy75a9c6--Io7kgGPnDqkuXMfT8OJwcDjSGbiImPMnAWch6Q/exec";
     const CUSTOM_RATE_OPTION = "__custom__";
+    const BUILTIN_RATE_DEFAULTS = {
+      releaseFringeRate: elements.releaseFringeRate.value,
+      overloadFringeRate: elements.overloadFringeRate.value,
+      indirectRate: elements.indirectRate.value
+    };
+    const rateFieldTouched = {
+      releaseFringeRate: false,
+      overloadFringeRate: false,
+      indirectRate: false
+    };
+    let suppressRateFieldTracking = false;
     let savedCustomInstructionalRate = "";
 
     const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -782,6 +797,11 @@
       elements.summerRateStatus.textContent = message;
     }
 
+    function setOrsRateStatus(message, tone) {
+      elements.orsRateStatus.className = `help status-note ${tone}`;
+      elements.orsRateStatus.textContent = message;
+    }
+
     function appendRateOption(label, value) {
       const option = document.createElement("option");
       option.value = String(value);
@@ -867,6 +887,69 @@
           "warn"
         );
         applySummerRateSourceSelection();
+      }
+    }
+
+    function setRateInputValue(input, key, value) {
+      if (rateFieldTouched[key]) {
+        return;
+      }
+
+      suppressRateFieldTracking = true;
+      input.value = String(value);
+      suppressRateFieldTracking = false;
+    }
+
+    async function loadOrsRates() {
+      if (!SUMMER_RATE_PROXY_URL) {
+        setOrsRateStatus(
+          "Using built-in default rates. Add the proxy URL to load live ORS defaults.",
+          "warn"
+        );
+        calculate();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${SUMMER_RATE_PROXY_URL}?source=ors-rates`, {
+          method: "GET"
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const releaseFringeRate = Number(payload.releaseFringeRate);
+        const overloadFringeRate = Number(payload.overloadFringeRate);
+        const indirectRate = Number(payload.indirectRate);
+
+        if (
+          !Number.isFinite(releaseFringeRate) ||
+          !Number.isFinite(overloadFringeRate) ||
+          !Number.isFinite(indirectRate)
+        ) {
+          throw new Error("Malformed ORS rate payload.");
+        }
+
+        setRateInputValue(elements.releaseFringeRate, "releaseFringeRate", releaseFringeRate);
+        setRateInputValue(elements.overloadFringeRate, "overloadFringeRate", overloadFringeRate);
+        setRateInputValue(elements.indirectRate, "indirectRate", indirectRate);
+
+        setOrsRateStatus(
+          "Live ORS default rates loaded. You can still overwrite any rate manually.",
+          "good"
+        );
+        calculate();
+      } catch (error) {
+        setRateInputValue(elements.releaseFringeRate, "releaseFringeRate", BUILTIN_RATE_DEFAULTS.releaseFringeRate);
+        setRateInputValue(elements.overloadFringeRate, "overloadFringeRate", BUILTIN_RATE_DEFAULTS.overloadFringeRate);
+        setRateInputValue(elements.indirectRate, "indirectRate", BUILTIN_RATE_DEFAULTS.indirectRate);
+        setOrsRateStatus(
+          "Live ORS defaults could not be loaded. Using built-in default rates.",
+          "warn"
+        );
+        calculate();
       }
     }
 
@@ -1172,6 +1255,21 @@
 
     elements.form.addEventListener("input", calculate);
     elements.form.addEventListener("change", calculate);
+    elements.releaseFringeRate.addEventListener("input", () => {
+      if (!suppressRateFieldTracking) {
+        rateFieldTouched.releaseFringeRate = true;
+      }
+    });
+    elements.overloadFringeRate.addEventListener("input", () => {
+      if (!suppressRateFieldTracking) {
+        rateFieldTouched.overloadFringeRate = true;
+      }
+    });
+    elements.indirectRate.addEventListener("input", () => {
+      if (!suppressRateFieldTracking) {
+        rateFieldTouched.indirectRate = true;
+      }
+    });
     attachCurrencyFormatting(elements.salary);
     attachCurrencyFormatting(elements.funding);
     attachCurrencyFormatting(elements.instructionalCostPerTE);
@@ -1185,6 +1283,7 @@
       }
     });
     resetOutputs();
+    loadOrsRates();
     loadSummerRates();
   </script>
 </body>
