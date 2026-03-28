@@ -710,6 +710,10 @@
     }
 
     @media print {
+      @page {
+        margin: 1in 0.6in 0.7in;
+      }
+
       :root {
         --panel: #ffffff;
         --panel-strong: #ffffff;
@@ -718,6 +722,8 @@
       body {
         min-height: auto;
         background: #ffffff;
+        margin: 0;
+        padding: 0;
       }
 
       main {
@@ -743,6 +749,8 @@
         position: static;
         padding: 0;
         border: 0;
+        break-before: page;
+        page-break-before: always;
       }
 
       .action-row,
