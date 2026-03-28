@@ -61,14 +61,45 @@
       padding: 32px;
     }
 
+    .hero-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .hero-copy {
+      min-width: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-mark {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: clamp(112px, 14vw, 156px);
+      flex: 0 0 auto;
+    }
+
+    .hero-mark img {
+      display: block;
+      width: 100%;
+      height: auto;
+      opacity: 0.9;
+      filter: drop-shadow(0 12px 22px rgba(14, 93, 115, 0.12));
+    }
+
     .hero::after {
       content: "";
       position: absolute;
-      inset: auto -60px -80px auto;
-      width: 220px;
-      height: 220px;
+      inset: auto -95px -115px auto;
+      width: 170px;
+      height: 170px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(14, 93, 115, 0.22), transparent 70%);
+      background: radial-gradient(circle, rgba(14, 93, 115, 0.08), transparent 74%);
       pointer-events: none;
     }
 
@@ -690,8 +721,18 @@
         grid-template-columns: 1fr;
       }
 
+      .hero-layout {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
       .summary-grid.sticky {
         position: static;
+      }
+
+      .hero-mark {
+        width: 104px;
+        justify-self: end;
       }
 
       .hero,
@@ -795,12 +836,19 @@
 <body>
   <main>
     <section class="hero">
-      <h1>Release Time and Summer Overload Calculator</h1>
-      <p>
-        Enter salary, faculty term, funding, release time, and whether indirect costs apply.
-        The calculator shows release-time costs first, then splits the remaining overload budget between
-        instructional and non-instructional summer overload.
-      </p>
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <h1>Release Time and Summer Overload Calculator</h1>
+          <p>
+            Enter salary, faculty term, funding, release time, and whether indirect costs apply.
+            The calculator shows release-time costs first, then splits the remaining overload budget between
+            instructional and non-instructional summer overload.
+          </p>
+        </div>
+        <div class="hero-mark" aria-hidden="true">
+          <img src="Kapiolani seal.png" alt="">
+        </div>
+      </div>
     </section>
 
     <section class="grid">
