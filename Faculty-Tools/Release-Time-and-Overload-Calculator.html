@@ -351,9 +351,9 @@
 
     .summary-grid.sticky {
       position: sticky;
-      top: 18px;
+      top: 12px;
       z-index: 2;
-      padding: 10px;
+      padding: 8px;
       border-radius: var(--radius-lg);
       background: rgba(244, 239, 228, 0.94);
       backdrop-filter: blur(18px);
@@ -362,7 +362,7 @@
     }
 
     .summary-card {
-      padding: 16px;
+      padding: 12px 14px;
       border-radius: var(--radius-md);
       background: rgba(255, 255, 255, 0.99);
       border: 1px solid var(--line);
@@ -385,24 +385,24 @@
     }
 
     .summary-card h3 {
-      margin: 0 0 10px;
-      font-size: 0.9rem;
+      margin: 0 0 6px;
+      font-size: 0.82rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
+      min-height: 2.6em;
+      display: flex;
+      align-items: flex-end;
     }
 
     .summary-card .value {
-      font-size: clamp(1.4rem, 2.2vw, 2rem);
+      font-size: clamp(1.2rem, 1.9vw, 1.7rem);
       font-weight: 800;
       line-height: 1.1;
     }
 
     .summary-card .note {
-      margin-top: 7px;
-      font-size: 0.86rem;
-      color: var(--muted);
-      line-height: 1.4;
+      display: none;
     }
 
     .result-card {
@@ -797,17 +797,17 @@
       <section class="results">
         <div class="summary-grid sticky">
           <article class="summary-card" id="summary-release-card">
-            <h3>Total Release Time Cost</h3>
+            <h3>Total Release<br>Time Cost</h3>
             <div class="value" id="summary-release-total">$0.00</div>
             <div class="note">Release direct cost plus any indirect cost.</div>
           </article>
           <article class="summary-card">
-            <h3>Instructional Overload Pay</h3>
+            <h3>Instructional<br>Overload Pay</h3>
             <div class="value" id="summary-instructional-pay">$0.00</div>
             <div class="note">Instructional summer overload paid to faculty.</div>
           </article>
           <article class="summary-card">
-            <h3>Non-Instructional Overload Pay</h3>
+            <h3>Non-Instructional<br>Overload Pay</h3>
             <div class="value" id="summary-non-instructional-pay">$0.00</div>
             <div class="note">Remaining non-instructional overload paid to faculty.</div>
           </article>
