@@ -1102,9 +1102,9 @@
       <section class="results">
         <div class="summary-grid sticky">
           <article class="summary-card" id="summary-release-card">
-            <h3>Total Release<br>Time Cost</h3>
+            <h3 id="summary-release-title">Total Release<br>Time Cost</h3>
             <div class="value" id="summary-release-total">$0.00</div>
-            <div class="note">Release direct cost plus any indirect cost.</div>
+            <div class="note" id="summary-release-note">Release direct cost plus any indirect cost.</div>
           </article>
           <article class="summary-card">
             <h3>Instructional<br>Overload Pay</h3>
@@ -1315,6 +1315,8 @@
       summaryInstructionalPay: document.getElementById("summary-instructional-pay"),
       summaryNonInstructionalPay: document.getElementById("summary-non-instructional-pay"),
       summaryReleaseCard: document.getElementById("summary-release-card"),
+      summaryReleaseTitle: document.getElementById("summary-release-title"),
+      summaryReleaseNote: document.getElementById("summary-release-note"),
       summaryReleaseTotal: document.getElementById("summary-release-total"),
       releaseSectionCard: document.getElementById("release-section-card"),
       instructionalSectionCard: document.getElementById("instructional-section-card"),
@@ -2076,6 +2078,12 @@
 
     function applyResultsMode(calculatorMode) {
       const isBudgetRequired = calculatorMode === "budget-required";
+      elements.summaryReleaseTitle.innerHTML = isBudgetRequired
+        ? "Required<br>Budget"
+        : "Total Release<br>Time Cost";
+      elements.summaryReleaseNote.textContent = isBudgetRequired
+        ? "Rounded budget required for all selected costs."
+        : "Release direct cost plus any indirect cost.";
       elements.remainingBeforeOverloadLabel.textContent = isBudgetRequired
         ? "Required overload budget after release time"
         : "Remaining funding before overload";
@@ -2103,8 +2111,9 @@
     }
 
     function setReleaseFundingAlert(isActive) {
+      const shouldShowCardAlert = isActive && getCalculatorMode() === "budget-available";
       elements.desiredTE.classList.toggle("field-alert", isActive);
-      elements.summaryReleaseCard.classList.toggle("danger", isActive);
+      elements.summaryReleaseCard.classList.toggle("danger", shouldShowCardAlert);
       elements.releaseSectionCard.classList.toggle("danger", isActive);
     }
 
@@ -2117,7 +2126,9 @@
       applyResultsMode(results.calculatorMode);
       elements.summaryInstructionalPay.textContent = formatCurrency(results.instructionalPay);
       elements.summaryNonInstructionalPay.textContent = formatCurrency(results.nonInstructionalPay);
-      elements.summaryReleaseTotal.textContent = formatCurrency(results.releaseTotalCost);
+      elements.summaryReleaseTotal.textContent = formatCurrency(
+        results.calculatorMode === "budget-required" ? results.roundedCombinedTotal : results.releaseTotalCost
+      );
 
       elements.costPerTELabel.textContent = `Cost per TE (annual salary ÷ ${results.annualTeachingLoad} TE)`;
       elements.releaseTimeCostLabel.textContent = results.desiredTE > 0
