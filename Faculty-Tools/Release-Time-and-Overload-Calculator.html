@@ -462,7 +462,11 @@
     }
 
     .summary-card .note {
-      display: none;
+      margin-top: 4px;
+      font-size: 0.74rem;
+      line-height: 1.25;
+      color: var(--muted);
+      min-height: 1.25em;
     }
 
     .result-card {
@@ -1104,17 +1108,17 @@
           <article class="summary-card" id="summary-release-card">
             <h3 id="summary-release-title">Total Release<br>Time Cost</h3>
             <div class="value" id="summary-release-total">$0.00</div>
-            <div class="note" id="summary-release-note">Release direct cost plus any indirect cost.</div>
+            <div class="note" id="summary-release-note">(0 TE)</div>
           </article>
           <article class="summary-card">
             <h3>Instructional<br>Overload Pay</h3>
             <div class="value" id="summary-instructional-pay">$0.00</div>
-            <div class="note">Instructional summer overload paid to faculty.</div>
+            <div class="note" id="summary-instructional-note">(0 TE)</div>
           </article>
           <article class="summary-card">
             <h3>Non-Instructional<br>Overload Pay</h3>
             <div class="value" id="summary-non-instructional-pay">$0.00</div>
-            <div class="note">Remaining non-instructional overload paid to faculty.</div>
+            <div class="note" id="summary-non-instructional-note">(0 days)</div>
           </article>
         </div>
 
@@ -1313,7 +1317,9 @@
       printButton: document.getElementById("print-button"),
       statusBox: document.getElementById("status-box"),
       summaryInstructionalPay: document.getElementById("summary-instructional-pay"),
+      summaryInstructionalNote: document.getElementById("summary-instructional-note"),
       summaryNonInstructionalPay: document.getElementById("summary-non-instructional-pay"),
+      summaryNonInstructionalNote: document.getElementById("summary-non-instructional-note"),
       summaryReleaseCard: document.getElementById("summary-release-card"),
       summaryReleaseTitle: document.getElementById("summary-release-title"),
       summaryReleaseNote: document.getElementById("summary-release-note"),
@@ -2072,6 +2078,9 @@
       }
 
       applyResultsMode(getCalculatorMode());
+      elements.summaryReleaseNote.textContent = getCalculatorMode() === "budget-required" ? "" : "(0 TE)";
+      elements.summaryInstructionalNote.textContent = "(0 TE)";
+      elements.summaryNonInstructionalNote.textContent = "(0 days)";
       setReleaseFundingAlert(false);
       setInstructionalFundingAlert(false);
     }
@@ -2081,9 +2090,6 @@
       elements.summaryReleaseTitle.innerHTML = isBudgetRequired
         ? "Required<br>Budget"
         : "Total Release<br>Time Cost";
-      elements.summaryReleaseNote.textContent = isBudgetRequired
-        ? "Rounded budget required for all selected costs."
-        : "Release direct cost plus any indirect cost.";
       elements.remainingBeforeOverloadLabel.textContent = isBudgetRequired
         ? "Required overload budget after release time"
         : "Remaining funding before overload";
@@ -2129,6 +2135,13 @@
       elements.summaryReleaseTotal.textContent = formatCurrency(
         results.calculatorMode === "budget-required" ? results.roundedCombinedTotal : results.releaseTotalCost
       );
+      elements.summaryReleaseNote.textContent = results.calculatorMode === "budget-required"
+        ? ""
+        : `(${formatCompactDecimal(results.desiredTE)} TE)`;
+      elements.summaryInstructionalNote.textContent = `(${formatCompactDecimal(
+        results.calculatorMode === "budget-required" ? results.desiredInstructionalTE : results.instructionalFundedTE
+      )} TE)`;
+      elements.summaryNonInstructionalNote.textContent = `(${formatDays(results.nonInstructionalOverloadDays)} days)`;
 
       elements.costPerTELabel.textContent = `Cost per TE (annual salary ÷ ${results.annualTeachingLoad} TE)`;
       elements.releaseTimeCostLabel.textContent = results.desiredTE > 0
