@@ -637,6 +637,26 @@
       font-size: 1.06rem;
     }
 
+    .metric.emphasis-metric {
+      margin-top: 6px;
+      padding: 12px 14px;
+      border-top: 0;
+      border-radius: var(--radius-sm);
+      background: rgba(14, 93, 115, 0.1);
+      border: 1px solid rgba(14, 93, 115, 0.16);
+      box-shadow: 0 8px 18px rgba(14, 93, 115, 0.08);
+    }
+
+    .metric.emphasis-metric dt,
+    .metric.emphasis-metric dd {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .metric.emphasis-metric dd {
+      font-size: 1.12rem;
+    }
+
     .footnote {
       margin-top: 8px;
       padding-top: 8px;
@@ -650,15 +670,6 @@
     .footnote .equation-block,
     .footnote .equation-block * {
       font-size: 0.76rem;
-    }
-
-    .page-footer-note {
-      margin-top: 2px;
-      padding: 0 6px 4px;
-      color: var(--muted);
-      font-size: 0.8rem;
-      line-height: 1.35;
-      text-align: right;
     }
 
     .equation-block {
@@ -1144,13 +1155,12 @@
             <div class="metric-group-label">Base Release Calculation</div>
             <div class="metric"><dt id="cost-per-te-label">Cost per TE (annual salary &divide; 27 TE)</dt><dd id="cost-per-te">$0.00</dd></div>
             <div class="metric"><dt id="release-time-cost-label">Release time cost (cost per TE x desired TE)</dt><dd id="release-time-cost">$0.00</dd></div>
-            <div class="metric-group-label">Loaded Release Cost</div>
+            <div class="metric-group-label">Fully Loaded Release Cost</div>
             <div class="metric"><dt id="release-fringe-label">Release fringe (fringe rate of release time cost)</dt><dd id="release-fringe">$0.00</dd></div>
             <div class="metric"><dt>Total direct cost (release time cost + fringe)</dt><dd id="release-direct-cost">$0.00</dd></div>
             <div class="metric"><dt id="release-indirect-label">Indirect cost (indirect cost rate of total direct cost)</dt><dd id="release-indirect-cost">$0.00</dd></div>
             <div class="metric key-metric total-metric"><dt>Total release time cost (total direct cost + indirect cost)</dt><dd id="release-total-cost">$0.00</dd></div>
             <div class="metric-group-label" id="release-split-group-label">Charge Split</div>
-            <div class="metric"><dt id="remaining-before-overload-label">Remaining funding before overload</dt><dd id="remaining-before-overload">$0.00</dd></div>
             <div class="metric"><dt id="release-extramural-label">Percent charged to extramural account<br>(release time cost x 12 &divide; months charged &divide; salary)</dt><dd id="release-extramural-percent">0.00%</dd></div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="release-college-percent">0.00%</dd></div>
           </dl>
@@ -1162,7 +1172,7 @@
             <div class="metric-group-label" id="instructional-load-group-label">Requested Instructional Load</div>
             <div class="metric"><dt id="instructional-te-requested-label">Instructional TE requested</dt><dd id="instructional-te-requested">0.00</dd></div>
             <div class="metric"><dt id="instructional-te-funded-label">Instructional TE funded</dt><dd id="instructional-te-funded">0.00</dd></div>
-            <div class="metric-group-label">Loaded Instructional Cost</div>
+            <div class="metric-group-label">Fully Loaded Instructional Cost</div>
             <div class="metric key-metric"><dt>Instructional faculty pay</dt><dd id="instructional-pay">$0.00</dd></div>
             <div class="metric"><dt id="instructional-fringe-label">Instructional fringe (2.47% of faculty pay)</dt><dd id="instructional-fringe">$0.00</dd></div>
             <div class="metric"><dt>Instructional direct cost (faculty pay + fringe)</dt><dd id="instructional-direct-cost">$0.00</dd></div>
@@ -1179,7 +1189,7 @@
           <dl>
             <div class="metric-group-label" id="non-instructional-budget-group-label">Available Budget</div>
             <div class="metric"><dt id="non-instructional-budget-label">Budget available for non-instructional overload</dt><dd id="non-instructional-budget">$0.00</dd></div>
-            <div class="metric-group-label">Loaded Non-Instructional Cost</div>
+            <div class="metric-group-label">Fully Loaded Non-Instructional Cost</div>
             <div class="metric key-metric"><dt>Non-instructional faculty pay</dt><dd id="non-instructional-pay">$0.00</dd></div>
             <div class="metric"><dt id="non-instructional-fringe-label">Non-instructional fringe (2.47% of faculty pay)</dt><dd id="non-instructional-fringe">$0.00</dd></div>
             <div class="metric"><dt>Non-instructional direct cost (faculty pay + fringe)</dt><dd id="non-instructional-direct-cost">$0.00</dd></div>
@@ -1285,12 +1295,11 @@
             <div class="metric"><dt>Instructional overload total cost</dt><dd id="totals-instructional">$0.00</dd></div>
             <div class="metric"><dt>Non-instructional overload total cost</dt><dd id="totals-non-instructional">$0.00</dd></div>
             <div class="metric"><dt>Total overload cost</dt><dd id="totals-overload">$0.00</dd></div>
-            <div class="metric key-metric total-metric"><dt id="combined-total-label">Combined total cost</dt><dd id="combined-total">$0.00</dd></div>
-            <div class="metric"><dt id="funding-display-label">Funding amount</dt><dd id="funding-display">$0.00</dd></div>
+            <div class="metric key-metric total-metric" id="combined-total-row"><dt id="combined-total-label">Combined total cost</dt><dd id="combined-total">$0.00</dd></div>
+            <div class="metric" id="funding-display-row"><dt id="funding-display-label">Funding amount</dt><dd id="funding-display">$0.00</dd></div>
             <div class="metric" id="funding-balance-row"><dt>Funding remaining / shortfall</dt><dd id="funding-balance">$0.00</dd></div>
           </dl>
         </article>
-        <div class="page-footer-note">Calculator updated: March 28, 2026</div>
       </section>
     </section>
   </main>
@@ -1361,8 +1370,6 @@
       releaseIndirectCost: document.getElementById("release-indirect-cost"),
       releaseTotalCost: document.getElementById("release-total-cost"),
       releaseSplitGroupLabel: document.getElementById("release-split-group-label"),
-      remainingBeforeOverloadLabel: document.getElementById("remaining-before-overload-label"),
-      remainingBeforeOverload: document.getElementById("remaining-before-overload"),
       releaseExtramuralLabel: document.getElementById("release-extramural-label"),
       releaseExtramuralPercent: document.getElementById("release-extramural-percent"),
       releaseCollegePercent: document.getElementById("release-college-percent"),
@@ -1394,12 +1401,14 @@
       nonInstructionalDaysLabel: document.getElementById("non-instructional-days-label"),
       nonInstructionalOverloadDays: document.getElementById("non-instructional-overload-days"),
       totalsGroupLabel: document.getElementById("totals-group-label"),
+      combinedTotalRow: document.getElementById("combined-total-row"),
       totalsRelease: document.getElementById("totals-release"),
       totalsInstructional: document.getElementById("totals-instructional"),
       totalsNonInstructional: document.getElementById("totals-non-instructional"),
       totalsOverload: document.getElementById("totals-overload"),
       combinedTotalLabel: document.getElementById("combined-total-label"),
       combinedTotal: document.getElementById("combined-total"),
+      fundingDisplayRow: document.getElementById("funding-display-row"),
       fundingDisplayLabel: document.getElementById("funding-display-label"),
       fundingDisplay: document.getElementById("funding-display"),
       fundingBalanceRow: document.getElementById("funding-balance-row"),
@@ -1484,7 +1493,6 @@
       releaseDirectCost: "currency",
       releaseIndirectCost: "currency",
       releaseTotalCost: "currency",
-      remainingBeforeOverload: "currency",
       releaseExtramuralPercent: "percent",
       releaseCollegePercent: "percent",
       instructionalTERequested: "decimal",
@@ -2141,9 +2149,6 @@
         ? "Total Summer<br>Overload Pay"
         : "Non-Instructional<br>Overload Pay";
       elements.releaseSplitGroupLabel.textContent = "Charge Split";
-      elements.remainingBeforeOverloadLabel.textContent = isBudgetRequired
-        ? "Required overload cost after release time"
-        : "Remaining funding before overload";
       elements.instructionalLoadGroupLabel.textContent = isBudgetRequired
         ? "Entered Instructional Load"
         : "Requested Instructional Load";
@@ -2169,9 +2174,13 @@
       elements.combinedTotalLabel.textContent = isBudgetRequired
         ? "Combined total cost before rounding"
         : "Combined total cost";
+      elements.combinedTotalRow.hidden = isBudgetRequired;
+      elements.combinedTotalRow.style.display = isBudgetRequired ? "none" : "";
+      elements.combinedTotalRow.classList.toggle("emphasis-metric", !isBudgetRequired);
       elements.fundingDisplayLabel.textContent = isBudgetRequired
         ? "Required budget"
         : "Funding amount";
+      elements.fundingDisplayRow.classList.toggle("emphasis-metric", isBudgetRequired);
       elements.fundingBalanceRow.hidden = isBudgetRequired;
     }
 
@@ -2234,7 +2243,6 @@
       elements.releaseDirectCost.textContent = formatCurrency(results.releaseDirectCost);
       elements.releaseIndirectCost.textContent = formatCurrency(results.releaseIndirectCost);
       elements.releaseTotalCost.textContent = formatCurrency(results.releaseTotalCost);
-      elements.remainingBeforeOverload.textContent = formatCurrency(results.remainingBeforeOverload);
       elements.releaseExtramuralPercent.textContent = formatPercent(results.releaseExtramuralPercent);
       elements.releaseCollegePercent.textContent = formatPercent(results.releaseCollegePercent);
 
@@ -2298,7 +2306,6 @@
         `Cost per TE: ${formatCurrency(results.costPerTE)}`,
         `Release Time Cost: ${formatCurrency(results.releaseTimeCost)}`,
         `Total Release Time Cost: ${formatCurrency(results.releaseTotalCost)}`,
-        `${isBudgetRequired ? "Required Overload Budget After Release Time" : "Remaining Funding Before Overload"}: ${formatCurrency(results.remainingBeforeOverload)}`,
         `Percent Charged to Extramural Account: ${formatPercent(results.releaseExtramuralPercent)}`,
         `Percent Charged to College: ${formatPercent(results.releaseCollegePercent)}`,
         "",
@@ -2319,10 +2326,7 @@
         ...(isBudgetRequired ? [] : [`Funding Amount: ${formatCurrency(results.fundingAmount)}`]),
         `Total Overload Cost: ${formatCurrency(results.totalOverloadCost)}`,
         ...(isBudgetRequired
-          ? [
-              `Combined Total Cost Before Rounding: ${formatCurrency(results.combinedTotal)}`,
-              `Required Budget: ${formatCurrency(results.roundedCombinedTotal)}`
-            ]
+          ? [`Required Budget: ${formatCurrency(results.roundedCombinedTotal)}`]
           : [
               `Combined Total Cost: ${formatCurrency(results.roundedCombinedTotal)}`,
               `Funding Remaining / Shortfall: ${formatCurrency(results.fundingBalance)}`
@@ -2554,7 +2558,6 @@
       let totalOverloadCost = 0;
       let instructionalTECapped = false;
       let combinedTotal = releaseTotalCost;
-      let remainingBeforeOverload = 0;
       let roundedCombinedTotal = 0;
       let fundingBalance = 0;
       let releaseExceedsFunding = false;
@@ -2592,7 +2595,6 @@
 
         totalOverloadCost = instructionalTotalCost + nonInstructionalTotalCost;
         combinedTotal = releaseTotalCost + totalOverloadCost;
-        remainingBeforeOverload = totalOverloadCost;
         roundedCombinedTotal = ceilToCent(combinedTotal);
       } else if (releaseTotalCost <= fundingAmount) {
         instructionalRequestedPay = desiredInstructionalTE * (instructionalCostPerTE ?? 0);
@@ -2621,7 +2623,6 @@
 
         totalOverloadCost = instructionalTotalCost + nonInstructionalTotalCost;
         combinedTotal = releaseTotalCost + totalOverloadCost;
-        remainingBeforeOverload = availableOverloadBudget;
       }
 
       if (!isBudgetRequired) {
@@ -2642,7 +2643,6 @@
         releaseDirectCost,
         releaseIndirectCost,
         releaseTotalCost,
-        remainingBeforeOverload,
         releaseExtramuralPercent,
         releaseCollegePercent,
         desiredInstructionalTE,
