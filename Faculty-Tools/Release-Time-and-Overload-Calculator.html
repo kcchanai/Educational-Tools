@@ -903,10 +903,10 @@
       <div class="hero-layout">
         <div class="hero-copy">
           <h1>Release Time and Summer Overload Calculator</h1>
-          <p>
-            Enter salary, faculty term, funding, release time, and whether indirect costs apply.
-            The calculator shows release-time costs first, then splits the remaining overload budget between
-            instructional and non-instructional summer overload.
+          <p id="hero-description">
+            For one faculty member, enter salary, faculty term, funding, release time, and whether indirect costs apply.
+            The calculator shows release-time costs first, then allocates the remaining overload budget between instructional
+            and non-instructional summer overload.
           </p>
         </div>
         <div class="hero-mark" aria-hidden="true">
@@ -940,7 +940,7 @@
           </section>
 
           <section class="input-group">
-            <h3>Faculty and Funding</h3>
+            <h3>Faculty and Scenario Inputs</h3>
             <div class="group-grid">
               <div>
                 <label for="salary">Annual Salary</label>
@@ -1307,6 +1307,7 @@
       summerRateUpdated: document.getElementById("summer-rate-updated"),
       orsRateStatus: document.getElementById("ors-rate-status"),
       orsRateUpdated: document.getElementById("ors-rate-updated"),
+      heroDescription: document.getElementById("hero-description"),
       instructionalCostPerTE: document.getElementById("instructional-cost-per-te"),
       instructionalRateBadge: document.getElementById("instructional-rate-badge"),
       instructionalCostPerTEError: document.getElementById("instructional-cost-per-te-error"),
@@ -1613,6 +1614,9 @@
       elements.funding.disabled = isBudgetRequired;
       elements.desiredNonInstructionalDaysWrapper.hidden = !isBudgetRequired;
       elements.desiredNonInstructionalDays.disabled = !isBudgetRequired;
+      elements.heroDescription.textContent = isBudgetRequired
+        ? "For one faculty member, enter salary, faculty term, release time, summer overload, and whether indirect costs apply. The calculator estimates the budget required for the selected release time, instructional TE, and non-instructional overload days."
+        : "For one faculty member, enter salary, faculty term, funding, release time, and whether indirect costs apply. The calculator shows release-time costs first, then allocates the remaining overload budget between instructional and non-instructional summer overload.";
     }
 
     function getNormalizedInputValue(input) {
