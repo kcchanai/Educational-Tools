@@ -1111,12 +1111,12 @@
             <div class="note" id="summary-release-note">(0 TE)</div>
           </article>
           <article class="summary-card">
-            <h3>Instructional<br>Overload Pay</h3>
+            <h3 id="summary-middle-title">Instructional<br>Overload Pay</h3>
             <div class="value" id="summary-instructional-pay">$0.00</div>
             <div class="note" id="summary-instructional-note">(0 TE)</div>
           </article>
           <article class="summary-card">
-            <h3>Non-Instructional<br>Overload Pay</h3>
+            <h3 id="summary-right-title">Non-Instructional<br>Overload Pay</h3>
             <div class="value" id="summary-non-instructional-pay">$0.00</div>
             <div class="note" id="summary-non-instructional-note">(0 days)</div>
           </article>
@@ -1318,8 +1318,10 @@
       statusBox: document.getElementById("status-box"),
       summaryInstructionalPay: document.getElementById("summary-instructional-pay"),
       summaryInstructionalNote: document.getElementById("summary-instructional-note"),
+      summaryMiddleTitle: document.getElementById("summary-middle-title"),
       summaryNonInstructionalPay: document.getElementById("summary-non-instructional-pay"),
       summaryNonInstructionalNote: document.getElementById("summary-non-instructional-note"),
+      summaryRightTitle: document.getElementById("summary-right-title"),
       summaryReleaseCard: document.getElementById("summary-release-card"),
       summaryReleaseTitle: document.getElementById("summary-release-title"),
       summaryReleaseNote: document.getElementById("summary-release-note"),
@@ -2078,9 +2080,15 @@
       }
 
       applyResultsMode(getCalculatorMode());
-      elements.summaryReleaseNote.textContent = getCalculatorMode() === "budget-required" ? "" : "(0 TE)";
-      elements.summaryInstructionalNote.textContent = "(0 TE)";
-      elements.summaryNonInstructionalNote.textContent = "(0 days)";
+      if (getCalculatorMode() === "budget-required") {
+        elements.summaryReleaseNote.textContent = "";
+        elements.summaryInstructionalNote.textContent = "(0 TE)";
+        elements.summaryNonInstructionalNote.textContent = "(0 TE, 0 days)";
+      } else {
+        elements.summaryReleaseNote.textContent = "(0 TE)";
+        elements.summaryInstructionalNote.textContent = "(0 TE)";
+        elements.summaryNonInstructionalNote.textContent = "(0 days)";
+      }
       setReleaseFundingAlert(false);
       setInstructionalFundingAlert(false);
     }
@@ -2090,6 +2098,12 @@
       elements.summaryReleaseTitle.innerHTML = isBudgetRequired
         ? "Required<br>Budget"
         : "Total Release<br>Time Cost";
+      elements.summaryMiddleTitle.innerHTML = isBudgetRequired
+        ? "Release Time<br>Cost"
+        : "Instructional<br>Overload Pay";
+      elements.summaryRightTitle.innerHTML = isBudgetRequired
+        ? "Total Summer<br>Overload Pay"
+        : "Non-Instructional<br>Overload Pay";
       elements.remainingBeforeOverloadLabel.textContent = isBudgetRequired
         ? "Required overload budget after release time"
         : "Remaining funding before overload";
@@ -2130,18 +2144,25 @@
 
     function renderResults(results) {
       applyResultsMode(results.calculatorMode);
-      elements.summaryInstructionalPay.textContent = formatCurrency(results.instructionalPay);
-      elements.summaryNonInstructionalPay.textContent = formatCurrency(results.nonInstructionalPay);
-      elements.summaryReleaseTotal.textContent = formatCurrency(
-        results.calculatorMode === "budget-required" ? results.roundedCombinedTotal : results.releaseTotalCost
+      const isBudgetRequired = results.calculatorMode === "budget-required";
+      elements.summaryInstructionalPay.textContent = formatCurrency(
+        isBudgetRequired ? results.releaseTotalCost : results.instructionalPay
       );
-      elements.summaryReleaseNote.textContent = results.calculatorMode === "budget-required"
+      elements.summaryNonInstructionalPay.textContent = formatCurrency(
+        isBudgetRequired ? results.instructionalPay + results.nonInstructionalPay : results.nonInstructionalPay
+      );
+      elements.summaryReleaseTotal.textContent = formatCurrency(
+        isBudgetRequired ? results.roundedCombinedTotal : results.releaseTotalCost
+      );
+      elements.summaryReleaseNote.textContent = isBudgetRequired
         ? ""
         : `(${formatCompactDecimal(results.desiredTE)} TE)`;
-      elements.summaryInstructionalNote.textContent = `(${formatCompactDecimal(
-        results.calculatorMode === "budget-required" ? results.desiredInstructionalTE : results.instructionalFundedTE
-      )} TE)`;
-      elements.summaryNonInstructionalNote.textContent = `(${formatDays(results.nonInstructionalOverloadDays)} days)`;
+      elements.summaryInstructionalNote.textContent = isBudgetRequired
+        ? `(${formatCompactDecimal(results.desiredTE)} TE)`
+        : `(${formatCompactDecimal(results.instructionalFundedTE)} TE)`;
+      elements.summaryNonInstructionalNote.textContent = isBudgetRequired
+        ? `(${formatCompactDecimal(results.desiredInstructionalTE)} TE, ${formatDays(results.nonInstructionalOverloadDays)} days)`
+        : `(${formatDays(results.nonInstructionalOverloadDays)} days)`;
 
       elements.costPerTELabel.textContent = `Cost per TE (annual salary ÷ ${results.annualTeachingLoad} TE)`;
       elements.releaseTimeCostLabel.textContent = results.desiredTE > 0
