@@ -1018,7 +1018,7 @@
 
               <div id="desired-non-instructional-days-wrapper" hidden>
                 <label for="desired-non-instructional-days">Desired Non-Instructional Overload Days</label>
-                <input id="desired-non-instructional-days" name="desired-non-instructional-days" type="number" min="0" step="1" inputmode="numeric">
+                <input id="desired-non-instructional-days" name="desired-non-instructional-days" type="number" min="0" step="0.1" inputmode="decimal">
                 <div class="help">Enter desired non-instructional overload days.</div>
                 <div class="field-message" id="desired-non-instructional-days-error"></div>
               </div>
@@ -1055,7 +1055,7 @@
             <div class="group-grid">
               <div>
                 <label for="months-charged">Months Charged to the Account</label>
-                <input id="months-charged" name="months-charged" type="number" min="0" step="0.5" inputmode="decimal">
+                <input id="months-charged" name="months-charged" type="number" min="0" step="0.1" inputmode="decimal">
                 <div class="help">Example: 1 semester for a 9-month faculty would be 4.5 months.</div>
                 <div class="field-message" id="months-charged-error"></div>
               </div>
@@ -1203,8 +1203,8 @@
           <h3>Instructional Summer Overload</h3>
           <dl>
             <div class="metric-group-label" id="instructional-load-group-label">Requested Instructional Load</div>
-            <div class="metric" id="instructional-te-requested-row"><dt id="instructional-te-requested-label">Instructional TE requested</dt><dd id="instructional-te-requested">0.00</dd></div>
-            <div class="metric" id="instructional-te-funded-row"><dt id="instructional-te-funded-label">Instructional TE funded</dt><dd id="instructional-te-funded">0.00</dd></div>
+            <div class="metric"><dt id="instructional-te-requested-label">Instructional TE requested</dt><dd id="instructional-te-requested">0.00</dd></div>
+            <div class="metric"><dt id="instructional-te-funded-label">Instructional TE funded</dt><dd id="instructional-te-funded">0.00</dd></div>
             <div class="metric-group-label">Fully Loaded Instructional Cost</div>
             <div class="metric key-metric"><dt>Instructional faculty pay</dt><dd id="instructional-pay">$0.00</dd></div>
             <div class="metric"><dt id="instructional-fringe-label">Instructional fringe (2.47% of faculty pay)</dt><dd id="instructional-fringe">$0.00</dd></div>
@@ -1406,10 +1406,8 @@
       releaseExtramuralPercent: document.getElementById("release-extramural-percent"),
       releaseCollegePercent: document.getElementById("release-college-percent"),
       instructionalLoadGroupLabel: document.getElementById("instructional-load-group-label"),
-      instructionalTERequestedRow: document.getElementById("instructional-te-requested-row"),
       instructionalTERequestedLabel: document.getElementById("instructional-te-requested-label"),
       instructionalTERequested: document.getElementById("instructional-te-requested"),
-      instructionalTEFundedRow: document.getElementById("instructional-te-funded-row"),
       instructionalTEFundedLabel: document.getElementById("instructional-te-funded-label"),
       instructionalTEFunded: document.getElementById("instructional-te-funded"),
       instructionalPay: document.getElementById("instructional-pay"),
@@ -2266,22 +2264,20 @@
         : "Non-Instructional<br>Overload Pay";
       elements.releaseSplitGroupLabel.textContent = "Account Code Percentages";
       elements.instructionalLoadGroupLabel.textContent = isBudgetRequired
-        ? "Instructional Load"
+        ? "Entered Instructional Load"
         : "Requested Instructional Load";
       elements.instructionalTERequestedLabel.textContent = isBudgetRequired
-        ? "Instructional TE requested"
+        ? "Instructional TE entered"
         : "Instructional TE requested";
-      elements.instructionalTEFundedLabel.textContent = "Instructional TE funded";
-      elements.instructionalTERequestedRow.hidden = false;
-      elements.instructionalTERequestedRow.style.display = "";
-      elements.instructionalTEFundedRow.hidden = isBudgetRequired;
-      elements.instructionalTEFundedRow.style.display = isBudgetRequired ? "none" : "";
+      elements.instructionalTEFundedLabel.textContent = isBudgetRequired
+        ? "Instructional TE included"
+        : "Instructional TE funded";
       elements.instructionalSplitGroupLabel.textContent = "Account Code Percentages";
       elements.nonInstructionalBudgetGroupLabel.textContent = isBudgetRequired
-        ? "Desired Non-Instructional Cost"
+        ? "Required Non-Instructional Cost"
         : "Available Budget";
       elements.nonInstructionalBudgetLabel.textContent = isBudgetRequired
-        ? "Desired non-instructional overload cost"
+        ? "Required non-instructional overload cost"
         : "Budget available for non-instructional overload";
       elements.nonInstructionalDaysLabel.textContent = isBudgetRequired
         ? "Desired non-instructional overload days"
