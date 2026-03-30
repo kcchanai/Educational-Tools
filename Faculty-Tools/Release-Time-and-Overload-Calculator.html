@@ -1203,8 +1203,8 @@
           <h3>Instructional Summer Overload</h3>
           <dl>
             <div class="metric-group-label" id="instructional-load-group-label">Requested Instructional Load</div>
-            <div class="metric"><dt id="instructional-te-requested-label">Instructional TE requested</dt><dd id="instructional-te-requested">0.00</dd></div>
-            <div class="metric"><dt id="instructional-te-funded-label">Instructional TE funded</dt><dd id="instructional-te-funded">0.00</dd></div>
+            <div class="metric" id="instructional-te-requested-row"><dt id="instructional-te-requested-label">Instructional TE requested</dt><dd id="instructional-te-requested">0.00</dd></div>
+            <div class="metric" id="instructional-te-funded-row"><dt id="instructional-te-funded-label">Instructional TE funded</dt><dd id="instructional-te-funded">0.00</dd></div>
             <div class="metric-group-label">Fully Loaded Instructional Cost</div>
             <div class="metric key-metric"><dt>Instructional faculty pay</dt><dd id="instructional-pay">$0.00</dd></div>
             <div class="metric"><dt id="instructional-fringe-label">Instructional fringe (2.47% of faculty pay)</dt><dd id="instructional-fringe">$0.00</dd></div>
@@ -1406,8 +1406,10 @@
       releaseExtramuralPercent: document.getElementById("release-extramural-percent"),
       releaseCollegePercent: document.getElementById("release-college-percent"),
       instructionalLoadGroupLabel: document.getElementById("instructional-load-group-label"),
+      instructionalTERequestedRow: document.getElementById("instructional-te-requested-row"),
       instructionalTERequestedLabel: document.getElementById("instructional-te-requested-label"),
       instructionalTERequested: document.getElementById("instructional-te-requested"),
+      instructionalTEFundedRow: document.getElementById("instructional-te-funded-row"),
       instructionalTEFundedLabel: document.getElementById("instructional-te-funded-label"),
       instructionalTEFunded: document.getElementById("instructional-te-funded"),
       instructionalPay: document.getElementById("instructional-pay"),
@@ -2264,14 +2266,16 @@
         : "Non-Instructional<br>Overload Pay";
       elements.releaseSplitGroupLabel.textContent = "Account Code Percentages";
       elements.instructionalLoadGroupLabel.textContent = isBudgetRequired
-        ? "Entered Instructional Load"
+        ? "Instructional Load"
         : "Requested Instructional Load";
       elements.instructionalTERequestedLabel.textContent = isBudgetRequired
-        ? "Instructional TE entered"
+        ? "Instructional TE requested"
         : "Instructional TE requested";
-      elements.instructionalTEFundedLabel.textContent = isBudgetRequired
-        ? "Instructional TE included"
-        : "Instructional TE funded";
+      elements.instructionalTEFundedLabel.textContent = "Instructional TE funded";
+      elements.instructionalTERequestedRow.hidden = false;
+      elements.instructionalTERequestedRow.style.display = "";
+      elements.instructionalTEFundedRow.hidden = isBudgetRequired;
+      elements.instructionalTEFundedRow.style.display = isBudgetRequired ? "none" : "";
       elements.instructionalSplitGroupLabel.textContent = "Account Code Percentages";
       elements.nonInstructionalBudgetGroupLabel.textContent = isBudgetRequired
         ? "Required Non-Instructional Cost"
