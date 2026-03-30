@@ -529,6 +529,12 @@
       margin-top: 18px;
     }
 
+    .action-subrow {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
     .action-help {
       margin-top: 8px;
       color: var(--muted);
@@ -559,6 +565,108 @@
       cursor: not-allowed;
       opacity: 0.55;
       box-shadow: none;
+    }
+
+    .action-subrow button {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .action-subrow button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(14, 93, 115, 0.4);
+      box-shadow: 0 8px 18px rgba(14, 93, 115, 0.08);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(21, 40, 49, 0.4);
+    }
+
+    .modal-backdrop[hidden] {
+      display: none !important;
+    }
+
+    .modal-panel {
+      width: min(760px, 100%);
+      max-height: min(84vh, 900px);
+      overflow: auto;
+      padding: 22px;
+      border-radius: var(--radius-lg);
+      background: #ffffff;
+      border: 1px solid rgba(23, 34, 44, 0.12);
+      box-shadow: 0 24px 50px rgba(21, 40, 49, 0.24);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.18rem;
+      color: var(--ink);
+    }
+
+    .modal-close {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      display: grid;
+      gap: 14px;
+    }
+
+    .modal-section {
+      display: grid;
+      gap: 6px;
+    }
+
+    .modal-section h3 {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+    }
+
+    .modal-section p,
+    .modal-section ul {
+      margin: 0;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    .modal-section ul {
+      padding-left: 18px;
+    }
+
+    body.modal-open {
+      overflow: hidden;
     }
 
     dl {
@@ -869,6 +977,14 @@
         flex-direction: column;
       }
 
+      .action-subrow {
+        justify-content: stretch;
+      }
+
+      .action-subrow button {
+        width: 100%;
+      }
+
       .label-with-badge {
         align-items: flex-start;
         flex-direction: column;
@@ -920,6 +1036,8 @@
       }
 
       .action-row,
+      .action-subrow,
+      .modal-backdrop,
       .status,
       .help.status-note,
       .field-message {
@@ -1167,8 +1285,68 @@
           <button type="button" id="copy-link-button">Copy Shareable Link</button>
           <button type="button" id="print-button">Print / Save as PDF</button>
         </div>
-        <div class="action-help">Reset clears the current scenario. Copy Text Summary copies a plain-text summary to the clipboard. Copy Shareable Link copies a URL with the current scenario. Print / Save as PDF opens the browser print dialog.</div>
+        <div class="action-subrow">
+          <button type="button" id="help-button">Help</button>
+        </div>
+        <div class="action-help">Reset clears the current scenario. Copy Text Summary copies a plain-text summary to the clipboard. Copy Shareable Link copies a URL with the current scenario. Print / Save as PDF opens the browser print dialog. Help opens a quick reference for workflows, inputs, and outputs.</div>
       </form>
+
+      <div class="modal-backdrop" id="help-modal" hidden>
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+          <div class="modal-header">
+            <h2 id="help-modal-title">How This Calculator Works</h2>
+            <button type="button" class="modal-close" id="help-close-button" aria-label="Close help">Close</button>
+          </div>
+          <div class="modal-body">
+            <section class="modal-section">
+              <h3>Budget Available</h3>
+              <p>Start with a known funding amount. The calculator applies release-time costs first, then uses the remaining budget for instructional and non-instructional summer overload.</p>
+            </section>
+            <section class="modal-section">
+              <h3>Budget Required</h3>
+              <p>Start with the workload you want to support. Enter release time, instructional summer TE, and non-instructional overload days, and the calculator estimates the total budget required.</p>
+            </section>
+            <section class="modal-section">
+              <h3>Key Inputs</h3>
+              <ul>
+                <li><strong>Desired Release Time (TE)</strong>: release time requested for one faculty member.</li>
+                <li><strong>Desired Instructional Summer TE</strong>: summer instructional teaching equivalency requested.</li>
+                <li><strong>Desired Non-Instructional Overload Days</strong>: non-instructional overload expressed in days.</li>
+                <li><strong>Months Charged to the Account</strong>: number of salary months charged for release time.</li>
+                <li><strong>Instructional Cost per Summer TE</strong>: summer instructional pay basis, using a live rank-based rate or a custom value.</li>
+              </ul>
+            </section>
+            <section class="modal-section">
+              <h3>Important Assumptions</h3>
+              <ul>
+                <li><strong>9-month faculty = 27 TE/year</strong></li>
+                <li><strong>11-month faculty = 36 TE/year</strong></li>
+                <li>ORS fringe and indirect rates load as live defaults when available.</li>
+                <li>Summer instructional pay rates load as live options when available.</li>
+                <li>If live rates are unavailable, built-in defaults or manual entry are used.</li>
+              </ul>
+            </section>
+            <section class="modal-section">
+              <h3>Key Outputs</h3>
+              <ul>
+                <li><strong>Total Release Time Cost</strong>: release cost including fringe and indirect cost, if applied.</li>
+                <li><strong>Instructional Overload Pay</strong>: faculty pay for instructional summer overload.</li>
+                <li><strong>Non-Instructional Overload Pay</strong>: faculty pay for non-instructional overload.</li>
+                <li><strong>Required Budget (rounded up)</strong>: total budget needed in Budget Required mode.</li>
+              </ul>
+            </section>
+            <section class="modal-section">
+              <h3>Copy, Share, and Print</h3>
+              <ul>
+                <li><strong>Copy Text Summary</strong> copies a plain-text summary to the clipboard.</li>
+                <li><strong>Copy Shareable Link</strong> copies a URL containing the current scenario.</li>
+                <li><strong>Print / Save as PDF</strong> opens the browser print dialog.</li>
+                <li>Scenario values may be saved in this browser and included in share links.</li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </div>
 
       <section class="results">
         <div class="mode-summary-label" id="summary-mode-label">Budget Available Summary</div>
@@ -1384,6 +1562,9 @@
       copySummaryButton: document.getElementById("copy-summary-button"),
       copyLinkButton: document.getElementById("copy-link-button"),
       printButton: document.getElementById("print-button"),
+      helpButton: document.getElementById("help-button"),
+      helpModal: document.getElementById("help-modal"),
+      helpCloseButton: document.getElementById("help-close-button"),
       statusBox: document.getElementById("status-box"),
       summaryInstructionalPay: document.getElementById("summary-instructional-pay"),
       summaryInstructionalNote: document.getElementById("summary-instructional-note"),
@@ -1499,6 +1680,7 @@
     let lastCalculatedState = null;
     let pendingUrlState = null;
     let suppressUrlSync = false;
+    let lastFocusedElement = null;
 
     const currencyFormatter = new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -2047,6 +2229,21 @@
     function hideStatus() {
       elements.statusBox.hidden = true;
       elements.statusBox.style.display = "none";
+    }
+
+    function openHelpModal() {
+      lastFocusedElement = document.activeElement;
+      elements.helpModal.hidden = false;
+      document.body.classList.add("modal-open");
+      elements.helpCloseButton.focus();
+    }
+
+    function closeHelpModal() {
+      elements.helpModal.hidden = true;
+      document.body.classList.remove("modal-open");
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
     }
 
     function restoreInitialStatus() {
@@ -2927,6 +3124,18 @@
     elements.copyLinkButton.addEventListener("click", copyShareLinkToClipboard);
     elements.printButton.addEventListener("click", () => {
       window.print();
+    });
+    elements.helpButton.addEventListener("click", openHelpModal);
+    elements.helpCloseButton.addEventListener("click", closeHelpModal);
+    elements.helpModal.addEventListener("click", (event) => {
+      if (event.target === elements.helpModal) {
+        closeHelpModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !elements.helpModal.hidden) {
+        closeHelpModal();
+      }
     });
     resetOutputs();
     clearFieldValidationMessages();
