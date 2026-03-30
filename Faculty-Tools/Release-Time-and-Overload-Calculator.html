@@ -2239,11 +2239,11 @@
       applyResultsMode(getCalculatorMode());
       if (getCalculatorMode() === "budget-required") {
         elements.summaryReleaseNote.textContent = "";
-        elements.summaryInstructionalNote.textContent = "(0 TE)";
+        elements.summaryInstructionalNote.textContent = "(0 TE, 0%)";
         elements.summaryNonInstructionalNote.textContent = "(0 TE, 0 days)";
       } else {
-        elements.summaryReleaseNote.textContent = "(0 TE)";
-        elements.summaryInstructionalNote.textContent = "(0 TE)";
+        elements.summaryReleaseNote.textContent = "(0 TE, 0%)";
+        elements.summaryInstructionalNote.textContent = "(0 TE, 0%)";
         elements.summaryNonInstructionalNote.textContent = "(0 days)";
       }
       setReleaseFundingAlert(false);
@@ -2330,16 +2330,18 @@
       elements.summaryReleaseTotal.textContent = formatCurrency(
         isBudgetRequired ? results.roundedCombinedTotal : results.releaseTotalCost
       );
+      const releaseSummaryNote = `(${formatCompactDecimal(results.desiredTE)} TE, ${formatPercent(results.releaseExtramuralPercent)})`;
+      const instructionalSummaryLoad = results.desiredInstructionalTE > 0
+        ? (results.instructionalFundedTE + 1e-9 < results.desiredInstructionalTE
+            ? `${formatCompactDecimal(results.instructionalFundedTE)} of ${formatCompactDecimal(results.desiredInstructionalTE)} TE`
+            : `${formatCompactDecimal(results.instructionalFundedTE)} TE`)
+        : "0 TE";
       elements.summaryReleaseNote.textContent = isBudgetRequired
         ? ""
-        : `(${formatCompactDecimal(results.desiredTE)} TE)`;
+        : releaseSummaryNote;
       elements.summaryInstructionalNote.textContent = isBudgetRequired
-        ? `(${formatCompactDecimal(results.desiredTE)} TE)`
-        : (results.desiredInstructionalTE > 0
-            ? (results.instructionalFundedTE + 1e-9 < results.desiredInstructionalTE
-                ? `(${formatCompactDecimal(results.instructionalFundedTE)} of ${formatCompactDecimal(results.desiredInstructionalTE)} TE)`
-                : `(${formatCompactDecimal(results.instructionalFundedTE)} TE)`)
-            : "(0 TE)");
+        ? releaseSummaryNote
+        : `(${instructionalSummaryLoad}, ${formatPercent(results.instructionalExtramuralPercent)})`;
       elements.summaryNonInstructionalNote.textContent = isBudgetRequired
         ? `(${formatCompactDecimal(results.desiredInstructionalTE)} TE, ${formatDays(results.nonInstructionalOverloadDays)} days)`
         : `(${formatDays(results.nonInstructionalOverloadDays)} days)`;
