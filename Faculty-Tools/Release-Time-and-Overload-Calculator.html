@@ -529,6 +529,13 @@
       margin-top: 18px;
     }
 
+    .action-help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
+
     .action-row button {
       flex: 1;
       min-height: 46px;
@@ -1018,10 +1025,15 @@
 
               <div id="desired-non-instructional-days-wrapper" hidden>
                 <label for="desired-non-instructional-days">Desired Non-Instructional Overload Days</label>
-                <input id="desired-non-instructional-days" name="desired-non-instructional-days" type="number" min="0" step="0.1" inputmode="decimal">
+                <input id="desired-non-instructional-days" name="desired-non-instructional-days" type="number" min="0" step="1" inputmode="numeric">
                 <div class="help">Enter desired non-instructional overload days.</div>
                 <div class="field-message" id="desired-non-instructional-days-error"></div>
               </div>
+            </div>
+
+            <div class="status warn" id="status-box" role="status" aria-live="polite" hidden>
+              <strong>Release time exceeds available funding.</strong>
+              Release time alone is short by $0.00. Instructional and non-instructional overload are both set to $0.00.
             </div>
           </section>
 
@@ -1055,7 +1067,7 @@
             <div class="group-grid">
               <div>
                 <label for="months-charged">Months Charged to the Account</label>
-                <input id="months-charged" name="months-charged" type="number" min="0" step="0.1" inputmode="decimal">
+                <input id="months-charged" name="months-charged" type="number" min="0" step="0.5" inputmode="decimal">
                 <div class="help">Example: 1 semester for a 9-month faculty would be 4.5 months.</div>
                 <div class="field-message" id="months-charged-error"></div>
               </div>
@@ -1151,15 +1163,11 @@
 
         <div class="action-row">
           <button type="button" id="reset-button">Reset</button>
-          <button type="button" id="copy-summary-button" disabled>Copy Summary</button>
-          <button type="button" id="copy-link-button">Copy Share Link</button>
+          <button type="button" id="copy-summary-button" disabled>Copy Text Summary</button>
+          <button type="button" id="copy-link-button">Copy Shareable Link</button>
           <button type="button" id="print-button">Print / Save as PDF</button>
         </div>
-
-        <div class="status warn" id="status-box" role="status" aria-live="polite">
-          <strong>Enter values to begin.</strong>
-          Salary must be greater than zero. Release and overload entries may be zero or higher.
-        </div>
+        <div class="action-help">Copy Text Summary copies a plain-text summary to the clipboard. Copy Shareable Link copies a URL with the current scenario.</div>
       </form>
 
       <section class="results">
@@ -1466,11 +1474,6 @@
       releaseFringeRate: elements.releaseFringeRate.value,
       overloadFringeRate: elements.overloadFringeRate.value,
       indirectRate: elements.indirectRate.value
-    };
-    const INITIAL_STATUS = {
-      tone: "warn",
-      title: "Enter values to begin.",
-      message: "Salary must be greater than zero. Release and overload entries may be zero or higher."
     };
     const liveRateDefaults = { ...BUILTIN_RATE_DEFAULTS };
     const validationTouched = {
@@ -2041,8 +2044,13 @@
       });
     }
 
+    function hideStatus() {
+      elements.statusBox.hidden = true;
+      elements.statusBox.style.display = "none";
+    }
+
     function restoreInitialStatus() {
-      paintStatus(INITIAL_STATUS.tone, INITIAL_STATUS.title, INITIAL_STATUS.message);
+      hideStatus();
     }
 
     function setSummerRateStatus(message, tone) {
@@ -2302,6 +2310,8 @@
     }
 
     function paintStatus(tone, title, message, compact = false) {
+      elements.statusBox.hidden = false;
+      elements.statusBox.style.display = "";
       elements.statusBox.className = `status ${tone}${compact ? " compact" : ""}`;
       elements.statusBox.innerHTML = `<strong>${title}</strong>${message}`;
     }
@@ -2612,6 +2622,7 @@
         resetOutputs();
         setReleaseFundingAlert(false);
         setInstructionalFundingAlert(false);
+        hideStatus();
 
         const hasAnyWorkInput = [
           annualSalary,
@@ -2627,13 +2638,6 @@
           restoreInitialStatus();
           return;
         }
-
-        paintStatus(
-          "warn",
-          "Check highlighted fields.",
-          "Field-specific messages appear below the relevant inputs.",
-          true
-        );
 
         if (!isBudgetRequired && Number.isFinite(fundingAmountInput)) {
           elements.fundingDisplay.textContent = formatCurrency(Math.max(fundingAmountInput, 0));
@@ -2827,12 +2831,7 @@
       if (isBudgetRequired) {
         setReleaseFundingAlert(false);
         setInstructionalFundingAlert(false);
-        paintStatus(
-          "good",
-          "Required budget calculated.",
-          `Required budget is ${formatCurrency(roundedCombinedTotal)}.`,
-          true
-        );
+        hideStatus();
         return;
       }
 
@@ -2846,11 +2845,7 @@
       }
 
       if (fundingBalance < 0) {
-        paintStatus(
-          "bad",
-          "Calculated total exceeds funding after rounding.",
-          `The rounded total is over budget by ${formatCurrency(Math.abs(fundingBalance))}.`
-        );
+        hideStatus();
         return;
       }
 
@@ -2858,17 +2853,12 @@
         paintStatus(
           "warn",
           "Instructional TE was capped.",
-          `The requested instructional summer TE exceeded what the available overload budget can fund. ${formatDecimal(instructionalFundedTE)} TE is funded for instructional overload, and ${formatCurrency(nonInstructionalBudget)} flows automatically to non-instructional overload. Remaining balance after rounding: ${formatCurrency(fundingBalance)}.`
+          `The requested instructional summer TE exceeded what the available overload budget can fund. ${formatDecimal(instructionalFundedTE)} TE is funded for instructional overload, and ${formatCurrency(nonInstructionalBudget)} flows automatically to non-instructional overload.`
         );
         return;
       }
 
-      paintStatus(
-        "good",
-        "Scenario is fundable.",
-        `Remaining balance after rounding is ${formatCurrency(fundingBalance)}.`,
-        true
-      );
+      hideStatus();
     }
 
     elements.form.addEventListener("input", calculate);
