@@ -80,7 +80,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: clamp(112px, 14vw, 156px);
+      width: clamp(134px, 17vw, 187px);
       flex: 0 0 auto;
     }
 
@@ -709,6 +709,12 @@
       display: inline;
     }
 
+    .equation-line > *[hidden],
+    .equation-group[hidden],
+    .equation-op[hidden] {
+      display: none !important;
+    }
+
     .equation-line::before {
       content: none;
       display: none;
@@ -843,7 +849,7 @@
       }
 
       .hero-mark {
-        width: 104px;
+        width: 125px;
         justify-self: end;
       }
 
@@ -952,9 +958,9 @@
         <div class="hero-copy">
           <h1>Release Time and Summer Overload Calculator</h1>
           <p id="hero-description">
-            For one faculty member, enter salary, faculty term, funding, release time, and whether indirect costs apply.
-            The calculator shows release-time costs first, then allocates the remaining overload budget between instructional
-            and non-instructional summer overload.
+            For one faculty member, enter funding amount, release time, and instructional summer TE.
+            The calculator applies release-time costs first, then uses the remaining budget for
+            instructional and non-instructional summer overload.
           </p>
         </div>
         <div class="hero-mark" aria-hidden="true">
@@ -1243,8 +1249,8 @@
                   </span>
                   <span class="equation-paren">)</span>
                 </span>
-                <span class="equation-op">x</span>
-                <span class="equation-group">
+                <span class="equation-op" id="non-instructional-formula-months-multiply">x</span>
+                <span class="equation-group" id="non-instructional-formula-months-group">
                   <span class="equation-paren">(</span>
                   <span class="equation-frac">
                     <span id="non-instructional-formula-months">9 months</span>
@@ -1252,8 +1258,8 @@
                   </span>
                   <span class="equation-paren">)</span>
                 </span>
-                <span class="equation-op">&divide;</span>
-                <span class="equation-group">
+                <span class="equation-op" id="non-instructional-formula-annualization-divide">&divide;</span>
+                <span class="equation-group" id="non-instructional-formula-annualization-group">
                   <span class="equation-paren">(</span>
                   <span class="equation-frac">
                     <span>12 months</span>
@@ -1294,7 +1300,7 @@
                   <span class="equation-paren">(</span>
                   <span class="equation-text-frac">
                     <span>52 x 40</span>
-                    <span>12 x 8</span>
+                    <span id="non-instructional-formula-reduced-left-bottom">12 x 8</span>
                   </span>
                   <span class="equation-paren">)</span>
                 </span>
@@ -1429,7 +1435,12 @@
       nonInstructionalFormulaIntro: document.getElementById("non-instructional-formula-intro"),
       nonInstructionalFormulaOverload: document.getElementById("non-instructional-formula-overload"),
       nonInstructionalFormulaSalary: document.getElementById("non-instructional-formula-salary"),
+      nonInstructionalFormulaMonthsMultiply: document.getElementById("non-instructional-formula-months-multiply"),
+      nonInstructionalFormulaMonthsGroup: document.getElementById("non-instructional-formula-months-group"),
+      nonInstructionalFormulaAnnualizationDivide: document.getElementById("non-instructional-formula-annualization-divide"),
+      nonInstructionalFormulaAnnualizationGroup: document.getElementById("non-instructional-formula-annualization-group"),
       nonInstructionalFormulaMonths: document.getElementById("non-instructional-formula-months"),
+      nonInstructionalFormulaReducedLeftBottom: document.getElementById("non-instructional-formula-reduced-left-bottom"),
       nonInstructionalFormulaReducedTop: document.getElementById("non-instructional-formula-reduced-top"),
       nonInstructionalFormulaReducedBottom: document.getElementById("non-instructional-formula-reduced-bottom"),
       nonInstructionalFormulaFallback: document.getElementById("non-instructional-formula-fallback"),
@@ -1632,16 +1643,27 @@
 
     function renderNonInstructionalFormula(facultyMonths) {
       const facultyMonthsText = `${facultyMonths}-month`;
+      const isElevenMonth = facultyMonths === 11;
+
       elements.nonInstructionalFormulaIntro.textContent = `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay:`;
       elements.nonInstructionalFormulaOverload.textContent = "$ overload";
       elements.nonInstructionalFormulaSalary.textContent = "$ salary";
       elements.nonInstructionalFormulaMonths.textContent = `${facultyMonths} months`;
-      elements.nonInstructionalFormulaReducedTop.textContent = `${facultyMonths} x overload`;
+      elements.nonInstructionalFormulaMonthsMultiply.hidden = isElevenMonth;
+      elements.nonInstructionalFormulaMonthsGroup.hidden = isElevenMonth;
+      elements.nonInstructionalFormulaAnnualizationDivide.hidden = isElevenMonth;
+      elements.nonInstructionalFormulaAnnualizationGroup.hidden = isElevenMonth;
+      elements.nonInstructionalFormulaReducedLeftBottom.textContent = isElevenMonth ? "8" : "12 x 8";
+      elements.nonInstructionalFormulaReducedTop.textContent = isElevenMonth ? "overload" : `${facultyMonths} x overload`;
       elements.nonInstructionalFormulaReducedBottom.textContent = "salary";
       elements.nonInstructionalFormulaFallback.innerHTML =
-        `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay: ` +
-        `<code>($ overload) &divide; ($ salary/year) x (${facultyMonths} months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>` +
-        ` = <code>(52 x 40 &divide; 12 &divide; 8) x (${facultyMonths} x overload &divide; salary)</code>.`;
+        isElevenMonth
+          ? `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay: ` +
+            `<code>($ overload) &divide; ($ salary/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>` +
+            ` = <code>(52 x 40 &divide; 8) x (overload &divide; salary)</code>.`
+          : `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay: ` +
+            `<code>($ overload) &divide; ($ salary/year) x (${facultyMonths} months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>` +
+            ` = <code>(52 x 40 &divide; 12 &divide; 8) x (${facultyMonths} x overload &divide; salary)</code>.`;
     }
 
     function normalizeCurrencyInput(value) {
@@ -1744,8 +1766,8 @@
         ? "Budget Required Summary"
         : "Budget Available Summary";
       elements.heroDescription.textContent = isBudgetRequired
-        ? "For one faculty member, enter salary, faculty term, release time, summer overload, and whether indirect costs apply. The calculator estimates the budget required for the selected release time, instructional TE, and non-instructional overload days."
-        : "For one faculty member, enter salary, faculty term, funding, release time, and whether indirect costs apply. The calculator shows release-time costs first, then allocates the remaining overload budget between instructional and non-instructional summer overload.";
+        ? "For one faculty member, enter release time, instructional summer TE, and non-instructional overload days. The calculator estimates the budget required to cover the selected release time and summer overload."
+        : "For one faculty member, enter funding amount, release time, and instructional summer TE. The calculator applies release-time costs first, then uses the remaining budget for instructional and non-instructional summer overload.";
     }
 
     function getNormalizedInputValue(input) {
@@ -2202,6 +2224,8 @@
     }
 
     function resetOutputs() {
+      const selectedFacultyMonths = Number.parseInt(selectedValue("faculty-months"), 10);
+
       for (const [key, type] of Object.entries(valueTargets)) {
         if (type === "currency") {
           elements[key].textContent = "$0.00";
@@ -2224,6 +2248,7 @@
       }
       setReleaseFundingAlert(false);
       setInstructionalFundingAlert(false);
+      renderNonInstructionalFormula([9, 11].includes(selectedFacultyMonths) ? selectedFacultyMonths : 9);
     }
 
     function applyResultsMode(calculatorMode) {
@@ -2621,6 +2646,7 @@
       const overloadFringeRate = overloadFringeRatePercent / 100;
       const indirectRate = indirectRatePercent / 100;
       const overloadLoadFactor = (1 + overloadFringeRate) * (indirectApplies ? 1 + indirectRate : 1);
+      const nonInstructionalDayFactor = facultyMonths === 11 ? 260 : 195;
       const costPerTE = annualSalary / annualTeachingLoad;
       const releaseTimeCost = costPerTE * desiredTE;
       const releaseFringe = releaseTimeCost * releaseFringeRate;
@@ -2680,7 +2706,7 @@
 
         nonInstructionalOverloadDays = desiredNonInstructionalDays;
         nonInstructionalPay = desiredNonInstructionalDays > 0
-          ? (desiredNonInstructionalDays * 3 * annualSalary) / (65 * facultyMonths)
+          ? (desiredNonInstructionalDays * annualSalary) / nonInstructionalDayFactor
           : 0;
         nonInstructionalFringe = nonInstructionalPay * overloadFringeRate;
         nonInstructionalDirectCost = nonInstructionalPay + nonInstructionalFringe;
@@ -2714,7 +2740,7 @@
         nonInstructionalDirectCost = nonInstructionalPay + nonInstructionalFringe;
         nonInstructionalIndirectCost = indirectApplies ? nonInstructionalDirectCost * indirectRate : 0;
         nonInstructionalTotalCost = nonInstructionalDirectCost + nonInstructionalIndirectCost;
-        nonInstructionalOverloadDays = (65 * facultyMonths * nonInstructionalPay) / (3 * annualSalary);
+        nonInstructionalOverloadDays = (nonInstructionalPay * nonInstructionalDayFactor) / annualSalary;
 
         totalOverloadCost = instructionalTotalCost + nonInstructionalTotalCost;
         combinedTotal = releaseTotalCost + totalOverloadCost;
