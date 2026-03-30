@@ -2538,7 +2538,7 @@
       const releaseIndirectCost = indirectApplies ? releaseDirectCost * indirectRate : 0;
       const releaseTotalCost = releaseDirectCost + releaseIndirectCost;
       const rawRemainingBeforeOverload = fundingAmount - releaseTotalCost;
-      const availableOverloadBudget = Math.max(fundingAmount - 0.01 - releaseTotalCost, 0);
+      const availableOverloadBudget = Math.max(fundingAmount - releaseTotalCost, 0);
 
       let instructionalRequestedPay = 0;
       let instructionalRequestedTotalCost = 0;
