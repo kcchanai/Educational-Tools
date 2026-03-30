@@ -970,6 +970,40 @@
           </section>
 
           <section class="input-group">
+            <h3>Primary Budget Inputs</h3>
+            <div class="group-grid">
+              <div id="funding-input-wrapper">
+                <label for="funding">Funding Amount</label>
+                <input id="funding" name="funding" type="text" inputmode="decimal" autocomplete="off">
+                <div class="field-message" id="funding-error"></div>
+              </div>
+
+              <div id="desired-release-wrapper">
+                <label for="desired-te">Desired Release Time (TE)</label>
+                <input id="desired-te" name="desired-te" type="number" min="0" step="0.5" inputmode="decimal">
+                <div class="help">Decimal TE values allowed. 9-month faculty use 27 TE/year; 11-month faculty use 36 TE/year.</div>
+                <div class="field-message" id="desired-te-error"></div>
+              </div>
+
+              <div id="desired-instructional-wrapper">
+                <label for="desired-instructional-te">Desired Instructional Summer TE</label>
+                <input id="desired-instructional-te" name="desired-instructional-te" type="number" min="0" step="0.5" inputmode="decimal">
+                <div class="help">Enter desired summer instructional TE.</div>
+                <div class="field-message" id="desired-instructional-te-error"></div>
+              </div>
+
+              <div id="desired-non-instructional-days-wrapper" hidden>
+                <label for="desired-non-instructional-days">Desired Non-Instructional Overload Days</label>
+                <input id="desired-non-instructional-days" name="desired-non-instructional-days" type="number" min="0" step="0.1" inputmode="decimal">
+                <div class="help">Enter desired non-instructional overload days.</div>
+                <div class="field-message" id="desired-non-instructional-days-error"></div>
+              </div>
+
+              <div class="help quiet-help" id="funding-calculated-note" hidden>Funding amount is calculated in this mode.</div>
+            </div>
+          </section>
+
+          <section class="input-group">
             <h3>Faculty and Scenario Inputs</h3>
             <div class="group-grid">
               <div>
@@ -991,26 +1025,12 @@
                   </label>
                 </div>
               </fieldset>
-
-              <div id="funding-input-wrapper">
-                <label for="funding">Funding Amount</label>
-                <input id="funding" name="funding" type="text" inputmode="decimal" autocomplete="off">
-                <div class="field-message" id="funding-error"></div>
-              </div>
-              <div class="help quiet-help" id="funding-calculated-note" hidden>Funding amount is calculated in this mode.</div>
             </div>
           </section>
 
           <section class="input-group">
             <h3>Release Time Inputs</h3>
             <div class="group-grid">
-              <div>
-                <label for="desired-te">Desired Release Time (TE)</label>
-                <input id="desired-te" name="desired-te" type="number" min="0" step="0.5" inputmode="decimal">
-                <div class="help">Decimal TE values allowed. 9-month faculty use 27 TE/year; 11-month faculty use 36 TE/year.</div>
-                <div class="field-message" id="desired-te-error"></div>
-              </div>
-
               <div>
                 <label for="months-charged">Months Charged to the Account</label>
                 <input id="months-charged" name="months-charged" type="number" min="0" step="0.1" inputmode="decimal">
@@ -1068,20 +1088,6 @@
           <section class="input-group">
             <h3>Summer Instructional Inputs</h3>
             <div class="group-grid">
-              <div>
-                <label for="desired-instructional-te">Desired Instructional Summer TE</label>
-                <input id="desired-instructional-te" name="desired-instructional-te" type="number" min="0" step="0.5" inputmode="decimal">
-                <div class="help">Enter desired summer instructional TE.</div>
-                <div class="field-message" id="desired-instructional-te-error"></div>
-              </div>
-
-              <div id="desired-non-instructional-days-wrapper" hidden>
-                <label for="desired-non-instructional-days">Desired Non-Instructional Overload Days</label>
-                <input id="desired-non-instructional-days" name="desired-non-instructional-days" type="number" min="0" step="0.1" inputmode="decimal">
-                <div class="help">Enter desired non-instructional overload days.</div>
-                <div class="field-message" id="desired-non-instructional-days-error"></div>
-              </div>
-
               <div>
                 <label for="summer-rate-source">Summer Rate Source</label>
                 <select id="summer-rate-source" name="summer-rate-source">
@@ -1165,7 +1171,7 @@
             <div class="metric"><dt>Total direct cost (release time cost + fringe)</dt><dd id="release-direct-cost">$0.00</dd></div>
             <div class="metric"><dt id="release-indirect-label">Indirect cost (indirect cost rate of total direct cost)</dt><dd id="release-indirect-cost">$0.00</dd></div>
             <div class="metric key-metric total-metric"><dt>Total release time cost (total direct cost + indirect cost)</dt><dd id="release-total-cost">$0.00</dd></div>
-            <div class="metric-group-label" id="release-split-group-label">Charge Split</div>
+            <div class="metric-group-label" id="release-split-group-label">Account Code Percentages</div>
             <div class="metric"><dt id="release-extramural-label">Percent charged to extramural account<br>(release time cost x 12 &divide; months charged &divide; salary)</dt><dd id="release-extramural-percent">0.00%</dd></div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="release-college-percent">0.00%</dd></div>
           </dl>
@@ -1183,7 +1189,7 @@
             <div class="metric"><dt>Instructional direct cost (faculty pay + fringe)</dt><dd id="instructional-direct-cost">$0.00</dd></div>
             <div class="metric"><dt id="instructional-indirect-label">Instructional indirect cost (45.5% of direct cost)</dt><dd id="instructional-indirect-cost">$0.00</dd></div>
             <div class="metric total-metric"><dt>Instructional total cost (direct cost + indirect cost)</dt><dd id="instructional-total-cost">$0.00</dd></div>
-            <div class="metric-group-label" id="instructional-split-group-label">Charge Split</div>
+            <div class="metric-group-label" id="instructional-split-group-label">Account Code Percentages</div>
             <div class="metric"><dt>Percent charged to extramural account<br>(TE funded / TE requested)</dt><dd id="instructional-extramural-percent">0.00%</dd></div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="instructional-college-percent">0.00%</dd></div>
           </dl>
@@ -1209,14 +1215,14 @@
               <div class="equation-line">
                 <span class="equation-group">
                   <span class="equation-paren">(</span>
-                  <span>Z $</span>
+                  <span>$ Z</span>
                   <span class="equation-paren">)</span>
                 </span>
                 <span class="equation-op">&divide;</span>
                 <span class="equation-group">
                   <span class="equation-paren">(</span>
                   <span class="equation-frac">
-                    <span>Y $</span>
+                    <span>$ Y</span>
                     <span>year</span>
                   </span>
                   <span class="equation-paren">)</span>
@@ -1287,7 +1293,7 @@
               </div>
             </div>
             The number of days for <code>M</code>-month faculty with <code>Y</code> annual salary to earn overload <code>Z</code>:
-            <code>(Z $) &divide; (Y $/year) x (M months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>
+            <code>($ Z) &divide; ($ Y/year) x (M months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>
             = <code>(52 x 40 &divide; 12 &divide; 8) x (M x Z &divide; Y)</code>.
           </div>
         </article>
@@ -2153,7 +2159,7 @@
       elements.summaryRightTitle.innerHTML = isBudgetRequired
         ? "Total Summer<br>Overload Pay"
         : "Non-Instructional<br>Overload Pay";
-      elements.releaseSplitGroupLabel.textContent = "Charge Split";
+      elements.releaseSplitGroupLabel.textContent = "Account Code Percentages";
       elements.instructionalLoadGroupLabel.textContent = isBudgetRequired
         ? "Entered Instructional Load"
         : "Requested Instructional Load";
@@ -2163,7 +2169,7 @@
       elements.instructionalTEFundedLabel.textContent = isBudgetRequired
         ? "Instructional TE included"
         : "Instructional TE funded";
-      elements.instructionalSplitGroupLabel.textContent = "Charge Split";
+      elements.instructionalSplitGroupLabel.textContent = "Account Code Percentages";
       elements.nonInstructionalBudgetGroupLabel.textContent = isBudgetRequired
         ? "Required Non-Instructional Cost"
         : "Available Budget";
@@ -2183,10 +2189,13 @@
       elements.combinedTotalRow.style.display = isBudgetRequired ? "none" : "";
       elements.combinedTotalRow.classList.toggle("emphasis-metric", !isBudgetRequired);
       elements.fundingDisplayLabel.textContent = isBudgetRequired
-        ? "Required budget"
+        ? "Required budget (rounded up)"
         : "Funding amount";
+      elements.fundingDisplayRow.hidden = !isBudgetRequired;
+      elements.fundingDisplayRow.style.display = isBudgetRequired ? "" : "none";
       elements.fundingDisplayRow.classList.toggle("emphasis-metric", isBudgetRequired);
       elements.fundingBalanceRow.hidden = isBudgetRequired;
+      elements.fundingBalanceRow.style.display = isBudgetRequired ? "none" : "";
     }
 
     function paintStatus(tone, title, message, compact = false) {
