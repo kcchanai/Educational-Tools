@@ -681,6 +681,12 @@
       color: var(--ink);
     }
 
+    .label-equation {
+      margin-top: 6px;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.48);
+    }
+
     .equation-line {
       display: flex;
       flex-wrap: wrap;
@@ -712,6 +718,18 @@
       display: inline-flex;
       align-items: stretch;
       gap: 2px;
+    }
+
+    .overload-days-equation .equation-line {
+      gap: 2px 3px;
+    }
+
+    .overload-days-equation .equation-group {
+      gap: 1px;
+    }
+
+    .overload-days-equation .equation-op {
+      letter-spacing: -0.01em;
     }
 
     .equation-break {
@@ -998,8 +1016,6 @@
                 <div class="help">Enter desired non-instructional overload days.</div>
                 <div class="field-message" id="desired-non-instructional-days-error"></div>
               </div>
-
-              <div class="help quiet-help" id="funding-calculated-note" hidden>Funding amount is calculated in this mode.</div>
             </div>
           </section>
 
@@ -1210,19 +1226,19 @@
             <div class="metric key-metric"><dt id="non-instructional-days-label">Non-instructional overload days</dt><dd id="non-instructional-overload-days">0.00</dd></div>
           </dl>
           <div class="footnote">
-            <div>The number of days for <code>M</code>-month faculty with <code>Y</code> annual salary to earn overload <code>Z</code>:</div>
-            <div class="equation-block" aria-label="Non-instructional overload days equation">
+            <div id="non-instructional-formula-intro">The number of days for 9-month faculty to earn non-instructional overload pay:</div>
+            <div class="equation-block overload-days-equation" aria-label="Non-instructional overload days equation">
               <div class="equation-line">
                 <span class="equation-group">
                   <span class="equation-paren">(</span>
-                  <span>$ Z</span>
+                  <span id="non-instructional-formula-overload">$ overload</span>
                   <span class="equation-paren">)</span>
                 </span>
                 <span class="equation-op">&divide;</span>
                 <span class="equation-group">
                   <span class="equation-paren">(</span>
                   <span class="equation-frac">
-                    <span>$ Y</span>
+                    <span id="non-instructional-formula-salary">$ salary</span>
                     <span>year</span>
                   </span>
                   <span class="equation-paren">)</span>
@@ -1231,7 +1247,7 @@
                 <span class="equation-group">
                   <span class="equation-paren">(</span>
                   <span class="equation-frac">
-                    <span>M months</span>
+                    <span id="non-instructional-formula-months">9 months</span>
                     <span>year</span>
                   </span>
                   <span class="equation-paren">)</span>
@@ -1285,16 +1301,16 @@
                 <span class="equation-group">
                   <span class="equation-paren">(</span>
                   <span class="equation-frac">
-                    <span>M x Z</span>
-                    <span>Y</span>
+                    <span id="non-instructional-formula-reduced-top">9 x overload</span>
+                    <span id="non-instructional-formula-reduced-bottom">salary</span>
                   </span>
                   <span class="equation-paren">)</span>
                 </span>
               </div>
             </div>
-            The number of days for <code>M</code>-month faculty with <code>Y</code> annual salary to earn overload <code>Z</code>:
-            <code>($ Z) &divide; ($ Y/year) x (M months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>
-            = <code>(52 x 40 &divide; 12 &divide; 8) x (M x Z &divide; Y)</code>.
+            <span id="non-instructional-formula-fallback">The number of days for 9-month faculty to earn non-instructional overload pay:
+            <code>($ overload) &divide; ($ salary/year) x (9 months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>
+            = <code>(52 x 40 &divide; 12 &divide; 8) x (9 x overload &divide; salary)</code>.</span>
           </div>
         </article>
 
@@ -1339,7 +1355,6 @@
       desiredNonInstructionalDays: document.getElementById("desired-non-instructional-days"),
       desiredNonInstructionalDaysError: document.getElementById("desired-non-instructional-days-error"),
       calculatorModeHelp: document.getElementById("calculator-mode-help"),
-      fundingCalculatedNote: document.getElementById("funding-calculated-note"),
       summaryModeLabel: document.getElementById("summary-mode-label"),
       summerRateSource: document.getElementById("summer-rate-source"),
       summerRateStatus: document.getElementById("summer-rate-status"),
@@ -1411,6 +1426,13 @@
       nonInstructionalTotalCost: document.getElementById("non-instructional-total-cost"),
       nonInstructionalDaysLabel: document.getElementById("non-instructional-days-label"),
       nonInstructionalOverloadDays: document.getElementById("non-instructional-overload-days"),
+      nonInstructionalFormulaIntro: document.getElementById("non-instructional-formula-intro"),
+      nonInstructionalFormulaOverload: document.getElementById("non-instructional-formula-overload"),
+      nonInstructionalFormulaSalary: document.getElementById("non-instructional-formula-salary"),
+      nonInstructionalFormulaMonths: document.getElementById("non-instructional-formula-months"),
+      nonInstructionalFormulaReducedTop: document.getElementById("non-instructional-formula-reduced-top"),
+      nonInstructionalFormulaReducedBottom: document.getElementById("non-instructional-formula-reduced-bottom"),
+      nonInstructionalFormulaFallback: document.getElementById("non-instructional-formula-fallback"),
       totalsGroupLabel: document.getElementById("totals-group-label"),
       combinedTotalRow: document.getElementById("combined-total-row"),
       totalsRelease: document.getElementById("totals-release"),
@@ -1565,6 +1587,63 @@
       return `${percentFormatter.format(value)}%`;
     }
 
+    function buildReleaseExtramuralFormulaHtml(monthsCharged) {
+      const monthsChargedText = monthsCharged > 0
+        ? `${formatCompactDecimal(monthsCharged)} months charged`
+        : "months charged";
+
+      return [
+        "Percent charged to extramural account",
+        '<div class="equation-block label-equation" aria-label="Release time extramural percentage formula">',
+        '  <div class="equation-line">',
+        '    <span class="equation-group">',
+        '      <span class="equation-paren">(</span>',
+        '      <span>$ release time cost</span>',
+        '      <span class="equation-paren">)</span>',
+        '    </span>',
+        '    <span class="equation-op">x</span>',
+        '    <span class="equation-group">',
+        '      <span class="equation-paren">(</span>',
+        '      <span class="equation-frac">',
+        '        <span>12 months</span>',
+        '        <span>year</span>',
+        '      </span>',
+        '      <span class="equation-paren">)</span>',
+        '    </span>',
+        '    <span class="equation-op">&divide;</span>',
+        '    <span class="equation-group">',
+        '      <span class="equation-paren">(</span>',
+        `      <span>${monthsChargedText}</span>`,
+        '      <span class="equation-paren">)</span>',
+        '    </span>',
+        '    <span class="equation-op">&divide;</span>',
+        '    <span class="equation-group">',
+        '      <span class="equation-paren">(</span>',
+        '      <span class="equation-frac">',
+        '        <span>$ salary</span>',
+        '        <span>year</span>',
+        '      </span>',
+        '      <span class="equation-paren">)</span>',
+        '    </span>',
+        '  </div>',
+        '</div>'
+      ].join("");
+    }
+
+    function renderNonInstructionalFormula(facultyMonths) {
+      const facultyMonthsText = `${facultyMonths}-month`;
+      elements.nonInstructionalFormulaIntro.textContent = `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay:`;
+      elements.nonInstructionalFormulaOverload.textContent = "$ overload";
+      elements.nonInstructionalFormulaSalary.textContent = "$ salary";
+      elements.nonInstructionalFormulaMonths.textContent = `${facultyMonths} months`;
+      elements.nonInstructionalFormulaReducedTop.textContent = `${facultyMonths} x overload`;
+      elements.nonInstructionalFormulaReducedBottom.textContent = "salary";
+      elements.nonInstructionalFormulaFallback.innerHTML =
+        `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay: ` +
+        `<code>($ overload) &divide; ($ salary/year) x (${facultyMonths} months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>` +
+        ` = <code>(52 x 40 &divide; 12 &divide; 8) x (${facultyMonths} x overload &divide; salary)</code>.`;
+    }
+
     function normalizeCurrencyInput(value) {
       const cleaned = value.replace(/[^0-9.]/g, "");
       const [wholePart = "", ...decimalParts] = cleaned.split(".");
@@ -1656,7 +1735,6 @@
       const isBudgetRequired = getCalculatorMode() === "budget-required";
       elements.fundingInputWrapper.hidden = isBudgetRequired;
       elements.funding.disabled = isBudgetRequired;
-      elements.fundingCalculatedNote.hidden = !isBudgetRequired;
       elements.desiredNonInstructionalDaysWrapper.hidden = !isBudgetRequired;
       elements.desiredNonInstructionalDays.disabled = !isBudgetRequired;
       elements.calculatorModeHelp.textContent = isBudgetRequired
@@ -2232,7 +2310,11 @@
         : `(${formatCompactDecimal(results.desiredTE)} TE)`;
       elements.summaryInstructionalNote.textContent = isBudgetRequired
         ? `(${formatCompactDecimal(results.desiredTE)} TE)`
-        : `(${formatCompactDecimal(results.instructionalFundedTE)} TE)`;
+        : (results.desiredInstructionalTE > 0
+            ? (results.instructionalFundedTE + 1e-9 < results.desiredInstructionalTE
+                ? `(${formatCompactDecimal(results.instructionalFundedTE)} of ${formatCompactDecimal(results.desiredInstructionalTE)} TE)`
+                : `(${formatCompactDecimal(results.instructionalFundedTE)} TE)`)
+            : "(0 TE)");
       elements.summaryNonInstructionalNote.textContent = isBudgetRequired
         ? `(${formatCompactDecimal(results.desiredInstructionalTE)} TE, ${formatDays(results.nonInstructionalOverloadDays)} days)`
         : `(${formatDays(results.nonInstructionalOverloadDays)} days)`;
@@ -2241,15 +2323,14 @@
       elements.releaseTimeCostLabel.textContent = results.desiredTE > 0
         ? `Release time cost (cost per TE x desired ${formatCompactDecimal(results.desiredTE)} TE)`
         : "Release time cost (cost per TE x desired TE)";
-      elements.releaseExtramuralLabel.innerHTML = results.monthsCharged > 0
-        ? `Percent charged to extramural account<br>(release time cost x 12 \u00F7 ${formatCompactDecimal(results.monthsCharged)} months charged \u00F7 salary)`
-        : "Percent charged to extramural account<br>(release time cost x 12 \u00F7 months charged \u00F7 salary)";
+      elements.releaseExtramuralLabel.innerHTML = buildReleaseExtramuralFormulaHtml(results.monthsCharged);
       elements.releaseFringeLabel.textContent = `Release fringe (${formatPercent(results.releaseFringeRatePercent)} of release time cost)`;
       elements.releaseIndirectLabel.textContent = `Indirect cost (${formatPercent(results.indirectRatePercent)} of total direct cost)`;
       elements.instructionalFringeLabel.textContent = `Instructional fringe (${formatPercent(results.overloadFringeRatePercent)} of faculty pay)`;
       elements.instructionalIndirectLabel.textContent = `Instructional indirect cost (${formatPercent(results.indirectRatePercent)} of direct cost)`;
       elements.nonInstructionalFringeLabel.textContent = `Non-instructional fringe (${formatPercent(results.overloadFringeRatePercent)} of faculty pay)`;
       elements.nonInstructionalIndirectLabel.textContent = `Non-instructional indirect cost (${formatPercent(results.indirectRatePercent)} of direct cost)`;
+      renderNonInstructionalFormula(results.facultyMonths);
 
       elements.costPerTE.textContent = formatCurrency(results.costPerTE);
       elements.releaseTimeCost.textContent = formatCurrency(results.releaseTimeCost);
@@ -2648,6 +2729,7 @@
 
       const results = {
         calculatorMode,
+        facultyMonths,
         annualTeachingLoad,
         desiredTE,
         monthsCharged,
