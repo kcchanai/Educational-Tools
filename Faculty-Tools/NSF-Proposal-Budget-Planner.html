@@ -609,16 +609,32 @@
       <h2>Budget Settings</h2>
       <div class="settings-grid">
         <div>
-          <label for="scenario-label">Scenario Label</label>
-          <input id="scenario-label" type="text" placeholder="Example: NSF SWITCH Year 1 budget">
+          <label for="organization-label">Organization</label>
+          <input id="organization-label" type="text" placeholder="Example: University of Hawaii">
         </div>
         <div>
-          <label for="pi-label">PI / Project Label</label>
+          <label for="proposal-number">Proposal No.</label>
+          <input id="proposal-number" type="text" placeholder="Example: 2301163">
+        </div>
+        <div>
+          <label for="budget-duration">Duration (Months)</label>
+          <input id="budget-duration" type="number" min="0" step="1" placeholder="Example: 12">
+        </div>
+        <div>
+          <label for="pi-label">PI / PD Name</label>
           <input id="pi-label" type="text" placeholder="Example: Dr. Jane Doe">
         </div>
         <div>
+          <label for="award-number">Award No.</label>
+          <input id="award-number" type="text" placeholder="Optional">
+        </div>
+        <div>
           <label for="budget-period-label">Budget Period Label</label>
-          <input id="budget-period-label" type="text" placeholder="Example: Budget Period 1">
+          <input id="budget-period-label" type="text" placeholder="Example: Year 1">
+        </div>
+        <div>
+          <label for="scenario-label">Scenario Label</label>
+          <input id="scenario-label" type="text" placeholder="Example: NSF SWITCH Year 1 budget">
         </div>
         <div>
           <label for="default-fringe-rate">Default Fringe Rate (%)</label>
@@ -690,7 +706,9 @@
               <tr>
                 <th>Name / Role</th>
                 <th>Annual Base</th>
-                <th>Effort<br>(Months)</th>
+                <th>CAL<br>Months</th>
+                <th>ACAD<br>Months</th>
+                <th>SUMR<br>Months</th>
                 <th>Requested<br>Salary</th>
                 <th>Fringe %<br>Override</th>
                 <th>Fringe</th>
@@ -705,7 +723,7 @@
             <tbody id="senior-personnel-body"></tbody>
             <tfoot>
               <tr>
-                <th colspan="3">Senior personnel subtotal</th>
+                <th colspan="5">Senior personnel subtotal</th>
                 <td class="computed-cell" id="senior-salary-subtotal">$0.00</td>
                 <td></td>
                 <td class="computed-cell" id="senior-fringe-subtotal">$0.00</td>
@@ -719,7 +737,7 @@
             </tfoot>
           </table>
         </div>
-        <div class="section-help">Use for PI, Co-PI, and other senior personnel. Requested salary is calculated from annual base and budgeted months.</div>
+        <div class="section-help">Use for PI, Co-PI, and other senior personnel. Senior rows match the NSF CAL, ACAD, and SUMR person-month layout.</div>
       </section>
 
       <section class="worksheet-section">
@@ -766,7 +784,49 @@
 
       <section class="worksheet-section">
         <div class="section-header">
-          <h3>B2. Graduate Students</h3>
+          <h3>B2. Other Professionals</h3>
+          <button type="button" class="section-action" data-add-personnel="professional">Add Person</button>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th>Name / Role</th>
+                <th>Annual Base</th>
+                <th>Effort<br>(Months)</th>
+                <th>Requested<br>Salary</th>
+                <th>Fringe %<br>Override</th>
+                <th>Fringe</th>
+                <th>Direct Cost</th>
+                <th class="checkbox-cell">IDC?</th>
+                <th>IDC %<br>Override</th>
+                <th>Indirect</th>
+                <th>Total</th>
+                <th class="remove-cell">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="professional-personnel-body"></tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3">Other professionals subtotal</th>
+                <td class="computed-cell" id="professional-salary-subtotal">$0.00</td>
+                <td></td>
+                <td class="computed-cell" id="professional-fringe-subtotal">$0.00</td>
+                <td class="computed-cell" id="professional-direct-subtotal">$0.00</td>
+                <td></td>
+                <td></td>
+                <td class="computed-cell" id="professional-indirect-subtotal">$0.00</td>
+                <td class="computed-cell" id="professional-total-subtotal">$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>B3. Graduate Students</h3>
           <button type="button" class="section-action" data-add-personnel="graduate">Add Person</button>
         </div>
         <div class="table-wrap">
@@ -808,7 +868,7 @@
 
       <section class="worksheet-section">
         <div class="section-header">
-          <h3>B3. Undergraduate Students</h3>
+          <h3>B4. Undergraduate Students</h3>
           <button type="button" class="section-action" data-add-personnel="undergraduate">Add Person</button>
         </div>
         <div class="table-wrap">
@@ -850,7 +910,50 @@
 
       <section class="worksheet-section">
         <div class="section-header">
-          <h3>B4. Other Personnel</h3>
+          <h3>B5. Secretarial - Clerical</h3>
+          <button type="button" class="section-action" data-add-personnel="clerical">Add Person</button>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th>Name / Role</th>
+                <th>Annual Base</th>
+                <th>Effort<br>(Months)</th>
+                <th>Requested<br>Salary</th>
+                <th>Fringe %<br>Override</th>
+                <th>Fringe</th>
+                <th>Direct Cost</th>
+                <th class="checkbox-cell">IDC?</th>
+                <th>IDC %<br>Override</th>
+                <th>Indirect</th>
+                <th>Total</th>
+                <th class="remove-cell">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="clerical-personnel-body"></tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3">Secretarial - clerical subtotal</th>
+                <td class="computed-cell" id="clerical-salary-subtotal">$0.00</td>
+                <td></td>
+                <td class="computed-cell" id="clerical-fringe-subtotal">$0.00</td>
+                <td class="computed-cell" id="clerical-direct-subtotal">$0.00</td>
+                <td></td>
+                <td></td>
+                <td class="computed-cell" id="clerical-indirect-subtotal">$0.00</td>
+                <td class="computed-cell" id="clerical-total-subtotal">$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="section-help">Use only when direct-charged clerical support is appropriate for the proposal.</div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>B6. Other</h3>
           <button type="button" class="section-action" data-add-personnel="other">Add Person</button>
         </div>
         <div class="table-wrap">
@@ -892,7 +995,7 @@
 
       <section class="worksheet-section">
         <div class="section-header">
-          <h3>D-G. Non-Personnel Budget Categories</h3>
+          <h3>D-E and G. Non-Personnel Budget Categories</h3>
         </div>
         <div class="table-wrap">
           <table class="budget-table" id="non-personnel-table">
@@ -915,18 +1018,18 @@
                 <td class="computed-cell idc-amount">$0.00</td>
                 <td class="computed-cell total-amount">$0.00</td>
               </tr>
-              <tr data-category-key="travel" data-category-label="Travel">
-                <th scope="row">E. Travel</th>
+              <tr data-category-key="travelDomestic" data-category-label="Domestic Travel">
+                <th scope="row">E1. Domestic Travel</th>
                 <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
                 <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
                 <td class="computed-cell idc-amount">$0.00</td>
                 <td class="computed-cell total-amount">$0.00</td>
               </tr>
-              <tr data-category-key="participant" data-category-label="Participant Support Costs">
-                <th scope="row">F. Participant Support Costs</th>
+              <tr data-category-key="travelInternational" data-category-label="International Travel">
+                <th scope="row">E2. International Travel</th>
                 <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
-                <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
                 <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
                 <td class="computed-cell idc-amount">$0.00</td>
                 <td class="computed-cell total-amount">$0.00</td>
@@ -993,8 +1096,53 @@
           </table>
         </div>
         <div class="section-help">
-          Participant support and equipment are preloaded with IDC turned off. Subaward IDC treatment varies by institutional rule, so enter the allowable indirect-cost base here or clear IDC if needed.
+          Equipment is preloaded with IDC turned off. Subaward IDC treatment varies by institutional rule, so enter only the allowable indirect-cost base here or clear IDC if needed.
         </div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>F. Participant Support Costs</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th>Participant Support Line</th>
+                <th>Direct Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Stipends</th>
+                <td><input id="participant-stipends" type="number" min="0" step="0.01"></td>
+              </tr>
+              <tr>
+                <th scope="row">Travel</th>
+                <td><input id="participant-travel" type="number" min="0" step="0.01"></td>
+              </tr>
+              <tr>
+                <th scope="row">Subsistence</th>
+                <td><input id="participant-subsistence" type="number" min="0" step="0.01"></td>
+              </tr>
+              <tr>
+                <th scope="row">Other</th>
+                <td><input id="participant-other" type="number" min="0" step="0.01"></td>
+              </tr>
+              <tr>
+                <th scope="row">Total number of participants</th>
+                <td><input id="participant-count" type="number" min="0" step="1"></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th>Total participant costs</th>
+                <td class="computed-cell" id="participant-total">$0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="section-help">Participant support costs are excluded from indirect cost in the standard NSF worksheet.</div>
       </section>
 
       <section class="worksheet-section">
@@ -1011,38 +1159,59 @@
             <dd id="rollup-other-salary">$0.00</dd>
           </div>
           <div class="rollup-row">
-            <dt>C. Fringe benefits</dt>
+            <dt>Total salaries and wages (A + B)</dt>
+            <dd id="rollup-salaries-wages">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>C. Fringe benefits (if charged as direct costs)</dt>
             <dd id="rollup-fringe">$0.00</dd>
           </div>
           <div class="rollup-row">
-            <dt>D. Equipment</dt>
+            <dt>Total salaries, wages and fringe benefits (A + B + C)</dt>
+            <dd id="rollup-salaries-fringe">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>D. Total equipment</dt>
             <dd id="rollup-equipment">$0.00</dd>
           </div>
           <div class="rollup-row">
-            <dt>E. Travel</dt>
+            <dt>E. Total travel</dt>
             <dd id="rollup-travel">$0.00</dd>
           </div>
           <div class="rollup-row">
-            <dt>F. Participant support costs</dt>
+            <dt>F. Total participant support costs</dt>
             <dd id="rollup-participant">$0.00</dd>
           </div>
           <div class="rollup-row">
-            <dt>G. Other direct costs</dt>
+            <dt>G. Total other direct costs</dt>
             <dd id="rollup-other-direct">$0.00</dd>
           </div>
           <div class="rollup-row total">
-            <dt>H. Total direct costs</dt>
+            <dt>H. Total direct costs (A through G)</dt>
             <dd id="rollup-total-direct">$0.00</dd>
           </div>
           <div class="rollup-row total">
-            <dt>I. Indirect costs</dt>
+            <dt>I. Indirect costs (F&amp;A)</dt>
             <dd id="rollup-total-indirect">$0.00</dd>
           </div>
           <div class="rollup-row grand-total">
-            <dt>J. Total budget</dt>
+            <dt>J. Total direct and indirect costs (H + I)</dt>
             <dd id="rollup-total-budget">$0.00</dd>
           </div>
+          <div class="rollup-row">
+            <dt>K. Fee</dt>
+            <dd id="rollup-fee">$0.00</dd>
+          </div>
+          <div class="rollup-row grand-total">
+            <dt>L. Amount of this request (J or J minus K)</dt>
+            <dd id="rollup-request-amount">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>M. Cost sharing proposed level</dt>
+            <dd id="rollup-cost-sharing">$0.00</dd>
+          </div>
         </dl>
+        <div class="section-help" id="rollup-indirect-base-note">Modified total direct cost base will appear here once budget values are entered.</div>
       </section>
     </section>
 
@@ -1061,7 +1230,8 @@
             <h3>Personnel Rows</h3>
             <ul>
               <li>Enter one row per person.</li>
-              <li>Requested salary is calculated as <strong>annual base × budgeted months ÷ 12</strong>.</li>
+              <li>Requested salary is calculated as <strong>annual base x budgeted months / 12</strong>.</li>
+              <li>Senior personnel rows use separate CAL, ACAD, and SUMR person-month inputs like the NSF worksheet.</li>
               <li>Fringe and indirect costs are then added to produce the total row cost.</li>
             </ul>
           </section>
@@ -1070,14 +1240,14 @@
             <ul>
               <li>Default fringe and indirect rates are editable at the top of the page.</li>
               <li>Leave row override cells blank to use the default rate.</li>
-              <li>Clear a row’s IDC checkbox when indirect cost should not apply.</li>
+              <li>Clear a row's IDC checkbox when indirect cost should not apply.</li>
             </ul>
           </section>
           <section class="modal-section">
             <h3>Worksheet Structure</h3>
             <ul>
-              <li>Senior personnel are kept separate from other personnel categories.</li>
-              <li>Non-personnel budget lines remain manual but can still compute indirect cost.</li>
+              <li>Senior personnel are kept separate from the NSF B-section categories for postdocs, professionals, students, clerical support, and other personnel.</li>
+              <li>Travel is split into domestic and international lines like the worksheet.</li>
               <li>Participant support, equipment, and other categories remain distinct so IDC treatment can be controlled row by row.</li>
             </ul>
           </section>
@@ -1099,14 +1269,20 @@
     const personnelSections = [
       { key: "senior", label: "Senior Personnel" },
       { key: "postdoc", label: "Postdoctoral Scholars" },
+      { key: "professional", label: "Other Professionals" },
       { key: "graduate", label: "Graduate Students" },
       { key: "undergraduate", label: "Undergraduate Students" },
+      { key: "clerical", label: "Secretarial - Clerical" },
       { key: "other", label: "Other Personnel" }
     ];
 
     const elements = {
+      organizationLabel: document.getElementById("organization-label"),
+      proposalNumber: document.getElementById("proposal-number"),
+      budgetDuration: document.getElementById("budget-duration"),
       scenarioLabel: document.getElementById("scenario-label"),
       piLabel: document.getElementById("pi-label"),
+      awardNumber: document.getElementById("award-number"),
       budgetPeriodLabel: document.getElementById("budget-period-label"),
       defaultFringeRate: document.getElementById("default-fringe-rate"),
       defaultIndirectRate: document.getElementById("default-indirect-rate"),
@@ -1121,19 +1297,31 @@
       summaryIndirect: document.getElementById("summary-indirect"),
       summaryTotal: document.getElementById("summary-total"),
       nonPersonnelTable: document.getElementById("non-personnel-table"),
+      participantStipends: document.getElementById("participant-stipends"),
+      participantTravel: document.getElementById("participant-travel"),
+      participantSubsistence: document.getElementById("participant-subsistence"),
+      participantOther: document.getElementById("participant-other"),
+      participantCount: document.getElementById("participant-count"),
+      participantTotal: document.getElementById("participant-total"),
       nonPersonnelDirectSubtotal: document.getElementById("non-personnel-direct-subtotal"),
       nonPersonnelIndirectSubtotal: document.getElementById("non-personnel-indirect-subtotal"),
       nonPersonnelTotalSubtotal: document.getElementById("non-personnel-total-subtotal"),
       rollupSeniorSalary: document.getElementById("rollup-senior-salary"),
       rollupOtherSalary: document.getElementById("rollup-other-salary"),
+      rollupSalariesWages: document.getElementById("rollup-salaries-wages"),
       rollupFringe: document.getElementById("rollup-fringe"),
+      rollupSalariesFringe: document.getElementById("rollup-salaries-fringe"),
       rollupEquipment: document.getElementById("rollup-equipment"),
       rollupTravel: document.getElementById("rollup-travel"),
       rollupParticipant: document.getElementById("rollup-participant"),
       rollupOtherDirect: document.getElementById("rollup-other-direct"),
       rollupTotalDirect: document.getElementById("rollup-total-direct"),
       rollupTotalIndirect: document.getElementById("rollup-total-indirect"),
-      rollupTotalBudget: document.getElementById("rollup-total-budget")
+      rollupTotalBudget: document.getElementById("rollup-total-budget"),
+      rollupFee: document.getElementById("rollup-fee"),
+      rollupRequestAmount: document.getElementById("rollup-request-amount"),
+      rollupCostSharing: document.getElementById("rollup-cost-sharing"),
+      rollupIndirectBaseNote: document.getElementById("rollup-indirect-base-note")
     };
 
     personnelSections.forEach((section) => {
@@ -1211,24 +1399,47 @@
       const row = document.createElement("tr");
       row.className = "personnel-row";
       row.dataset.sectionKey = sectionKey;
-      row.innerHTML = `
-        <td><input type="text" class="person-label" placeholder="Name or role"></td>
-        <td><input type="number" class="annual-base" min="0" step="0.01" placeholder="0.00"></td>
-        <td><input type="number" class="effort-months" min="0" step="0.5" placeholder="0.0"></td>
-        <td class="computed-cell requested-salary">$0.00</td>
-        <td><input type="number" class="fringe-override" min="0" step="0.01" placeholder="Default"></td>
-        <td class="computed-cell fringe-cost">$0.00</td>
-        <td class="computed-cell direct-cost">$0.00</td>
-        <td class="checkbox-cell"><input type="checkbox" class="idc-applies" checked></td>
-        <td><input type="number" class="idc-override" min="0" step="0.01" placeholder="Default"></td>
-        <td class="computed-cell indirect-cost">$0.00</td>
-        <td class="computed-cell row-total">$0.00</td>
-        <td class="remove-cell"><button type="button" class="row-remove" aria-label="Remove row">×</button></td>
-      `;
+      row.innerHTML = sectionKey === "senior"
+        ? `
+          <td><input type="text" class="person-label" placeholder="Name or role"></td>
+          <td><input type="number" class="annual-base" min="0" step="0.01" placeholder="0.00"></td>
+          <td><input type="number" class="cal-months" min="0" step="0.5" placeholder="0.0"></td>
+          <td><input type="number" class="acad-months" min="0" step="0.5" placeholder="0.0"></td>
+          <td><input type="number" class="sumr-months" min="0" step="0.5" placeholder="0.0"></td>
+          <td class="computed-cell requested-salary">$0.00</td>
+          <td><input type="number" class="fringe-override" min="0" step="0.01" placeholder="Default"></td>
+          <td class="computed-cell fringe-cost">$0.00</td>
+          <td class="computed-cell direct-cost">$0.00</td>
+          <td class="checkbox-cell"><input type="checkbox" class="idc-applies" checked></td>
+          <td><input type="number" class="idc-override" min="0" step="0.01" placeholder="Default"></td>
+          <td class="computed-cell indirect-cost">$0.00</td>
+          <td class="computed-cell row-total">$0.00</td>
+          <td class="remove-cell"><button type="button" class="row-remove" aria-label="Remove row">x</button></td>
+        `
+        : `
+          <td><input type="text" class="person-label" placeholder="Name or role"></td>
+          <td><input type="number" class="annual-base" min="0" step="0.01" placeholder="0.00"></td>
+          <td><input type="number" class="effort-months" min="0" step="0.5" placeholder="0.0"></td>
+          <td class="computed-cell requested-salary">$0.00</td>
+          <td><input type="number" class="fringe-override" min="0" step="0.01" placeholder="Default"></td>
+          <td class="computed-cell fringe-cost">$0.00</td>
+          <td class="computed-cell direct-cost">$0.00</td>
+          <td class="checkbox-cell"><input type="checkbox" class="idc-applies" checked></td>
+          <td><input type="number" class="idc-override" min="0" step="0.01" placeholder="Default"></td>
+          <td class="computed-cell indirect-cost">$0.00</td>
+          <td class="computed-cell row-total">$0.00</td>
+          <td class="remove-cell"><button type="button" class="row-remove" aria-label="Remove row">x</button></td>
+        `;
 
       row.querySelector(".person-label").value = data.label || "";
       row.querySelector(".annual-base").value = data.annualBase || "";
-      row.querySelector(".effort-months").value = data.effortMonths || "";
+      if (sectionKey === "senior") {
+        row.querySelector(".cal-months").value = data.calMonths || "";
+        row.querySelector(".acad-months").value = data.acadMonths || "";
+        row.querySelector(".sumr-months").value = data.sumrMonths || "";
+      } else {
+        row.querySelector(".effort-months").value = data.effortMonths || "";
+      }
       row.querySelector(".fringe-override").value = data.fringeOverride || "";
       row.querySelector(".idc-override").value = data.idcOverride || "";
       row.querySelector(".idc-applies").checked = data.idcApplies ?? true;
@@ -1263,7 +1474,10 @@
       return [
         row.querySelector(".person-label").value.trim(),
         row.querySelector(".annual-base").value,
-        row.querySelector(".effort-months").value,
+        row.querySelector(".effort-months")?.value || "",
+        row.querySelector(".cal-months")?.value || "",
+        row.querySelector(".acad-months")?.value || "",
+        row.querySelector(".sumr-months")?.value || "",
         row.querySelector(".fringe-override").value,
         row.querySelector(".idc-override").value
       ].some((value) => value !== "");
@@ -1282,7 +1496,12 @@
       Array.from(section.body.querySelectorAll("tr")).forEach((row) => {
         const label = row.querySelector(".person-label").value.trim();
         const annualBase = nonNegativeNumber(row.querySelector(".annual-base"));
-        const effortMonths = nonNegativeNumber(row.querySelector(".effort-months"));
+        const calMonths = nonNegativeNumber(row.querySelector(".cal-months"));
+        const acadMonths = nonNegativeNumber(row.querySelector(".acad-months"));
+        const sumrMonths = nonNegativeNumber(row.querySelector(".sumr-months"));
+        const effortMonths = section.key === "senior"
+          ? calMonths + acadMonths + sumrMonths
+          : nonNegativeNumber(row.querySelector(".effort-months"));
         const fringeOverride = readNumber(row.querySelector(".fringe-override"));
         const idcOverride = readNumber(row.querySelector(".idc-override"));
         const indirectApplies = row.querySelector(".idc-applies").checked;
@@ -1311,6 +1530,9 @@
           totals.rows.push({
             label: label || `${section.label} row`,
             annualBase,
+            calMonths,
+            acadMonths,
+            sumrMonths,
             effortMonths,
             requestedSalary,
             fringeRate,
@@ -1331,6 +1553,24 @@
       section.totalSubtotal.textContent = formatCurrency(totals.total);
 
       return totals;
+    }
+
+    function computeParticipantSupport() {
+      const stipends = nonNegativeNumber(elements.participantStipends);
+      const travel = nonNegativeNumber(elements.participantTravel);
+      const subsistence = nonNegativeNumber(elements.participantSubsistence);
+      const other = nonNegativeNumber(elements.participantOther);
+      const participantCount = nonNegativeNumber(elements.participantCount);
+      const total = stipends + travel + subsistence + other;
+      elements.participantTotal.textContent = formatCurrency(total);
+      return {
+        stipends,
+        travel,
+        subsistence,
+        other,
+        participantCount,
+        total
+      };
     }
 
     function computeNonPersonnel(defaultIndirectRate) {
@@ -1378,11 +1618,15 @@
     function updateRollup(personnelResults, nonPersonnelResults, totals) {
       const otherSalary =
         personnelResults.postdoc.salary +
+        personnelResults.professional.salary +
         personnelResults.graduate.salary +
         personnelResults.undergraduate.salary +
+        personnelResults.clerical.salary +
         personnelResults.other.salary;
 
+      const totalSalariesWages = personnelResults.senior.salary + otherSalary;
       const fringeTotal = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].fringe, 0);
+      const totalSalariesFringe = totalSalariesWages + fringeTotal;
 
       const otherDirect =
         (nonPersonnelResults.categories.materials?.amount ?? 0) +
@@ -1394,14 +1638,24 @@
 
       elements.rollupSeniorSalary.textContent = formatCurrency(personnelResults.senior.salary);
       elements.rollupOtherSalary.textContent = formatCurrency(otherSalary);
+      elements.rollupSalariesWages.textContent = formatCurrency(totalSalariesWages);
       elements.rollupFringe.textContent = formatCurrency(fringeTotal);
+      elements.rollupSalariesFringe.textContent = formatCurrency(totalSalariesFringe);
       elements.rollupEquipment.textContent = formatCurrency(nonPersonnelResults.categories.equipment?.amount ?? 0);
-      elements.rollupTravel.textContent = formatCurrency(nonPersonnelResults.categories.travel?.amount ?? 0);
-      elements.rollupParticipant.textContent = formatCurrency(nonPersonnelResults.categories.participant?.amount ?? 0);
+      elements.rollupTravel.textContent = formatCurrency(
+        (nonPersonnelResults.categories.travelDomestic?.amount ?? 0) +
+        (nonPersonnelResults.categories.travelInternational?.amount ?? 0)
+      );
+      elements.rollupParticipant.textContent = formatCurrency(totals.participantSupport);
       elements.rollupOtherDirect.textContent = formatCurrency(otherDirect);
       elements.rollupTotalDirect.textContent = formatCurrency(totals.direct);
       elements.rollupTotalIndirect.textContent = formatCurrency(totals.indirect);
       elements.rollupTotalBudget.textContent = formatCurrency(totals.total);
+      elements.rollupFee.textContent = formatCurrency(0);
+      elements.rollupRequestAmount.textContent = formatCurrency(totals.total);
+      elements.rollupCostSharing.textContent = formatCurrency(0);
+      elements.rollupIndirectBaseNote.textContent =
+        `Modified total direct cost base: ${formatCurrency(totals.indirectBase)} at ${formatPercent(totals.indirectRate)}.`;
     }
 
     function calculate() {
@@ -1416,12 +1670,17 @@
       });
 
       const nonPersonnelResults = computeNonPersonnel(defaultIndirectRate);
+      const participantSupport = computeParticipantSupport();
 
       const totalPersonnelDirect = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].direct, 0);
       const totalPersonnelIndirect = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].indirect, 0);
+      const equipmentDirect = nonPersonnelResults.categories.equipment?.amount ?? 0;
       const totals = {
-        direct: totalPersonnelDirect + nonPersonnelResults.direct,
+        direct: totalPersonnelDirect + nonPersonnelResults.direct + participantSupport.total,
         indirect: totalPersonnelIndirect + nonPersonnelResults.indirect,
+        participantSupport: participantSupport.total,
+        indirectBase: totalPersonnelDirect + nonPersonnelResults.direct - equipmentDirect,
+        indirectRate: defaultIndirectRate,
         total: 0
       };
       totals.total = totals.direct + totals.indirect;
@@ -1438,6 +1697,7 @@
           indirectRate: defaultIndirectRate
         },
         personnel: personnelResults,
+        participantSupport,
         nonPersonnel: nonPersonnelResults,
         totals
       };
@@ -1447,8 +1707,12 @@
       const lines = [
         "NSF Proposal Budget Planner Summary",
         "",
+        `Organization: ${elements.organizationLabel.value.trim() || "Not specified"}`,
+        `Proposal No.: ${elements.proposalNumber.value.trim() || "Not specified"}`,
+        `Duration (Months): ${elements.budgetDuration.value.trim() || "Not specified"}`,
+        `PI / PD Name: ${elements.piLabel.value.trim() || "Not specified"}`,
+        `Award No.: ${elements.awardNumber.value.trim() || "Not specified"}`,
         `Scenario Label: ${elements.scenarioLabel.value.trim() || "Untitled scenario"}`,
-        `PI / Project Label: ${elements.piLabel.value.trim() || "Not specified"}`,
         `Budget Period Label: ${elements.budgetPeriodLabel.value.trim() || "One budget period"}`,
         `Default Fringe Rate: ${formatPercent(state.defaults.fringeRate)}`,
         `Default Indirect Cost Rate: ${formatPercent(state.defaults.indirectRate)}`,
@@ -1465,7 +1729,9 @@
           sectionState.rows.forEach((row) => {
             lines.push(
               `${row.label}: annual base ${formatCurrency(row.annualBase)}, ` +
-              `${formatDecimal(row.effortMonths)} months, requested salary ${formatCurrency(row.requestedSalary)}, ` +
+              `${section.key === "senior"
+                ? `${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months`
+                : `${formatDecimal(row.effortMonths)} months`}, requested salary ${formatCurrency(row.requestedSalary)}, ` +
               `fringe ${formatCurrency(row.fringeCost)} at ${formatPercent(row.fringeRate)}, ` +
               `${row.indirectApplies ? `indirect ${formatCurrency(row.indirectCost)} at ${formatPercent(row.indirectRate)}` : "no indirect cost"}, ` +
               `total ${formatCurrency(row.totalCost)}`
@@ -1480,6 +1746,14 @@
         lines.push("");
       });
 
+      lines.push("Participant Support Costs");
+      lines.push(`Stipends: ${formatCurrency(state.participantSupport.stipends)}`);
+      lines.push(`Travel: ${formatCurrency(state.participantSupport.travel)}`);
+      lines.push(`Subsistence: ${formatCurrency(state.participantSupport.subsistence)}`);
+      lines.push(`Other: ${formatCurrency(state.participantSupport.other)}`);
+      lines.push(`Total Participants: ${formatDecimal(state.participantSupport.participantCount)}`);
+      lines.push(`Total Participant Costs: ${formatCurrency(state.participantSupport.total)}`);
+      lines.push("");
       lines.push("Non-Personnel Budget Categories");
       Object.values(state.nonPersonnel.categories).forEach((category) => {
         lines.push(
@@ -1496,6 +1770,7 @@
       lines.push(`Total Direct Costs: ${formatCurrency(state.totals.direct)}`);
       lines.push(`Total Indirect Costs: ${formatCurrency(state.totals.indirect)}`);
       lines.push(`Total Budget: ${formatCurrency(state.totals.total)}`);
+      lines.push(`Modified Total Direct Cost Base: ${formatCurrency(state.totals.indirectBase)} at ${formatPercent(state.totals.indirectRate)}`);
 
       return lines.join("\n");
     }
@@ -1526,8 +1801,12 @@
     }
 
     function resetPlanner() {
+      elements.organizationLabel.value = "";
+      elements.proposalNumber.value = "";
+      elements.budgetDuration.value = "";
       elements.scenarioLabel.value = "";
       elements.piLabel.value = "";
+      elements.awardNumber.value = "";
       elements.budgetPeriodLabel.value = "";
       elements.defaultFringeRate.value = "36.00";
       elements.defaultIndirectRate.value = "45.50";
@@ -1540,8 +1819,14 @@
       Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
         row.querySelector(".direct-amount").value = "";
         row.querySelector(".idc-override").value = "";
-        row.querySelector(".idc-applies").checked = row.dataset.categoryKey !== "equipment" && row.dataset.categoryKey !== "participant";
+        row.querySelector(".idc-applies").checked = row.dataset.categoryKey !== "equipment";
       });
+
+      elements.participantStipends.value = "";
+      elements.participantTravel.value = "";
+      elements.participantSubsistence.value = "";
+      elements.participantOther.value = "";
+      elements.participantCount.value = "";
 
       hideStatus();
       calculate();
