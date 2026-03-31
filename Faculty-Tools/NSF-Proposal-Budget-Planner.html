@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSF Proposal Budget Planner</title>
+  <style>
+    :root {
+      --bg-top: #f4efe4;
+      --bg-bottom: #d9e8ef;
+      --panel: rgba(255, 255, 255, 0.9);
+      --panel-strong: rgba(255, 255, 255, 0.97);
+      --ink: #17222c;
+      --muted: #5a6976;
+      --line: rgba(23, 34, 44, 0.12);
+      --accent: #0e5d73;
+      --warn-soft: rgba(163, 83, 29, 0.14);
+      --good-soft: rgba(30, 106, 73, 0.14);
+      --bad-soft: rgba(142, 38, 56, 0.14);
+      --shadow: 0 24px 60px rgba(21, 40, 49, 0.14);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.65), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 210, 140, 0.28), transparent 24%),
+        linear-gradient(165deg, var(--bg-top), var(--bg-bottom));
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    main {
+      width: min(1240px, calc(100% - 32px));
+      margin: 32px auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.68);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 32px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -85px -95px auto;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14, 93, 115, 0.08), transparent 74%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 22ch;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.06;
+    }
+
+    .hero p {
+      margin: 14px 0 0;
+      max-width: 70ch;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 1.16rem;
+      letter-spacing: 0.02em;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.94rem;
+      font-weight: 700;
+    }
+
+    input,
+    button {
+      font: inherit;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      min-height: 46px;
+      padding: 11px 12px;
+      border: 1px solid rgba(23, 34, 44, 0.12);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    .help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--panel-strong);
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 8px 18px rgba(21, 40, 49, 0.06);
+    }
+
+    .summary-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .summary-card .value {
+      font-size: clamp(1.3rem, 2.2vw, 1.95rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .summary-card .note {
+      margin-top: 6px;
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .worksheet-note {
+      margin: -4px 0 16px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .worksheet-section {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .worksheet-section:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-header h3 {
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(14, 93, 115, 0.1);
+      color: var(--accent);
+      font-size: 0.92rem;
+      letter-spacing: 0.03em;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.76);
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 10px 8px;
+      text-align: left;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: rgba(14, 93, 115, 0.06);
+      border-bottom: 1px solid var(--line);
+      vertical-align: bottom;
+    }
+
+    tbody td,
+    tfoot td,
+    tfoot th {
+      padding: 8px;
+      border-bottom: 1px solid rgba(23, 34, 44, 0.08);
+      vertical-align: middle;
+    }
+
+    tfoot th,
+    tfoot td {
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .budget-table input[type="text"],
+    .budget-table input[type="number"] {
+      min-height: 40px;
+      padding: 8px 10px;
+      font-size: 0.92rem;
+    }
+
+    .budget-table .checkbox-cell {
+      text-align: center;
+      width: 72px;
+    }
+
+    .computed-cell {
+      min-width: 110px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .remove-cell {
+      width: 56px;
+      text-align: center;
+    }
+
+    .row-remove,
+    .section-action,
+    .action-row button,
+    .action-subrow button,
+    .modal-close {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--panel-strong);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .row-remove {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .section-action {
+      min-height: 40px;
+      padding: 0 14px;
+    }
+
+    .row-remove:hover,
+    .section-action:hover,
+    .action-row button:hover:not(:disabled),
+    .action-subrow button:hover,
+    .modal-close:hover {
+      transform: translateY(-1px);
+      border-color: rgba(14, 93, 115, 0.4);
+      box-shadow: 0 8px 18px rgba(14, 93, 115, 0.08);
+    }
+
+    .section-help {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .rollup-grid {
+      display: grid;
+      gap: 0;
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.76);
+    }
+
+    .rollup-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 12px 14px;
+      border-top: 1px solid rgba(23, 34, 44, 0.08);
+      align-items: baseline;
+    }
+
+    .rollup-row:first-child {
+      border-top: 0;
+    }
+
+    .rollup-row.total {
+      background: rgba(14, 93, 115, 0.08);
+      font-weight: 800;
+    }
+
+    .rollup-row.grand-total {
+      background: rgba(14, 93, 115, 0.14);
+      font-weight: 800;
+      font-size: 1.02rem;
+    }
+
+    .rollup-row dd,
+    .rollup-row dt {
+      margin: 0;
+    }
+
+    .rollup-row dd {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .action-row button {
+      flex: 1;
+      min-height: 46px;
+    }
+
+    .action-subrow {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .action-subrow button {
+      min-height: 38px;
+      padding: 0 14px;
+      background: rgba(255, 255, 255, 0.76);
+    }
+
+    .action-help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      line-height: 1.5;
+      border: 1px solid rgba(23, 34, 44, 0.09);
+      background: rgba(23, 34, 44, 0.045);
+    }
+
+    .status.good {
+      background: var(--good-soft);
+      border-color: rgba(30, 106, 73, 0.18);
+    }
+
+    .status.warn {
+      background: var(--warn-soft);
+      border-color: rgba(163, 83, 29, 0.18);
+    }
+
+    .status.bad {
+      background: var(--bad-soft);
+      border-color: rgba(142, 38, 56, 0.18);
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.98rem;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(21, 40, 49, 0.4);
+    }
+
+    .modal-backdrop[hidden] {
+      display: none !important;
+    }
+
+    .modal-panel {
+      width: min(760px, 100%);
+      max-height: min(84vh, 900px);
+      overflow: auto;
+      padding: 22px;
+      border-radius: var(--radius-lg);
+      background: #ffffff;
+      border: 1px solid rgba(23, 34, 44, 0.12);
+      box-shadow: 0 24px 50px rgba(21, 40, 49, 0.24);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.18rem;
+      color: var(--ink);
+    }
+
+    .modal-close {
+      min-height: 36px;
+      padding: 0 12px;
+    }
+
+    .modal-body {
+      display: grid;
+      gap: 14px;
+    }
+
+    .modal-section {
+      display: grid;
+      gap: 6px;
+    }
+
+    .modal-section h3 {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+    }
+
+    .modal-section p,
+    .modal-section ul {
+      margin: 0;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    .modal-section ul {
+      padding-left: 18px;
+    }
+
+    .modal-section li + li {
+      margin-top: 4px;
+    }
+
+    @media (max-width: 1080px) {
+      .settings-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      main {
+        width: min(100%, calc(100% - 20px));
+        margin: 20px auto;
+      }
+
+      .summary-grid,
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .action-row {
+        flex-direction: column;
+      }
+
+      .action-subrow {
+        justify-content: stretch;
+      }
+
+      .action-subrow button {
+        width: 100%;
+      }
+    }
+
+    @media print {
+      @page {
+        margin: 0.8in 0.55in 0.7in;
+      }
+
+      body {
+        background: #ffffff;
+      }
+
+      main {
+        width: 100%;
+        margin: 0;
+        gap: 12px;
+      }
+
+      .hero,
+      .panel,
+      .summary-card {
+        background: #ffffff !important;
+        box-shadow: none !important;
+        border-color: rgba(23, 34, 44, 0.18) !important;
+      }
+
+      .hero::after,
+      .action-row,
+      .action-subrow,
+      .action-help,
+      .status,
+      .modal-backdrop,
+      .section-action,
+      .row-remove {
+        display: none !important;
+      }
+
+      .table-wrap,
+      .rollup-grid {
+        break-inside: avoid;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">NSF Budget Planning</p>
+      <h1>NSF Proposal Budget Planner</h1>
+      <p>
+        Plan one NSF proposal budget period in a worksheet-style format before entering values into the
+        official proposal system. Personnel rows compute salary, fringe, direct cost, indirect cost, and
+        total cost, while non-personnel budget categories remain editable and print-ready.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>Budget Settings</h2>
+      <div class="settings-grid">
+        <div>
+          <label for="scenario-label">Scenario Label</label>
+          <input id="scenario-label" type="text" placeholder="Example: NSF SWITCH Year 1 budget">
+        </div>
+        <div>
+          <label for="pi-label">PI / Project Label</label>
+          <input id="pi-label" type="text" placeholder="Example: Dr. Jane Doe">
+        </div>
+        <div>
+          <label for="budget-period-label">Budget Period Label</label>
+          <input id="budget-period-label" type="text" placeholder="Example: Budget Period 1">
+        </div>
+        <div>
+          <label for="default-fringe-rate">Default Fringe Rate (%)</label>
+          <input id="default-fringe-rate" type="number" min="0" step="0.01" value="36.00">
+        </div>
+        <div>
+          <label for="default-indirect-rate">Default Indirect Cost Rate (%)</label>
+          <input id="default-indirect-rate" type="number" min="0" step="0.01" value="45.50">
+        </div>
+      </div>
+      <div class="help">
+        Leave row fringe and indirect rate cells blank to use these defaults. Clear a row's IDC checkbox
+        when indirect cost should not apply.
+      </div>
+      <div class="help">
+        For categories with special indirect-cost treatment, enter only the allowable direct-cost base here
+        or clear IDC for that row.
+      </div>
+
+      <div class="action-row">
+        <button type="button" id="reset-button">Reset</button>
+        <button type="button" id="copy-summary-button">Copy Text Summary</button>
+        <button type="button" id="print-button">Print / Save as PDF</button>
+      </div>
+      <div class="action-subrow">
+        <button type="button" id="help-button">Help</button>
+      </div>
+      <div class="action-help">
+        Reset clears the current worksheet. Copy Text Summary copies a plain-text budget summary to the
+        clipboard. Print / Save as PDF opens the browser print dialog. Help opens a quick reference for the
+        worksheet structure and calculations.
+      </div>
+      <div class="status" id="status-box" hidden></div>
+    </section>
+
+    <section class="summary-grid" aria-label="Budget summary">
+      <article class="summary-card">
+        <h3>Total Direct Costs</h3>
+        <div class="value" id="summary-direct">$0.00</div>
+        <div class="note">Personnel direct costs plus non-personnel direct costs.</div>
+      </article>
+      <article class="summary-card">
+        <h3>Total Indirect Costs</h3>
+        <div class="value" id="summary-indirect">$0.00</div>
+        <div class="note">Indirect cost applied only where a row is marked for IDC.</div>
+      </article>
+      <article class="summary-card">
+        <h3>Total Budget</h3>
+        <div class="value" id="summary-total">$0.00</div>
+        <div class="note">Direct plus indirect cost for this NSF budget period.</div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>NSF Budget Worksheet</h2>
+      <div class="worksheet-note">
+        This worksheet covers one NSF budget period and mirrors the standard budget structure closely,
+        while adding automated fringe and indirect cost calculations for personnel and other budget lines.
+      </div>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>A. Senior Personnel</h3>
+          <button type="button" class="section-action" data-add-personnel="senior">Add Person</button>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th>Name / Role</th>
+                <th>Annual Base</th>
+                <th>Effort<br>(Months)</th>
+                <th>Requested<br>Salary</th>
+                <th>Fringe %<br>Override</th>
+                <th>Fringe</th>
+                <th>Direct Cost</th>
+                <th class="checkbox-cell">IDC?</th>
+                <th>IDC %<br>Override</th>
+                <th>Indirect</th>
+                <th>Total</th>
+                <th class="remove-cell">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="senior-personnel-body"></tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3">Senior personnel subtotal</th>
+                <td class="computed-cell" id="senior-salary-subtotal">$0.00</td>
+                <td></td>
+                <td class="computed-cell" id="senior-fringe-subtotal">$0.00</td>
+                <td class="computed-cell" id="senior-direct-subtotal">$0.00</td>
+                <td></td>
+                <td></td>
+                <td class="computed-cell" id="senior-indirect-subtotal">$0.00</td>
+                <td class="computed-cell" id="senior-total-subtotal">$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="section-help">Use for PI, Co-PI, and other senior personnel. Requested salary is calculated from annual base and budgeted months.</div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>B1. Postdoctoral Scholars</h3>
+          <button type="button" class="section-action" data-add-personnel="postdoc">Add Person</button>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th>Name / Role</th>
+                <th>Annual Base</th>
+                <th>Effort<br>(Months)</th>
+                <th>Requested<br>Salary</th>
+                <th>Fringe %<br>Override</th>
+                <th>Fringe</th>
+                <th>Direct Cost</th>
+                <th class="checkbox-cell">IDC?</th>
+                <th>IDC %<br>Override</th>
+                <th>Indirect</th>
+                <th>Total</th>
+                <th class="remove-cell">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="postdoc-personnel-body"></tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3">Postdoctoral subtotal</th>
+                <td class="computed-cell" id="postdoc-salary-subtotal">$0.00</td>
+                <td></td>
+                <td class="computed-cell" id="postdoc-fringe-subtotal">$0.00</td>
+                <td class="computed-cell" id="postdoc-direct-subtotal">$0.00</td>
+                <td></td>
+                <td></td>
+                <td class="computed-cell" id="postdoc-indirect-subtotal">$0.00</td>
+                <td class="computed-cell" id="postdoc-total-subtotal">$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>B2. Graduate Students</h3>
+          <button type="button" class="section-action" data-add-personnel="graduate">Add Person</button>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th>Name / Role</th>
+                <th>Annual Base</th>
+                <th>Effort<br>(Months)</th>
+                <th>Requested<br>Salary</th>
+                <th>Fringe %<br>Override</th>
+                <th>Fringe</th>
+                <th>Direct Cost</th>
+                <th class="checkbox-cell">IDC?</th>
+                <th>IDC %<br>Override</th>
+                <th>Indirect</th>
+                <th>Total</th>
+                <th class="remove-cell">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="graduate-personnel-body"></tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3">Graduate subtotal</th>
+                <td class="computed-cell" id="graduate-salary-subtotal">$0.00</td>
+                <td></td>
+                <td class="computed-cell" id="graduate-fringe-subtotal">$0.00</td>
+                <td class="computed-cell" id="graduate-direct-subtotal">$0.00</td>
+                <td></td>
+                <td></td>
+                <td class="computed-cell" id="graduate-indirect-subtotal">$0.00</td>
+                <td class="computed-cell" id="graduate-total-subtotal">$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>B3. Undergraduate Students</h3>
+          <button type="button" class="section-action" data-add-personnel="undergraduate">Add Person</button>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th>Name / Role</th>
+                <th>Annual Base</th>
+                <th>Effort<br>(Months)</th>
+                <th>Requested<br>Salary</th>
+                <th>Fringe %<br>Override</th>
+                <th>Fringe</th>
+                <th>Direct Cost</th>
+                <th class="checkbox-cell">IDC?</th>
+                <th>IDC %<br>Override</th>
+                <th>Indirect</th>
+                <th>Total</th>
+                <th class="remove-cell">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="undergraduate-personnel-body"></tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3">Undergraduate subtotal</th>
+                <td class="computed-cell" id="undergraduate-salary-subtotal">$0.00</td>
+                <td></td>
+                <td class="computed-cell" id="undergraduate-fringe-subtotal">$0.00</td>
+                <td class="computed-cell" id="undergraduate-direct-subtotal">$0.00</td>
+                <td></td>
+                <td></td>
+                <td class="computed-cell" id="undergraduate-indirect-subtotal">$0.00</td>
+                <td class="computed-cell" id="undergraduate-total-subtotal">$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>B4. Other Personnel</h3>
+          <button type="button" class="section-action" data-add-personnel="other">Add Person</button>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table">
+            <thead>
+              <tr>
+                <th>Name / Role</th>
+                <th>Annual Base</th>
+                <th>Effort<br>(Months)</th>
+                <th>Requested<br>Salary</th>
+                <th>Fringe %<br>Override</th>
+                <th>Fringe</th>
+                <th>Direct Cost</th>
+                <th class="checkbox-cell">IDC?</th>
+                <th>IDC %<br>Override</th>
+                <th>Indirect</th>
+                <th>Total</th>
+                <th class="remove-cell">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="other-personnel-body"></tbody>
+            <tfoot>
+              <tr>
+                <th colspan="3">Other personnel subtotal</th>
+                <td class="computed-cell" id="other-salary-subtotal">$0.00</td>
+                <td></td>
+                <td class="computed-cell" id="other-fringe-subtotal">$0.00</td>
+                <td class="computed-cell" id="other-direct-subtotal">$0.00</td>
+                <td></td>
+                <td></td>
+                <td class="computed-cell" id="other-indirect-subtotal">$0.00</td>
+                <td class="computed-cell" id="other-total-subtotal">$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>D-G. Non-Personnel Budget Categories</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table" id="non-personnel-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Direct Amount</th>
+                <th class="checkbox-cell">IDC?</th>
+                <th>IDC %<br>Override</th>
+                <th>Indirect</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-category-key="equipment" data-category-label="Equipment">
+                <th scope="row">D. Equipment</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+              <tr data-category-key="travel" data-category-label="Travel">
+                <th scope="row">E. Travel</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+              <tr data-category-key="participant" data-category-label="Participant Support Costs">
+                <th scope="row">F. Participant Support Costs</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+              <tr data-category-key="materials" data-category-label="Materials and Supplies">
+                <th scope="row">G1. Materials and Supplies</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+              <tr data-category-key="publication" data-category-label="Publication and Dissemination">
+                <th scope="row">G2. Publication / Dissemination</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+              <tr data-category-key="consultant" data-category-label="Consultant Services">
+                <th scope="row">G3. Consultant Services</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+              <tr data-category-key="computer" data-category-label="Computer Services">
+                <th scope="row">G4. Computer Services</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+              <tr data-category-key="subawards" data-category-label="Subawards and Subcontracts">
+                <th scope="row">G5. Subawards / Subcontracts</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+              <tr data-category-key="otherDirect" data-category-label="Other Direct Costs">
+                <th scope="row">G6. Other Direct Costs</th>
+                <td><input class="direct-amount" type="number" min="0" step="0.01"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
+                <td class="computed-cell idc-amount">$0.00</td>
+                <td class="computed-cell total-amount">$0.00</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th>Non-personnel subtotal</th>
+                <td class="computed-cell" id="non-personnel-direct-subtotal">$0.00</td>
+                <td></td>
+                <td></td>
+                <td class="computed-cell" id="non-personnel-indirect-subtotal">$0.00</td>
+                <td class="computed-cell" id="non-personnel-total-subtotal">$0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="section-help">
+          Participant support and equipment are preloaded with IDC turned off. Subaward IDC treatment varies by institutional rule, so enter the allowable indirect-cost base here or clear IDC if needed.
+        </div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>Budget Totals</h3>
+        </div>
+        <dl class="rollup-grid">
+          <div class="rollup-row">
+            <dt>A. Senior personnel salaries requested</dt>
+            <dd id="rollup-senior-salary">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>B. Other personnel salaries requested</dt>
+            <dd id="rollup-other-salary">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>C. Fringe benefits</dt>
+            <dd id="rollup-fringe">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>D. Equipment</dt>
+            <dd id="rollup-equipment">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>E. Travel</dt>
+            <dd id="rollup-travel">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>F. Participant support costs</dt>
+            <dd id="rollup-participant">$0.00</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>G. Other direct costs</dt>
+            <dd id="rollup-other-direct">$0.00</dd>
+          </div>
+          <div class="rollup-row total">
+            <dt>H. Total direct costs</dt>
+            <dd id="rollup-total-direct">$0.00</dd>
+          </div>
+          <div class="rollup-row total">
+            <dt>I. Indirect costs</dt>
+            <dd id="rollup-total-indirect">$0.00</dd>
+          </div>
+          <div class="rollup-row grand-total">
+            <dt>J. Total budget</dt>
+            <dd id="rollup-total-budget">$0.00</dd>
+          </div>
+        </dl>
+      </section>
+    </section>
+
+    <div class="modal-backdrop" id="help-modal" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+        <div class="modal-header">
+          <h2 id="help-modal-title">How This Planner Works</h2>
+          <button type="button" class="modal-close" id="help-close-button" aria-label="Close help">Close</button>
+        </div>
+        <div class="modal-body">
+          <section class="modal-section">
+            <h3>Purpose</h3>
+            <p>This tool helps a PI plan one NSF proposal budget period in a worksheet-style format before entering values into the official NSF budget system.</p>
+          </section>
+          <section class="modal-section">
+            <h3>Personnel Rows</h3>
+            <ul>
+              <li>Enter one row per person.</li>
+              <li>Requested salary is calculated as <strong>annual base × budgeted months ÷ 12</strong>.</li>
+              <li>Fringe and indirect costs are then added to produce the total row cost.</li>
+            </ul>
+          </section>
+          <section class="modal-section">
+            <h3>Rates</h3>
+            <ul>
+              <li>Default fringe and indirect rates are editable at the top of the page.</li>
+              <li>Leave row override cells blank to use the default rate.</li>
+              <li>Clear a row’s IDC checkbox when indirect cost should not apply.</li>
+            </ul>
+          </section>
+          <section class="modal-section">
+            <h3>Worksheet Structure</h3>
+            <ul>
+              <li>Senior personnel are kept separate from other personnel categories.</li>
+              <li>Non-personnel budget lines remain manual but can still compute indirect cost.</li>
+              <li>Participant support, equipment, and other categories remain distinct so IDC treatment can be controlled row by row.</li>
+            </ul>
+          </section>
+          <section class="modal-section">
+            <h3>Outputs</h3>
+            <ul>
+              <li>The top summary cards show total direct costs, total indirect costs, and total budget.</li>
+              <li>The budget totals section rolls the worksheet into an NSF-style budget summary.</li>
+              <li>Copy Text Summary creates a plain-text worksheet summary for email or planning notes.</li>
+              <li>Print / Save as PDF creates a print-friendly version of the worksheet.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const personnelSections = [
+      { key: "senior", label: "Senior Personnel" },
+      { key: "postdoc", label: "Postdoctoral Scholars" },
+      { key: "graduate", label: "Graduate Students" },
+      { key: "undergraduate", label: "Undergraduate Students" },
+      { key: "other", label: "Other Personnel" }
+    ];
+
+    const elements = {
+      scenarioLabel: document.getElementById("scenario-label"),
+      piLabel: document.getElementById("pi-label"),
+      budgetPeriodLabel: document.getElementById("budget-period-label"),
+      defaultFringeRate: document.getElementById("default-fringe-rate"),
+      defaultIndirectRate: document.getElementById("default-indirect-rate"),
+      resetButton: document.getElementById("reset-button"),
+      copySummaryButton: document.getElementById("copy-summary-button"),
+      printButton: document.getElementById("print-button"),
+      helpButton: document.getElementById("help-button"),
+      helpModal: document.getElementById("help-modal"),
+      helpCloseButton: document.getElementById("help-close-button"),
+      statusBox: document.getElementById("status-box"),
+      summaryDirect: document.getElementById("summary-direct"),
+      summaryIndirect: document.getElementById("summary-indirect"),
+      summaryTotal: document.getElementById("summary-total"),
+      nonPersonnelTable: document.getElementById("non-personnel-table"),
+      nonPersonnelDirectSubtotal: document.getElementById("non-personnel-direct-subtotal"),
+      nonPersonnelIndirectSubtotal: document.getElementById("non-personnel-indirect-subtotal"),
+      nonPersonnelTotalSubtotal: document.getElementById("non-personnel-total-subtotal"),
+      rollupSeniorSalary: document.getElementById("rollup-senior-salary"),
+      rollupOtherSalary: document.getElementById("rollup-other-salary"),
+      rollupFringe: document.getElementById("rollup-fringe"),
+      rollupEquipment: document.getElementById("rollup-equipment"),
+      rollupTravel: document.getElementById("rollup-travel"),
+      rollupParticipant: document.getElementById("rollup-participant"),
+      rollupOtherDirect: document.getElementById("rollup-other-direct"),
+      rollupTotalDirect: document.getElementById("rollup-total-direct"),
+      rollupTotalIndirect: document.getElementById("rollup-total-indirect"),
+      rollupTotalBudget: document.getElementById("rollup-total-budget")
+    };
+
+    personnelSections.forEach((section) => {
+      section.body = document.getElementById(`${section.key}-personnel-body`);
+      section.salarySubtotal = document.getElementById(`${section.key}-salary-subtotal`);
+      section.fringeSubtotal = document.getElementById(`${section.key}-fringe-subtotal`);
+      section.directSubtotal = document.getElementById(`${section.key}-direct-subtotal`);
+      section.indirectSubtotal = document.getElementById(`${section.key}-indirect-subtotal`);
+      section.totalSubtotal = document.getElementById(`${section.key}-total-subtotal`);
+    });
+
+    const currencyFormatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD"
+    });
+
+    const decimalFormatter = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+
+    let lastFocusedElement = null;
+
+    function formatCurrency(value) {
+      return currencyFormatter.format(Number.isFinite(value) ? value : 0);
+    }
+
+    function formatDecimal(value) {
+      return decimalFormatter.format(Number.isFinite(value) ? value : 0);
+    }
+
+    function formatPercent(value) {
+      return `${formatDecimal(value)}%`;
+    }
+
+    function readNumber(input) {
+      const value = Number.parseFloat(input.value);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    function nonNegativeNumber(input) {
+      return Math.max(readNumber(input) ?? 0, 0);
+    }
+
+    function hideStatus() {
+      elements.statusBox.hidden = true;
+      elements.statusBox.style.display = "none";
+      elements.statusBox.className = "status";
+      elements.statusBox.innerHTML = "";
+    }
+
+    function paintStatus(tone, title, message) {
+      elements.statusBox.hidden = false;
+      elements.statusBox.style.display = "";
+      elements.statusBox.className = `status ${tone}`;
+      elements.statusBox.innerHTML = `<strong>${title}</strong>${message}`;
+    }
+
+    function openHelpModal() {
+      lastFocusedElement = document.activeElement;
+      elements.helpModal.hidden = false;
+      document.body.classList.add("modal-open");
+      elements.helpCloseButton.focus();
+    }
+
+    function closeHelpModal() {
+      elements.helpModal.hidden = true;
+      document.body.classList.remove("modal-open");
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
+    }
+
+    function createPersonnelRow(sectionKey, data = {}) {
+      const row = document.createElement("tr");
+      row.className = "personnel-row";
+      row.dataset.sectionKey = sectionKey;
+      row.innerHTML = `
+        <td><input type="text" class="person-label" placeholder="Name or role"></td>
+        <td><input type="number" class="annual-base" min="0" step="0.01" placeholder="0.00"></td>
+        <td><input type="number" class="effort-months" min="0" step="0.5" placeholder="0.0"></td>
+        <td class="computed-cell requested-salary">$0.00</td>
+        <td><input type="number" class="fringe-override" min="0" step="0.01" placeholder="Default"></td>
+        <td class="computed-cell fringe-cost">$0.00</td>
+        <td class="computed-cell direct-cost">$0.00</td>
+        <td class="checkbox-cell"><input type="checkbox" class="idc-applies" checked></td>
+        <td><input type="number" class="idc-override" min="0" step="0.01" placeholder="Default"></td>
+        <td class="computed-cell indirect-cost">$0.00</td>
+        <td class="computed-cell row-total">$0.00</td>
+        <td class="remove-cell"><button type="button" class="row-remove" aria-label="Remove row">×</button></td>
+      `;
+
+      row.querySelector(".person-label").value = data.label || "";
+      row.querySelector(".annual-base").value = data.annualBase || "";
+      row.querySelector(".effort-months").value = data.effortMonths || "";
+      row.querySelector(".fringe-override").value = data.fringeOverride || "";
+      row.querySelector(".idc-override").value = data.idcOverride || "";
+      row.querySelector(".idc-applies").checked = data.idcApplies ?? true;
+
+      row.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("input", calculate);
+        input.addEventListener("change", calculate);
+      });
+
+      row.querySelector(".row-remove").addEventListener("click", () => {
+        const body = row.parentElement;
+        row.remove();
+        if (!body.children.length) {
+          addPersonnelRow(sectionKey);
+        }
+        calculate();
+      });
+
+      return row;
+    }
+
+    function addPersonnelRow(sectionKey, data = {}) {
+      const section = personnelSections.find((entry) => entry.key === sectionKey);
+      if (!section) {
+        return;
+      }
+      section.body.appendChild(createPersonnelRow(sectionKey, data));
+      calculate();
+    }
+
+    function rowHasPersonnelContent(row) {
+      return [
+        row.querySelector(".person-label").value.trim(),
+        row.querySelector(".annual-base").value,
+        row.querySelector(".effort-months").value,
+        row.querySelector(".fringe-override").value,
+        row.querySelector(".idc-override").value
+      ].some((value) => value !== "");
+    }
+
+    function computePersonnelSection(section, defaultFringeRate, defaultIndirectRate) {
+      const totals = {
+        rows: [],
+        salary: 0,
+        fringe: 0,
+        direct: 0,
+        indirect: 0,
+        total: 0
+      };
+
+      Array.from(section.body.querySelectorAll("tr")).forEach((row) => {
+        const label = row.querySelector(".person-label").value.trim();
+        const annualBase = nonNegativeNumber(row.querySelector(".annual-base"));
+        const effortMonths = nonNegativeNumber(row.querySelector(".effort-months"));
+        const fringeOverride = readNumber(row.querySelector(".fringe-override"));
+        const idcOverride = readNumber(row.querySelector(".idc-override"));
+        const indirectApplies = row.querySelector(".idc-applies").checked;
+
+        const fringeRate = fringeOverride !== null && fringeOverride >= 0 ? fringeOverride : defaultFringeRate;
+        const indirectRate = idcOverride !== null && idcOverride >= 0 ? idcOverride : defaultIndirectRate;
+        const requestedSalary = annualBase * effortMonths / 12;
+        const fringeCost = requestedSalary * fringeRate / 100;
+        const directCost = requestedSalary + fringeCost;
+        const indirectCost = indirectApplies ? directCost * indirectRate / 100 : 0;
+        const totalCost = directCost + indirectCost;
+
+        row.querySelector(".requested-salary").textContent = formatCurrency(requestedSalary);
+        row.querySelector(".fringe-cost").textContent = formatCurrency(fringeCost);
+        row.querySelector(".direct-cost").textContent = formatCurrency(directCost);
+        row.querySelector(".indirect-cost").textContent = formatCurrency(indirectCost);
+        row.querySelector(".row-total").textContent = formatCurrency(totalCost);
+
+        totals.salary += requestedSalary;
+        totals.fringe += fringeCost;
+        totals.direct += directCost;
+        totals.indirect += indirectCost;
+        totals.total += totalCost;
+
+        if (rowHasPersonnelContent(row)) {
+          totals.rows.push({
+            label: label || `${section.label} row`,
+            annualBase,
+            effortMonths,
+            requestedSalary,
+            fringeRate,
+            fringeCost,
+            directCost,
+            indirectApplies,
+            indirectRate,
+            indirectCost,
+            totalCost
+          });
+        }
+      });
+
+      section.salarySubtotal.textContent = formatCurrency(totals.salary);
+      section.fringeSubtotal.textContent = formatCurrency(totals.fringe);
+      section.directSubtotal.textContent = formatCurrency(totals.direct);
+      section.indirectSubtotal.textContent = formatCurrency(totals.indirect);
+      section.totalSubtotal.textContent = formatCurrency(totals.total);
+
+      return totals;
+    }
+
+    function computeNonPersonnel(defaultIndirectRate) {
+      const totals = {
+        categories: {},
+        direct: 0,
+        indirect: 0,
+        total: 0
+      };
+
+      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
+        const key = row.dataset.categoryKey;
+        const label = row.dataset.categoryLabel;
+        const amount = nonNegativeNumber(row.querySelector(".direct-amount"));
+        const idcApplies = row.querySelector(".idc-applies").checked;
+        const idcOverride = readNumber(row.querySelector(".idc-override"));
+        const indirectRate = idcOverride !== null && idcOverride >= 0 ? idcOverride : defaultIndirectRate;
+        const indirectCost = idcApplies ? amount * indirectRate / 100 : 0;
+        const totalCost = amount + indirectCost;
+
+        row.querySelector(".idc-amount").textContent = formatCurrency(indirectCost);
+        row.querySelector(".total-amount").textContent = formatCurrency(totalCost);
+
+        totals.direct += amount;
+        totals.indirect += indirectCost;
+        totals.total += totalCost;
+        totals.categories[key] = {
+          key,
+          label,
+          amount,
+          idcApplies,
+          indirectRate,
+          indirectCost,
+          totalCost
+        };
+      });
+
+      elements.nonPersonnelDirectSubtotal.textContent = formatCurrency(totals.direct);
+      elements.nonPersonnelIndirectSubtotal.textContent = formatCurrency(totals.indirect);
+      elements.nonPersonnelTotalSubtotal.textContent = formatCurrency(totals.total);
+
+      return totals;
+    }
+
+    function updateRollup(personnelResults, nonPersonnelResults, totals) {
+      const otherSalary =
+        personnelResults.postdoc.salary +
+        personnelResults.graduate.salary +
+        personnelResults.undergraduate.salary +
+        personnelResults.other.salary;
+
+      const fringeTotal = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].fringe, 0);
+
+      const otherDirect =
+        (nonPersonnelResults.categories.materials?.amount ?? 0) +
+        (nonPersonnelResults.categories.publication?.amount ?? 0) +
+        (nonPersonnelResults.categories.consultant?.amount ?? 0) +
+        (nonPersonnelResults.categories.computer?.amount ?? 0) +
+        (nonPersonnelResults.categories.subawards?.amount ?? 0) +
+        (nonPersonnelResults.categories.otherDirect?.amount ?? 0);
+
+      elements.rollupSeniorSalary.textContent = formatCurrency(personnelResults.senior.salary);
+      elements.rollupOtherSalary.textContent = formatCurrency(otherSalary);
+      elements.rollupFringe.textContent = formatCurrency(fringeTotal);
+      elements.rollupEquipment.textContent = formatCurrency(nonPersonnelResults.categories.equipment?.amount ?? 0);
+      elements.rollupTravel.textContent = formatCurrency(nonPersonnelResults.categories.travel?.amount ?? 0);
+      elements.rollupParticipant.textContent = formatCurrency(nonPersonnelResults.categories.participant?.amount ?? 0);
+      elements.rollupOtherDirect.textContent = formatCurrency(otherDirect);
+      elements.rollupTotalDirect.textContent = formatCurrency(totals.direct);
+      elements.rollupTotalIndirect.textContent = formatCurrency(totals.indirect);
+      elements.rollupTotalBudget.textContent = formatCurrency(totals.total);
+    }
+
+    function calculate() {
+      hideStatus();
+
+      const defaultFringeRate = Math.max(readNumber(elements.defaultFringeRate) ?? 0, 0);
+      const defaultIndirectRate = Math.max(readNumber(elements.defaultIndirectRate) ?? 0, 0);
+
+      const personnelResults = {};
+      personnelSections.forEach((section) => {
+        personnelResults[section.key] = computePersonnelSection(section, defaultFringeRate, defaultIndirectRate);
+      });
+
+      const nonPersonnelResults = computeNonPersonnel(defaultIndirectRate);
+
+      const totalPersonnelDirect = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].direct, 0);
+      const totalPersonnelIndirect = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].indirect, 0);
+      const totals = {
+        direct: totalPersonnelDirect + nonPersonnelResults.direct,
+        indirect: totalPersonnelIndirect + nonPersonnelResults.indirect,
+        total: 0
+      };
+      totals.total = totals.direct + totals.indirect;
+
+      elements.summaryDirect.textContent = formatCurrency(totals.direct);
+      elements.summaryIndirect.textContent = formatCurrency(totals.indirect);
+      elements.summaryTotal.textContent = formatCurrency(totals.total);
+
+      updateRollup(personnelResults, nonPersonnelResults, totals);
+
+      return {
+        defaults: {
+          fringeRate: defaultFringeRate,
+          indirectRate: defaultIndirectRate
+        },
+        personnel: personnelResults,
+        nonPersonnel: nonPersonnelResults,
+        totals
+      };
+    }
+
+    function buildSummaryText(state) {
+      const lines = [
+        "NSF Proposal Budget Planner Summary",
+        "",
+        `Scenario Label: ${elements.scenarioLabel.value.trim() || "Untitled scenario"}`,
+        `PI / Project Label: ${elements.piLabel.value.trim() || "Not specified"}`,
+        `Budget Period Label: ${elements.budgetPeriodLabel.value.trim() || "One budget period"}`,
+        `Default Fringe Rate: ${formatPercent(state.defaults.fringeRate)}`,
+        `Default Indirect Cost Rate: ${formatPercent(state.defaults.indirectRate)}`,
+        ""
+      ];
+
+      personnelSections.forEach((section) => {
+        const sectionState = state.personnel[section.key];
+        lines.push(section.label);
+
+        if (!sectionState.rows.length) {
+          lines.push("No personnel rows entered.");
+        } else {
+          sectionState.rows.forEach((row) => {
+            lines.push(
+              `${row.label}: annual base ${formatCurrency(row.annualBase)}, ` +
+              `${formatDecimal(row.effortMonths)} months, requested salary ${formatCurrency(row.requestedSalary)}, ` +
+              `fringe ${formatCurrency(row.fringeCost)} at ${formatPercent(row.fringeRate)}, ` +
+              `${row.indirectApplies ? `indirect ${formatCurrency(row.indirectCost)} at ${formatPercent(row.indirectRate)}` : "no indirect cost"}, ` +
+              `total ${formatCurrency(row.totalCost)}`
+            );
+          });
+        }
+
+        lines.push(
+          `Subtotal: salary ${formatCurrency(sectionState.salary)}, fringe ${formatCurrency(sectionState.fringe)}, ` +
+          `direct ${formatCurrency(sectionState.direct)}, indirect ${formatCurrency(sectionState.indirect)}, total ${formatCurrency(sectionState.total)}`
+        );
+        lines.push("");
+      });
+
+      lines.push("Non-Personnel Budget Categories");
+      Object.values(state.nonPersonnel.categories).forEach((category) => {
+        lines.push(
+          `${category.label}: direct ${formatCurrency(category.amount)}, ` +
+          `${category.idcApplies ? `indirect ${formatCurrency(category.indirectCost)} at ${formatPercent(category.indirectRate)}` : "no indirect cost"}, ` +
+          `total ${formatCurrency(category.totalCost)}`
+        );
+      });
+      lines.push(
+        `Subtotal: direct ${formatCurrency(state.nonPersonnel.direct)}, indirect ${formatCurrency(state.nonPersonnel.indirect)}, total ${formatCurrency(state.nonPersonnel.total)}`
+      );
+      lines.push("");
+      lines.push("Budget Totals");
+      lines.push(`Total Direct Costs: ${formatCurrency(state.totals.direct)}`);
+      lines.push(`Total Indirect Costs: ${formatCurrency(state.totals.indirect)}`);
+      lines.push(`Total Budget: ${formatCurrency(state.totals.total)}`);
+
+      return lines.join("\n");
+    }
+
+    async function copySummaryToClipboard() {
+      const state = calculate();
+      const text = buildSummaryText(state);
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "absolute";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+
+        paintStatus("good", "Text summary copied.", "Clipboard summary is ready.");
+      } catch (error) {
+        paintStatus("warn", "Copy failed.", "Clipboard access was unavailable.");
+      }
+    }
+
+    function resetPlanner() {
+      elements.scenarioLabel.value = "";
+      elements.piLabel.value = "";
+      elements.budgetPeriodLabel.value = "";
+      elements.defaultFringeRate.value = "36.00";
+      elements.defaultIndirectRate.value = "45.50";
+
+      personnelSections.forEach((section) => {
+        section.body.innerHTML = "";
+        section.body.appendChild(createPersonnelRow(section.key));
+      });
+
+      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
+        row.querySelector(".direct-amount").value = "";
+        row.querySelector(".idc-override").value = "";
+        row.querySelector(".idc-applies").checked = row.dataset.categoryKey !== "equipment" && row.dataset.categoryKey !== "participant";
+      });
+
+      hideStatus();
+      calculate();
+    }
+
+    document.querySelectorAll("[data-add-personnel]").forEach((button) => {
+      button.addEventListener("click", () => {
+        addPersonnelRow(button.dataset.addPersonnel);
+      });
+    });
+
+    document.querySelectorAll("input").forEach((input) => {
+      input.addEventListener("input", calculate);
+      input.addEventListener("change", calculate);
+    });
+
+    elements.resetButton.addEventListener("click", resetPlanner);
+    elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);
+    elements.printButton.addEventListener("click", () => {
+      window.print();
+    });
+    elements.helpButton.addEventListener("click", openHelpModal);
+    elements.helpCloseButton.addEventListener("click", closeHelpModal);
+    elements.helpModal.addEventListener("click", (event) => {
+      if (event.target === elements.helpModal) {
+        closeHelpModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !elements.helpModal.hidden) {
+        closeHelpModal();
+      }
+    });
+
+    resetPlanner();
+  </script>
+</body>
+</html>
