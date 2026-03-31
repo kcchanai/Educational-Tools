@@ -1418,7 +1418,7 @@
                   <div class="equation-line">
                     <span class="equation-group">
                       <span class="equation-paren">(</span>
-                      <span>$ release time cost</span>
+                      <span>$ total release time cost</span>
                       <span class="equation-paren">)</span>
                     </span>
                     <span class="equation-op">x</span>
@@ -1864,7 +1864,7 @@
         '  <div class="equation-line">',
         '    <span class="equation-group">',
         '      <span class="equation-paren">(</span>',
-        '      <span>$ release time cost</span>',
+        '      <span>$ total release time cost</span>',
         '      <span class="equation-paren">)</span>',
         '    </span>',
         '    <span class="equation-op">x</span>',
@@ -2977,7 +2977,7 @@
       let instructionalExceedsFunding = false;
 
       if (desiredTE > 0 && monthsCharged > 0) {
-        releaseExtramuralPercent = (releaseTimeCost * 12 * 100) / (monthsCharged * annualSalary);
+        releaseExtramuralPercent = (releaseTotalCost * 12 * 100) / (monthsCharged * annualSalary);
         releaseCollegePercent = 100 - releaseExtramuralPercent;
       }
 
