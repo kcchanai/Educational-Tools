@@ -1380,7 +1380,45 @@
             <div class="metric"><dt id="release-indirect-label">Indirect cost (indirect cost rate of total direct cost)</dt><dd id="release-indirect-cost">$0.00</dd></div>
             <div class="metric key-metric total-metric"><dt>Total release time cost (total direct cost + indirect cost)</dt><dd id="release-total-cost">$0.00</dd></div>
             <div class="metric-group-label" id="release-split-group-label">Account Code Percentages</div>
-            <div class="metric"><dt id="release-extramural-label">Percent charged to extramural account<br>(release time cost x 12 &divide; months charged &divide; salary)</dt><dd id="release-extramural-percent">0.00%</dd></div>
+            <div class="metric">
+              <dt id="release-extramural-label">
+                Percent charged to extramural account
+                <div class="equation-block label-equation" aria-label="Release time extramural percentage formula">
+                  <div class="equation-line">
+                    <span class="equation-group">
+                      <span class="equation-paren">(</span>
+                      <span>$ release time cost</span>
+                      <span class="equation-paren">)</span>
+                    </span>
+                    <span class="equation-op">x</span>
+                    <span class="equation-group">
+                      <span class="equation-paren">(</span>
+                      <span class="equation-frac">
+                        <span>12 months</span>
+                        <span>year</span>
+                      </span>
+                      <span class="equation-paren">)</span>
+                    </span>
+                    <span class="equation-op">&divide;</span>
+                    <span class="equation-group">
+                      <span class="equation-paren">(</span>
+                      <span>months charged</span>
+                      <span class="equation-paren">)</span>
+                    </span>
+                    <span class="equation-op">&divide;</span>
+                    <span class="equation-group">
+                      <span class="equation-paren">(</span>
+                      <span class="equation-frac">
+                        <span>$ salary</span>
+                        <span>year</span>
+                      </span>
+                      <span class="equation-paren">)</span>
+                    </span>
+                  </div>
+                </div>
+              </dt>
+              <dd id="release-extramural-percent">0.00%</dd>
+            </div>
             <div class="metric"><dt>Percent charged to college</dt><dd id="release-college-percent">0.00%</dd></div>
           </dl>
         </article>
@@ -2451,6 +2489,7 @@
         elements.summaryInstructionalNote.textContent = "(0 TE, 0%)";
         elements.summaryNonInstructionalNote.textContent = "(0 days)";
       }
+      elements.releaseExtramuralLabel.innerHTML = buildReleaseExtramuralFormulaHtml(readNumber(elements.monthsCharged));
       setReleaseFundingAlert(false);
       setInstructionalFundingAlert(false);
       renderNonInstructionalFormula([9, 11].includes(selectedFacultyMonths) ? selectedFacultyMonths : 9);
