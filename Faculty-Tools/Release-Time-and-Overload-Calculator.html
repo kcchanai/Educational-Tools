@@ -586,6 +586,37 @@
       box-shadow: 0 8px 18px rgba(14, 93, 115, 0.08);
     }
 
+    .rate-action-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .rate-action-row button {
+      min-height: 36px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .rate-action-row button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(14, 93, 115, 0.4);
+      box-shadow: 0 8px 18px rgba(14, 93, 115, 0.08);
+    }
+
+    .rate-action-row button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      box-shadow: none;
+    }
+
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -985,6 +1016,14 @@
         width: 100%;
       }
 
+      .rate-action-row {
+        justify-content: stretch;
+      }
+
+      .rate-action-row button {
+        width: 100%;
+      }
+
       .label-with-badge {
         align-items: flex-start;
         flex-direction: column;
@@ -1037,6 +1076,7 @@
 
       .action-row,
       .action-subrow,
+      .rate-action-row,
       .modal-backdrop,
       .status,
       .help.status-note,
@@ -1219,21 +1259,11 @@
                   Using built-in default rates until live ORS defaults load.
                 </div>
                 <div class="live-update" id="ors-rate-updated">Updated: unavailable.</div>
+                <div class="rate-action-row">
+                  <button type="button" id="reload-ors-rates-button">Reload Live ORS Defaults</button>
+                </div>
               </div>
 
-              <fieldset>
-                <legend>Apply Indirect Costs?</legend>
-                <div class="choice-group">
-                  <label class="choice">
-                    <input type="radio" name="indirect" value="yes" checked>
-                    <span>Yes</span>
-                  </label>
-                  <label class="choice">
-                    <input type="radio" name="indirect" value="no">
-                    <span>No</span>
-                  </label>
-                </div>
-              </fieldset>
             </div>
           </section>
 
@@ -1259,7 +1289,8 @@
                 <input id="instructional-cost-per-te" name="instructional-cost-per-te" type="text" inputmode="decimal" autocomplete="off">
                 <div class="help">
                   Current summer instructional pay rates:<br>
-                  <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">UH summer faculty pay-rate page</a>
+                  <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">UH summer faculty pay-rate page</a><br>
+                  <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-casual.asp" target="_blank" rel="noopener noreferrer">UH summer lecturer pay-rate page</a>
                 </div>
                 <div class="field-message" id="instructional-cost-per-te-error"></div>
               </div>
@@ -1329,7 +1360,7 @@
             <section class="modal-section">
               <h3>Key Outputs</h3>
               <ul>
-                <li><strong>Total Release Time Cost</strong>: release cost including fringe and indirect cost, if applied.</li>
+                <li><strong>Total Release Time Cost</strong>: release cost including fringe and indirect cost.</li>
                 <li><strong>Instructional Overload Pay</strong>: faculty pay for instructional summer overload.</li>
                 <li><strong>Non-Instructional Overload Pay</strong>: faculty pay for non-instructional overload.</li>
                 <li><strong>Required Budget (rounded up)</strong>: total budget needed in Budget Required mode.</li>
@@ -1591,6 +1622,7 @@
       summerRateUpdated: document.getElementById("summer-rate-updated"),
       orsRateStatus: document.getElementById("ors-rate-status"),
       orsRateUpdated: document.getElementById("ors-rate-updated"),
+      reloadOrsRatesButton: document.getElementById("reload-ors-rates-button"),
       heroDescription: document.getElementById("hero-description"),
       instructionalCostPerTE: document.getElementById("instructional-cost-per-te"),
       instructionalRateBadge: document.getElementById("instructional-rate-badge"),
@@ -2016,7 +2048,6 @@
       const instructionalCostPerTE = getNormalizedInputValue(elements.instructionalCostPerTE);
       const scenarioNotes = elements.scenarioNotes.value.trim();
       const facultyMonths = selectedValue("faculty-months");
-      const indirect = selectedValue("indirect");
       const summerRateSource = elements.summerRateSource.value;
 
       const hasMeaningfulInput = [
@@ -2033,7 +2064,6 @@
       if (!hasMeaningfulInput &&
           calculatorMode === "budget-available" &&
           facultyMonths === "9" &&
-          indirect === "yes" &&
           summerRateSource === CUSTOM_RATE_OPTION &&
           releaseFringeRate === BUILTIN_RATE_DEFAULTS.releaseFringeRate &&
           overloadFringeRate === BUILTIN_RATE_DEFAULTS.overloadFringeRate &&
@@ -2054,7 +2084,6 @@
       if (instructionalCostPerTE) params.set("instructionalCostPerTE", instructionalCostPerTE);
       if (scenarioNotes) params.set("notes", scenarioNotes);
       if (facultyMonths) params.set("facultyMonths", facultyMonths);
-      if (indirect) params.set("indirect", indirect);
       if (summerRateSource) params.set("summerRateSource", summerRateSource);
 
       return params;
@@ -2130,7 +2159,6 @@
       const instructionalCostPerTE = params.get("instructionalCostPerTE");
       const notes = params.get("notes");
       const facultyMonths = params.get("facultyMonths");
-      const indirect = params.get("indirect");
       const summerRateSource = params.get("summerRateSource");
 
       if (calculatorMode) setCheckedRadio("calculator-mode", calculatorMode);
@@ -2147,7 +2175,6 @@
       if (notes !== null) elements.scenarioNotes.value = notes;
 
       if (facultyMonths) setCheckedRadio("faculty-months", facultyMonths);
-      if (indirect) setCheckedRadio("indirect", indirect);
 
       if (releaseFringeRate !== null) {
         elements.releaseFringeRate.value = releaseFringeRate;
@@ -2300,6 +2327,13 @@
       elements.orsRateStatus.textContent = message;
     }
 
+    function setOrsReloadButtonState(isLoading) {
+      elements.reloadOrsRatesButton.disabled = isLoading;
+      elements.reloadOrsRatesButton.textContent = isLoading
+        ? "Reloading ORS Defaults..."
+        : "Reload Live ORS Defaults";
+    }
+
     function appendRateOption(label, value) {
       const option = document.createElement("option");
       option.value = String(value);
@@ -2377,7 +2411,7 @@
         populateSummerRateOptions(rates);
         elements.summerRateUpdated.textContent = formatLiveUpdatedText(payload.fetchedAt);
         setSummerRateStatus(
-          `Live summer rates loaded. Select a rank-based rate or choose Custom value.`,
+          `Live summer rates loaded. Select a faculty or lecturer rate, or choose Custom value.`,
           "good"
         );
         applyPendingSummerRateState();
@@ -2403,18 +2437,36 @@
       suppressRateFieldTracking = false;
     }
 
-    async function loadOrsRates() {
-      if (!SUMMER_RATE_PROXY_URL) {
-        setOrsRateStatus(
-          "Using built-in default rates. Add the proxy URL to load live ORS defaults.",
-          "warn"
-        );
-        elements.orsRateUpdated.textContent = "Updated: unavailable.";
-        calculate();
-        return;
+    function applyOrsRateDefaults(defaults, forceApply = false) {
+      if (forceApply) {
+        Object.keys(rateFieldTouched).forEach((key) => {
+          rateFieldTouched[key] = false;
+        });
       }
 
+      setRateInputValue(elements.releaseFringeRate, "releaseFringeRate", defaults.releaseFringeRate);
+      setRateInputValue(elements.overloadFringeRate, "overloadFringeRate", defaults.overloadFringeRate);
+      setRateInputValue(elements.indirectRate, "indirectRate", defaults.indirectRate);
+    }
+
+    async function loadOrsRates(options = {}) {
+      const forceApply = Boolean(options.forceApply);
+      setOrsReloadButtonState(true);
+
       try {
+        if (!SUMMER_RATE_PROXY_URL) {
+          applyOrsRateDefaults(forceApply ? liveRateDefaults : BUILTIN_RATE_DEFAULTS, forceApply);
+          setOrsRateStatus(
+            forceApply
+              ? "Live ORS defaults are unavailable. Restored the last available default rates."
+              : "Using built-in default rates. Add the proxy URL to load live ORS defaults.",
+            "warn"
+          );
+          elements.orsRateUpdated.textContent = "Updated: unavailable.";
+          calculate();
+          return;
+        }
+
         const response = await fetch(`${SUMMER_RATE_PROXY_URL}?source=ors-rates`, {
           method: "GET"
         });
@@ -2436,12 +2488,10 @@
           throw new Error("Malformed ORS rate payload.");
         }
 
-        setRateInputValue(elements.releaseFringeRate, "releaseFringeRate", releaseFringeRate);
-        setRateInputValue(elements.overloadFringeRate, "overloadFringeRate", overloadFringeRate);
-        setRateInputValue(elements.indirectRate, "indirectRate", indirectRate);
         liveRateDefaults.releaseFringeRate = String(releaseFringeRate);
         liveRateDefaults.overloadFringeRate = String(overloadFringeRate);
         liveRateDefaults.indirectRate = String(indirectRate);
+        applyOrsRateDefaults(liveRateDefaults, forceApply);
         elements.orsRateUpdated.textContent = formatLiveUpdatedText(payload.fetchedAt);
 
         setOrsRateStatus(
@@ -2450,15 +2500,17 @@
         );
         calculate();
       } catch (error) {
-        setRateInputValue(elements.releaseFringeRate, "releaseFringeRate", BUILTIN_RATE_DEFAULTS.releaseFringeRate);
-        setRateInputValue(elements.overloadFringeRate, "overloadFringeRate", BUILTIN_RATE_DEFAULTS.overloadFringeRate);
-        setRateInputValue(elements.indirectRate, "indirectRate", BUILTIN_RATE_DEFAULTS.indirectRate);
+        applyOrsRateDefaults(forceApply ? liveRateDefaults : BUILTIN_RATE_DEFAULTS, forceApply);
         elements.orsRateUpdated.textContent = "Updated: unavailable.";
         setOrsRateStatus(
-          "Live ORS defaults could not be loaded. Using built-in default rates.",
+          forceApply
+            ? "Live ORS defaults could not be refreshed. Restored the last available default rates."
+            : "Live ORS defaults could not be loaded. Using built-in default rates.",
           "warn"
         );
         calculate();
+      } finally {
+        setOrsReloadButtonState(false);
       }
     }
 
@@ -2660,7 +2712,6 @@
         ...(isBudgetRequired ? [] : [`Funding Amount: ${formatCurrency(inputs.fundingAmount)}`]),
         `Desired Release Time (TE): ${formatDecimal(inputs.desiredTE)}`,
         `Months Charged to the Account: ${formatDecimal(inputs.monthsCharged)}`,
-        `Apply Indirect Costs: ${inputs.indirectApplies ? "Yes" : "No"}`,
         `Release Fringe Rate: ${formatPercent(inputs.releaseFringeRatePercent)}`,
         `Overload Fringe Rate: ${formatPercent(inputs.overloadFringeRatePercent)}`,
         `Indirect Cost Rate: ${formatPercent(inputs.indirectRatePercent)}`,
@@ -2813,7 +2864,6 @@
       const desiredNonInstructionalDays = desiredNonInstructionalDaysInput ?? 0;
       const instructionalCostPerTE = readNumber(elements.instructionalCostPerTE);
       const facultyMonths = Number.parseInt(selectedValue("faculty-months"), 10);
-      const indirectApplies = selectedValue("indirect") === "yes";
 
       syncUrlState();
 
@@ -2887,13 +2937,13 @@
       const releaseFringeRate = releaseFringeRatePercent / 100;
       const overloadFringeRate = overloadFringeRatePercent / 100;
       const indirectRate = indirectRatePercent / 100;
-      const overloadLoadFactor = (1 + overloadFringeRate) * (indirectApplies ? 1 + indirectRate : 1);
+      const overloadLoadFactor = (1 + overloadFringeRate) * (1 + indirectRate);
       const nonInstructionalDayFactor = facultyMonths === 11 ? 260 : 195;
       const costPerTE = annualSalary / annualTeachingLoad;
       const releaseTimeCost = costPerTE * desiredTE;
       const releaseFringe = releaseTimeCost * releaseFringeRate;
       const releaseDirectCost = releaseTimeCost + releaseFringe;
-      const releaseIndirectCost = indirectApplies ? releaseDirectCost * indirectRate : 0;
+      const releaseIndirectCost = releaseDirectCost * indirectRate;
       const releaseTotalCost = releaseDirectCost + releaseIndirectCost;
       const rawRemainingBeforeOverload = fundingAmount - releaseTotalCost;
       const availableOverloadBudget = Math.max(fundingAmount - releaseTotalCost, 0);
@@ -2937,7 +2987,7 @@
         instructionalPay = instructionalRequestedPay;
         instructionalFringe = instructionalPay * overloadFringeRate;
         instructionalDirectCost = instructionalPay + instructionalFringe;
-        instructionalIndirectCost = indirectApplies ? instructionalDirectCost * indirectRate : 0;
+        instructionalIndirectCost = instructionalDirectCost * indirectRate;
         instructionalTotalCost = instructionalDirectCost + instructionalIndirectCost;
         instructionalFundedTE = desiredInstructionalTE;
 
@@ -2952,7 +3002,7 @@
           : 0;
         nonInstructionalFringe = nonInstructionalPay * overloadFringeRate;
         nonInstructionalDirectCost = nonInstructionalPay + nonInstructionalFringe;
-        nonInstructionalIndirectCost = indirectApplies ? nonInstructionalDirectCost * indirectRate : 0;
+        nonInstructionalIndirectCost = nonInstructionalDirectCost * indirectRate;
         nonInstructionalTotalCost = nonInstructionalDirectCost + nonInstructionalIndirectCost;
         nonInstructionalBudget = nonInstructionalTotalCost;
 
@@ -2968,7 +3018,7 @@
         instructionalPay = instructionalTotalCost / overloadLoadFactor;
         instructionalFringe = instructionalPay * overloadFringeRate;
         instructionalDirectCost = instructionalPay + instructionalFringe;
-        instructionalIndirectCost = indirectApplies ? instructionalDirectCost * indirectRate : 0;
+        instructionalIndirectCost = instructionalDirectCost * indirectRate;
         instructionalFundedTE = instructionalCostPerTE > 0 ? instructionalPay / instructionalCostPerTE : 0;
 
         if (desiredInstructionalTE > 0) {
@@ -2980,7 +3030,7 @@
         nonInstructionalPay = nonInstructionalBudget / overloadLoadFactor;
         nonInstructionalFringe = nonInstructionalPay * overloadFringeRate;
         nonInstructionalDirectCost = nonInstructionalPay + nonInstructionalFringe;
-        nonInstructionalIndirectCost = indirectApplies ? nonInstructionalDirectCost * indirectRate : 0;
+        nonInstructionalIndirectCost = nonInstructionalDirectCost * indirectRate;
         nonInstructionalTotalCost = nonInstructionalDirectCost + nonInstructionalIndirectCost;
         nonInstructionalOverloadDays = (nonInstructionalPay * nonInstructionalDayFactor) / annualSalary;
 
@@ -3049,7 +3099,6 @@
           fundingAmount,
           desiredTE,
           monthsCharged,
-          indirectApplies,
           releaseFringeRatePercent,
           overloadFringeRatePercent,
           indirectRatePercent,
@@ -3157,6 +3206,9 @@
       if (elements.summerRateSource.value === CUSTOM_RATE_OPTION) {
         savedCustomInstructionalRate = elements.instructionalCostPerTE.value;
       }
+    });
+    elements.reloadOrsRatesButton.addEventListener("click", () => {
+      loadOrsRates({ forceApply: true });
     });
     elements.resetButton.addEventListener("click", resetCalculator);
     elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);
