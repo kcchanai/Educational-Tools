@@ -75,7 +75,7 @@
 
     .hero-copy {
       min-width: 0;
-      max-width: 78ch;
+      max-width: 80ch;
     }
 
     .hero-seal {
@@ -87,7 +87,7 @@
 
     .hero-seal img {
       display: block;
-      width: min(180px, 22vw);
+      width: min(195px, 24vw);
       max-width: 100%;
       height: auto;
       object-fit: contain;
@@ -404,6 +404,7 @@
     #non-personnel-table tbody th {
       text-align: left;
       font-weight: 700;
+      padding-left: 16px;
     }
 
     .computed-cell {
@@ -872,9 +873,9 @@
           <p class="eyebrow">NSF Budget Planning</p>
           <h1>NSF Proposal Budget Planner</h1>
           <p>
-            Plan one NSF budget period before entering it into the official proposal system. Personnel rows
-            track person-months, salary-before-fringe, and fringe, with Budget Helper support and live ORS
-            and summer-rate defaults for faster setup.
+            Plan one National Science Foundation (NSF) budget period before entering it into the official
+            proposal system. Personnel rows track person-months, salary-before-fringe, and fringe, with
+            Budget Helper support and live ORS and summer-rate defaults for faster setup.
           </p>
         </div>
         <figure class="hero-seal">
@@ -1176,14 +1177,6 @@
             <dt>J. Total direct and indirect costs (H + I)</dt>
             <dd id="rollup-total-budget">$0</dd>
           </div>
-          <div class="rollup-row">
-            <dt>K. Fee</dt>
-            <dd id="rollup-fee">$0</dd>
-          </div>
-          <div class="rollup-row grand-total">
-            <dt>L. Amount of this request (J or J minus K)</dt>
-            <dd id="rollup-request-amount">$0</dd>
-          </div>
         </dl>
       </section>
     </section>
@@ -1289,9 +1282,7 @@
       rollupTotalDirect: document.getElementById("rollup-total-direct"),
       rollupMTDC: document.getElementById("rollup-mtdc"),
       rollupTotalIndirect: document.getElementById("rollup-total-indirect"),
-      rollupTotalBudget: document.getElementById("rollup-total-budget"),
-      rollupFee: document.getElementById("rollup-fee"),
-      rollupRequestAmount: document.getElementById("rollup-request-amount")
+      rollupTotalBudget: document.getElementById("rollup-total-budget")
     };
 
     personnelSections.forEach((section) => {
@@ -2645,9 +2636,7 @@
       );
 
       const totalIndirectDisplay = roundUpDollar(mtdcDisplay * indirectRateDecimal);
-      const feeDisplay = 0;
       const totalBudgetDisplay = roundUpDollar(totalDirectDisplay + totalIndirectDisplay);
-      const requestAmountDisplay = roundUpDollar(totalBudgetDisplay - feeDisplay);
 
       return {
         seniorSalary: seniorSalaryDisplay,
@@ -2662,9 +2651,7 @@
         totalDirect: totalDirectDisplay,
         mtdc: mtdcDisplay,
         indirect: totalIndirectDisplay,
-        totalBudget: totalBudgetDisplay,
-        fee: feeDisplay,
-        requestAmount: requestAmountDisplay
+        totalBudget: totalBudgetDisplay
       };
     }
 
@@ -2684,8 +2671,6 @@
       elements.rollupMTDC.textContent = formatCurrency(displayTotals.mtdc);
       elements.rollupTotalIndirect.textContent = formatCurrency(displayTotals.indirect);
       elements.rollupTotalBudget.textContent = formatCurrency(displayTotals.totalBudget);
-      elements.rollupFee.textContent = formatCurrency(displayTotals.fee);
-      elements.rollupRequestAmount.textContent = formatCurrency(displayTotals.requestAmount);
     }
 
     function calculate() {
