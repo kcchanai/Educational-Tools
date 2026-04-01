@@ -356,8 +356,14 @@
 
     .person-cell {
       display: grid;
-      gap: 8px;
-      min-width: 190px;
+      gap: 6px;
+      min-width: 240px;
+    }
+
+    .personnel-row td {
+      vertical-align: top;
+      padding-top: 10px;
+      padding-bottom: 10px;
     }
 
     .row-helper-toggle {
@@ -394,6 +400,42 @@
       width: 78px;
       min-width: 0;
       text-align: right;
+    }
+
+    .budget-table .base-salary,
+    .budget-table .fringe-amount {
+      width: 166px;
+      min-width: 0;
+    }
+
+    .personnel-table {
+      table-layout: fixed;
+    }
+
+    .personnel-table > thead th:first-child,
+    .personnel-table > tbody > .personnel-row > td:first-child {
+      width: 31%;
+    }
+
+    .personnel-table > thead th:nth-child(2),
+    .personnel-table > thead th:nth-child(3),
+    .personnel-table > thead th:nth-child(4),
+    .personnel-table > tbody > .personnel-row > td:nth-child(2),
+    .personnel-table > tbody > .personnel-row > td:nth-child(3),
+    .personnel-table > tbody > .personnel-row > td:nth-child(4) {
+      width: 86px;
+    }
+
+    .personnel-table > thead th:nth-child(5),
+    .personnel-table > thead th:nth-child(6),
+    .personnel-table > tbody > .personnel-row > td:nth-child(5),
+    .personnel-table > tbody > .personnel-row > td:nth-child(6) {
+      width: 172px;
+    }
+
+    .personnel-table > thead th:last-child,
+    .personnel-table > tbody > .personnel-row > td:last-child {
+      width: 56px;
     }
 
     .budget-table .checkbox-cell {
@@ -976,7 +1018,7 @@
           <button type="button" class="section-action" data-add-personnel="senior">Add Person</button>
         </div>
         <div class="table-wrap">
-          <table class="budget-table">
+          <table class="budget-table personnel-table">
             <thead>
               <tr>
                 <th>Name / Role</th>
@@ -1000,7 +1042,7 @@
           <button type="button" class="section-action" data-add-personnel="otherPersonnel">Add Person</button>
         </div>
         <div class="table-wrap">
-          <table class="budget-table">
+          <table class="budget-table personnel-table">
             <thead>
               <tr>
                 <th>Name / Role</th>
@@ -2277,7 +2319,7 @@
       row.innerHTML = `
         <td>
           <div class="person-cell">
-            <input type="text" class="person-label" placeholder="Name or role">
+            <input type="text" class="person-label" placeholder="Name and/or role">
             <button type="button" class="row-helper-toggle" aria-expanded="false">Budget Helper</button>
           </div>
         </td>
