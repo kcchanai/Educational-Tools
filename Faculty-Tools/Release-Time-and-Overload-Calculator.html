@@ -1168,7 +1168,7 @@
                     <span>Round Up Dollar</span>
                   </label>
                 </div>
-                <div class="help" id="rounding-mode-help">Nearest Cent keeps the current calculator behavior. Round Up Dollar rounds each monetary step up to the next whole dollar.</div>
+                <div class="help" id="rounding-mode-help">Nearest Cent keeps monetary amounts in dollars and cents. Round Up Dollar rounds each monetary step up to the next whole dollar.</div>
               </fieldset>
             </div>
           </section>
@@ -1776,6 +1776,13 @@
       currency: "USD"
     });
 
+    const wholeDollarCurrencyFormatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+
     const dayFormatter = new Intl.NumberFormat("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -1864,6 +1871,12 @@
 
     function formatCurrency(value) {
       return currencyFormatter.format(value);
+    }
+
+    function formatOutputCurrency(value, roundingMode = getRoundingMode()) {
+      return roundingMode === ROUNDING_MODE_ROUND_UP_DOLLAR
+        ? wholeDollarCurrencyFormatter.format(value)
+        : currencyFormatter.format(value);
     }
 
     function formatDays(value) {
@@ -2040,7 +2053,7 @@
     function updateRoundingModeHelp() {
       elements.roundingModeHelp.textContent = getRoundingMode() === ROUNDING_MODE_ROUND_UP_DOLLAR
         ? "Round Up Dollar rounds each monetary step up to the next whole dollar."
-        : "Nearest Cent keeps the current calculator behavior.";
+        : "Nearest Cent keeps monetary amounts in dollars and cents.";
     }
 
     function applyCalculatorModeVisibility() {
@@ -2585,10 +2598,11 @@
 
     function resetOutputs() {
       const selectedFacultyMonths = Number.parseInt(selectedValue("faculty-months"), 10);
+      const roundingMode = getRoundingMode();
 
       for (const [key, type] of Object.entries(valueTargets)) {
         if (type === "currency") {
-          elements[key].textContent = "$0.00";
+          elements[key].textContent = formatOutputCurrency(0, roundingMode);
         } else if (type === "percent") {
           elements[key].textContent = "0.00%";
         } else {
@@ -2684,14 +2698,17 @@
     function renderResults(results) {
       applyResultsMode(results.calculatorMode);
       const isBudgetRequired = results.calculatorMode === "budget-required";
-      elements.summaryInstructionalPay.textContent = formatCurrency(
-        isBudgetRequired ? results.releaseTotalCost : results.instructionalPay
+      elements.summaryInstructionalPay.textContent = formatOutputCurrency(
+        isBudgetRequired ? results.releaseTotalCost : results.instructionalPay,
+        results.roundingMode
       );
-      elements.summaryNonInstructionalPay.textContent = formatCurrency(
-        isBudgetRequired ? results.instructionalPay + results.nonInstructionalPay : results.nonInstructionalPay
+      elements.summaryNonInstructionalPay.textContent = formatOutputCurrency(
+        isBudgetRequired ? results.instructionalPay + results.nonInstructionalPay : results.nonInstructionalPay,
+        results.roundingMode
       );
-      elements.summaryReleaseTotal.textContent = formatCurrency(
-        isBudgetRequired ? results.roundedCombinedTotal : results.releaseTotalCost
+      elements.summaryReleaseTotal.textContent = formatOutputCurrency(
+        isBudgetRequired ? results.roundedCombinedTotal : results.releaseTotalCost,
+        results.roundingMode
       );
       const releaseSummaryNote = `(${formatCompactDecimal(results.desiredTE)} TE, ${formatPercent(results.releaseExtramuralPercent)})`;
       const instructionalSummaryLoad = results.desiredInstructionalTE > 0
@@ -2722,44 +2739,46 @@
       elements.nonInstructionalIndirectLabel.textContent = `Non-instructional indirect cost (${formatPercent(results.indirectRatePercent)} of direct cost)`;
       renderNonInstructionalFormula(results.facultyMonths);
 
-      elements.costPerTE.textContent = formatCurrency(results.costPerTE);
-      elements.releaseTimeCost.textContent = formatCurrency(results.releaseTimeCost);
-      elements.releaseFringe.textContent = formatCurrency(results.releaseFringe);
-      elements.releaseDirectCost.textContent = formatCurrency(results.releaseDirectCost);
-      elements.releaseIndirectCost.textContent = formatCurrency(results.releaseIndirectCost);
-      elements.releaseTotalCost.textContent = formatCurrency(results.releaseTotalCost);
+      elements.costPerTE.textContent = formatOutputCurrency(results.costPerTE, results.roundingMode);
+      elements.releaseTimeCost.textContent = formatOutputCurrency(results.releaseTimeCost, results.roundingMode);
+      elements.releaseFringe.textContent = formatOutputCurrency(results.releaseFringe, results.roundingMode);
+      elements.releaseDirectCost.textContent = formatOutputCurrency(results.releaseDirectCost, results.roundingMode);
+      elements.releaseIndirectCost.textContent = formatOutputCurrency(results.releaseIndirectCost, results.roundingMode);
+      elements.releaseTotalCost.textContent = formatOutputCurrency(results.releaseTotalCost, results.roundingMode);
       elements.releaseExtramuralPercent.textContent = formatPercent(results.releaseExtramuralPercent);
       elements.releaseCollegePercent.textContent = formatPercent(results.releaseCollegePercent);
 
       elements.instructionalTERequested.textContent = formatDecimal(results.desiredInstructionalTE);
       elements.instructionalTEFunded.textContent = formatDecimal(results.instructionalFundedTE);
-      elements.instructionalPay.textContent = formatCurrency(results.instructionalPay);
-      elements.instructionalFringe.textContent = formatCurrency(results.instructionalFringe);
-      elements.instructionalDirectCost.textContent = formatCurrency(results.instructionalDirectCost);
-      elements.instructionalIndirectCost.textContent = formatCurrency(results.instructionalIndirectCost);
-      elements.instructionalTotalCost.textContent = formatCurrency(results.instructionalTotalCost);
+      elements.instructionalPay.textContent = formatOutputCurrency(results.instructionalPay, results.roundingMode);
+      elements.instructionalFringe.textContent = formatOutputCurrency(results.instructionalFringe, results.roundingMode);
+      elements.instructionalDirectCost.textContent = formatOutputCurrency(results.instructionalDirectCost, results.roundingMode);
+      elements.instructionalIndirectCost.textContent = formatOutputCurrency(results.instructionalIndirectCost, results.roundingMode);
+      elements.instructionalTotalCost.textContent = formatOutputCurrency(results.instructionalTotalCost, results.roundingMode);
       elements.instructionalExtramuralPercent.textContent = formatPercent(results.instructionalExtramuralPercent);
       elements.instructionalCollegePercent.textContent = formatPercent(results.instructionalCollegePercent);
 
-      elements.nonInstructionalBudget.textContent = formatCurrency(results.nonInstructionalBudget);
-      elements.nonInstructionalPay.textContent = formatCurrency(results.nonInstructionalPay);
-      elements.nonInstructionalFringe.textContent = formatCurrency(results.nonInstructionalFringe);
-      elements.nonInstructionalDirectCost.textContent = formatCurrency(results.nonInstructionalDirectCost);
-      elements.nonInstructionalIndirectCost.textContent = formatCurrency(results.nonInstructionalIndirectCost);
-      elements.nonInstructionalTotalCost.textContent = formatCurrency(results.nonInstructionalTotalCost);
+      elements.nonInstructionalBudget.textContent = formatOutputCurrency(results.nonInstructionalBudget, results.roundingMode);
+      elements.nonInstructionalPay.textContent = formatOutputCurrency(results.nonInstructionalPay, results.roundingMode);
+      elements.nonInstructionalFringe.textContent = formatOutputCurrency(results.nonInstructionalFringe, results.roundingMode);
+      elements.nonInstructionalDirectCost.textContent = formatOutputCurrency(results.nonInstructionalDirectCost, results.roundingMode);
+      elements.nonInstructionalIndirectCost.textContent = formatOutputCurrency(results.nonInstructionalIndirectCost, results.roundingMode);
+      elements.nonInstructionalTotalCost.textContent = formatOutputCurrency(results.nonInstructionalTotalCost, results.roundingMode);
       elements.nonInstructionalOverloadDays.textContent = formatDays(results.nonInstructionalOverloadDays);
 
-      elements.totalsRelease.textContent = formatCurrency(results.releaseTotalCost);
-      elements.totalsInstructional.textContent = formatCurrency(results.instructionalTotalCost);
-      elements.totalsNonInstructional.textContent = formatCurrency(results.nonInstructionalTotalCost);
-      elements.totalsOverload.textContent = formatCurrency(results.totalOverloadCost);
-      elements.combinedTotal.textContent = formatCurrency(
-        results.calculatorMode === "budget-required" ? results.combinedTotal : results.roundedCombinedTotal
+      elements.totalsRelease.textContent = formatOutputCurrency(results.releaseTotalCost, results.roundingMode);
+      elements.totalsInstructional.textContent = formatOutputCurrency(results.instructionalTotalCost, results.roundingMode);
+      elements.totalsNonInstructional.textContent = formatOutputCurrency(results.nonInstructionalTotalCost, results.roundingMode);
+      elements.totalsOverload.textContent = formatOutputCurrency(results.totalOverloadCost, results.roundingMode);
+      elements.combinedTotal.textContent = formatOutputCurrency(
+        results.calculatorMode === "budget-required" ? results.combinedTotal : results.roundedCombinedTotal,
+        results.roundingMode
       );
-      elements.fundingDisplay.textContent = formatCurrency(
-        results.calculatorMode === "budget-required" ? results.roundedCombinedTotal : results.fundingAmount
+      elements.fundingDisplay.textContent = formatOutputCurrency(
+        results.calculatorMode === "budget-required" ? results.roundedCombinedTotal : results.fundingAmount,
+        results.roundingMode
       );
-      elements.fundingBalance.textContent = formatCurrency(results.fundingBalance);
+      elements.fundingBalance.textContent = formatOutputCurrency(results.fundingBalance, results.roundingMode);
     }
 
     function buildCopySummaryText(state) {
@@ -2788,33 +2807,33 @@
         ...(inputs.notes ? [`Notes / Comments: ${inputs.notes}`] : []),
         "",
         "Release Results",
-        `Cost per TE: ${formatCurrency(results.costPerTE)}`,
-        `Release Time Cost: ${formatCurrency(results.releaseTimeCost)}`,
-        `Total Release Time Cost: ${formatCurrency(results.releaseTotalCost)}`,
+        `Cost per TE: ${formatOutputCurrency(results.costPerTE, results.roundingMode)}`,
+        `Release Time Cost: ${formatOutputCurrency(results.releaseTimeCost, results.roundingMode)}`,
+        `Total Release Time Cost: ${formatOutputCurrency(results.releaseTotalCost, results.roundingMode)}`,
         `Percent Charged to Extramural Account: ${formatPercent(results.releaseExtramuralPercent)}`,
         `Percent Charged to College: ${formatPercent(results.releaseCollegePercent)}`,
         "",
         "Instructional Overload",
         `Instructional TE Requested: ${formatDecimal(results.desiredInstructionalTE)}`,
         `Instructional TE Funded: ${formatDecimal(results.instructionalFundedTE)}`,
-        `Instructional Faculty Pay: ${formatCurrency(results.instructionalPay)}`,
-        `Instructional Total Cost: ${formatCurrency(results.instructionalTotalCost)}`,
+        `Instructional Faculty Pay: ${formatOutputCurrency(results.instructionalPay, results.roundingMode)}`,
+        `Instructional Total Cost: ${formatOutputCurrency(results.instructionalTotalCost, results.roundingMode)}`,
         `Percent Charged to Extramural Account: ${formatPercent(results.instructionalExtramuralPercent)}`,
         `Percent Charged to College: ${formatPercent(results.instructionalCollegePercent)}`,
         "",
         "Non-Instructional Overload",
-        `Non-Instructional Faculty Pay: ${formatCurrency(results.nonInstructionalPay)}`,
-        `Non-Instructional Total Cost: ${formatCurrency(results.nonInstructionalTotalCost)}`,
+        `Non-Instructional Faculty Pay: ${formatOutputCurrency(results.nonInstructionalPay, results.roundingMode)}`,
+        `Non-Instructional Total Cost: ${formatOutputCurrency(results.nonInstructionalTotalCost, results.roundingMode)}`,
         `Non-Instructional Overload Days: ${formatDays(results.nonInstructionalOverloadDays)}`,
         "",
         "Totals",
-        ...(isBudgetRequired ? [] : [`Funding Amount: ${formatCurrency(results.fundingAmount)}`]),
-        `Total Overload Cost: ${formatCurrency(results.totalOverloadCost)}`,
+        ...(isBudgetRequired ? [] : [`Funding Amount: ${formatOutputCurrency(results.fundingAmount, results.roundingMode)}`]),
+        `Total Overload Cost: ${formatOutputCurrency(results.totalOverloadCost, results.roundingMode)}`,
         ...(isBudgetRequired
-          ? [`Required Budget: ${formatCurrency(results.roundedCombinedTotal)}`]
+          ? [`Required Budget: ${formatOutputCurrency(results.roundedCombinedTotal, results.roundingMode)}`]
           : [
-              `Combined Total Cost: ${formatCurrency(results.roundedCombinedTotal)}`,
-              `Funding Remaining / Shortfall: ${formatCurrency(results.fundingBalance)}`
+              `Combined Total Cost: ${formatOutputCurrency(results.roundedCombinedTotal, results.roundingMode)}`,
+              `Funding Remaining / Shortfall: ${formatOutputCurrency(results.fundingBalance, results.roundingMode)}`
             ])
       ].join("\n");
     }
@@ -2994,7 +3013,7 @@
         }
 
         if (!isBudgetRequired && Number.isFinite(fundingAmountInput)) {
-          elements.fundingDisplay.textContent = formatCurrency(Math.max(fundingAmountInput, 0));
+          elements.fundingDisplay.textContent = formatOutputCurrency(Math.max(fundingAmountInput, 0), roundingMode);
         }
 
         return;
@@ -3155,6 +3174,7 @@
         totalOverloadCost,
         combinedTotal,
         roundedCombinedTotal,
+        roundingMode,
         fundingAmount: isBudgetRequired ? roundedCombinedTotal : fundingAmount,
         fundingBalance,
         releaseFringeRatePercent,
@@ -3201,7 +3221,7 @@
         paintStatus(
           "bad",
           "Release time exceeds available funding.",
-          `Release time alone is short by ${formatCurrency(Math.abs(rawRemainingBeforeOverload))}. Instructional and non-instructional overload are both set to $0.00.`
+          `Release time alone is short by ${formatOutputCurrency(Math.abs(rawRemainingBeforeOverload), roundingMode)}. Instructional and non-instructional overload are both set to ${formatOutputCurrency(0, roundingMode)}.`
         );
         return;
       }
@@ -3215,7 +3235,7 @@
         paintStatus(
           "warn",
           "Instructional TE was capped.",
-          `The requested instructional summer TE exceeded what the available overload budget can fund. ${formatDecimal(instructionalFundedTE)} TE is funded for instructional overload, and ${formatCurrency(nonInstructionalBudget)} flows automatically to non-instructional overload.`
+          `The requested instructional summer TE exceeded what the available overload budget can fund. ${formatDecimal(instructionalFundedTE)} TE is funded for instructional overload, and ${formatOutputCurrency(nonInstructionalBudget, roundingMode)} flows automatically to non-instructional overload.`
         );
         return;
       }
