@@ -1155,6 +1155,21 @@
                 </div>
                 <div class="help" id="calculator-mode-help">Budget Available: start with known funding and allocate it across release and overload.</div>
               </fieldset>
+
+              <fieldset>
+                <legend>Rounding</legend>
+                <div class="choice-group">
+                  <label class="choice">
+                    <input type="radio" name="rounding-mode" value="nearest-cent" checked>
+                    <span>Nearest Cent</span>
+                  </label>
+                  <label class="choice">
+                    <input type="radio" name="rounding-mode" value="round-up-dollar">
+                    <span>Round Up Dollar</span>
+                  </label>
+                </div>
+                <div class="help" id="rounding-mode-help">Nearest Cent keeps the current calculator behavior. Round Up Dollar rounds each monetary step up to the next whole dollar.</div>
+              </fieldset>
             </div>
           </section>
 
@@ -1355,6 +1370,7 @@
                 <li>ORS fringe and indirect rates load as live defaults when available.</li>
                 <li>Summer instructional pay rates load as live options when available.</li>
                 <li>If live rates are unavailable, built-in defaults or manual entry are used.</li>
+                <li>Rounding follows the selected mode: nearest cent, or round each monetary step up to the next whole dollar.</li>
               </ul>
             </section>
             <section class="modal-section">
@@ -1363,7 +1379,7 @@
                 <li><strong>Total Release Time Cost</strong>: release cost including fringe and indirect cost.</li>
                 <li><strong>Instructional Overload Pay</strong>: faculty pay for instructional summer overload.</li>
                 <li><strong>Non-Instructional Overload Pay</strong>: faculty pay for non-instructional overload.</li>
-                <li><strong>Required Budget (rounded up)</strong>: total budget needed in Budget Required mode.</li>
+                <li><strong>Required Budget</strong>: total budget needed in Budget Required mode using the selected rounding option.</li>
               </ul>
             </section>
             <section class="modal-section">
@@ -1418,7 +1434,7 @@
                   <div class="equation-line">
                     <span class="equation-group">
                       <span class="equation-paren">(</span>
-                      <span>$ total release time cost</span>
+                      <span>$ release time cost</span>
                       <span class="equation-paren">)</span>
                     </span>
                     <span class="equation-op">x</span>
@@ -1487,7 +1503,7 @@
             <div class="metric key-metric"><dt id="non-instructional-days-label">Non-instructional overload days</dt><dd id="non-instructional-overload-days">0.00</dd></div>
           </dl>
           <div class="footnote">
-            <div id="non-instructional-formula-intro">The number of days for 9-month faculty to earn non-instructional overload pay:</div>
+            <div id="non-instructional-formula-intro">The number of days for 9-month faculty supported by the non-instructional overload budget:</div>
             <div class="equation-block overload-days-equation" aria-label="Non-instructional overload days equation">
               <div class="equation-line">
                 <span class="equation-group">
@@ -1569,7 +1585,7 @@
                 </span>
               </div>
             </div>
-            <span id="non-instructional-formula-fallback">The number of days for 9-month faculty to earn non-instructional overload pay:
+            <span id="non-instructional-formula-fallback">The number of days for 9-month faculty supported by the non-instructional overload budget:
             <code>($ overload) &divide; ($ salary/year) x (9 months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>
             = <code>(52 x 40 &divide; 12 &divide; 8) x (9 x overload &divide; salary)</code>.</span>
           </div>
@@ -1616,6 +1632,7 @@
       desiredNonInstructionalDays: document.getElementById("desired-non-instructional-days"),
       desiredNonInstructionalDaysError: document.getElementById("desired-non-instructional-days-error"),
       calculatorModeHelp: document.getElementById("calculator-mode-help"),
+      roundingModeHelp: document.getElementById("rounding-mode-help"),
       summaryModeLabel: document.getElementById("summary-mode-label"),
       summerRateSource: document.getElementById("summer-rate-source"),
       summerRateStatus: document.getElementById("summer-rate-status"),
@@ -1721,6 +1738,8 @@
     const SUMMER_RATE_PROXY_URL = "https://script.google.com/macros/s/AKfycby3BQh0o2lOd0B4iO1rrPVy75a9c6--Io7kgGPnDqkuXMfT8OJwcDjSGbiImPMnAWch6Q/exec";
     const LOCAL_STORAGE_KEY = "release-time-overload-calculator-state-v1";
     const CUSTOM_RATE_OPTION = "__custom__";
+    const ROUNDING_MODE_NEAREST_CENT = "nearest-cent";
+    const ROUNDING_MODE_ROUND_UP_DOLLAR = "round-up-dollar";
     const BUILTIN_RATE_DEFAULTS = {
       releaseFringeRate: elements.releaseFringeRate.value,
       overloadFringeRate: elements.overloadFringeRate.value,
@@ -1833,6 +1852,16 @@
       return selectedValue("calculator-mode") || "budget-available";
     }
 
+    function getRoundingMode() {
+      return selectedValue("rounding-mode") || ROUNDING_MODE_NEAREST_CENT;
+    }
+
+    function getRoundingModeLabel(roundingMode = getRoundingMode()) {
+      return roundingMode === ROUNDING_MODE_ROUND_UP_DOLLAR
+        ? "Round Up Dollar"
+        : "Nearest Cent";
+    }
+
     function formatCurrency(value) {
       return currencyFormatter.format(value);
     }
@@ -1864,7 +1893,7 @@
         '  <div class="equation-line">',
         '    <span class="equation-group">',
         '      <span class="equation-paren">(</span>',
-        '      <span>$ total release time cost</span>',
+        '      <span>$ release time cost</span>',
         '      <span class="equation-paren">)</span>',
         '    </span>',
         '    <span class="equation-op">x</span>',
@@ -1900,7 +1929,7 @@
       const facultyMonthsText = `${facultyMonths}-month`;
       const isElevenMonth = facultyMonths === 11;
 
-      elements.nonInstructionalFormulaIntro.textContent = `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay:`;
+      elements.nonInstructionalFormulaIntro.textContent = `The number of days for ${facultyMonthsText} faculty supported by the non-instructional overload budget:`;
       elements.nonInstructionalFormulaOverload.textContent = "$ overload";
       elements.nonInstructionalFormulaSalary.textContent = "$ salary";
       elements.nonInstructionalFormulaMonths.textContent = `${facultyMonths} months`;
@@ -1913,10 +1942,10 @@
       elements.nonInstructionalFormulaReducedBottom.textContent = "salary";
       elements.nonInstructionalFormulaFallback.innerHTML =
         isElevenMonth
-          ? `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay: ` +
+          ? `The number of days for ${facultyMonthsText} faculty supported by the non-instructional overload budget: ` +
             `<code>($ overload) &divide; ($ salary/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>` +
             ` = <code>(52 x 40 &divide; 8) x (overload &divide; salary)</code>.`
-          : `The number of days for ${facultyMonthsText} faculty to earn non-instructional overload pay: ` +
+          : `The number of days for ${facultyMonthsText} faculty supported by the non-instructional overload budget: ` +
             `<code>($ overload) &divide; ($ salary/year) x (${facultyMonths} months/year) &divide; (12 months/year) x (52 weeks/year) x (40 hours/week) &divide; (8 hours/day)</code>` +
             ` = <code>(52 x 40 &divide; 12 &divide; 8) x (${facultyMonths} x overload &divide; salary)</code>.`;
     }
@@ -2008,6 +2037,12 @@
       }
     }
 
+    function updateRoundingModeHelp() {
+      elements.roundingModeHelp.textContent = getRoundingMode() === ROUNDING_MODE_ROUND_UP_DOLLAR
+        ? "Round Up Dollar rounds each monetary step up to the next whole dollar."
+        : "Nearest Cent keeps the current calculator behavior.";
+    }
+
     function applyCalculatorModeVisibility() {
       const isBudgetRequired = getCalculatorMode() === "budget-required";
       elements.fundingInputWrapper.hidden = isBudgetRequired;
@@ -2023,6 +2058,7 @@
       elements.heroDescription.textContent = isBudgetRequired
         ? "For one faculty member, enter release time, instructional summer TE, and non-instructional overload days. The calculator estimates the budget required to cover the selected release time and summer overload."
         : "For one faculty member, enter funding amount, release time, and instructional summer TE. The calculator applies release-time costs first, then uses the remaining budget for instructional and non-instructional summer overload.";
+      updateRoundingModeHelp();
     }
 
     function getNormalizedInputValue(input) {
@@ -2049,6 +2085,7 @@
       const scenarioNotes = elements.scenarioNotes.value.trim();
       const facultyMonths = selectedValue("faculty-months");
       const summerRateSource = elements.summerRateSource.value;
+      const roundingMode = getRoundingMode();
 
       const hasMeaningfulInput = [
         salary,
@@ -2064,6 +2101,7 @@
       if (!hasMeaningfulInput &&
           calculatorMode === "budget-available" &&
           facultyMonths === "9" &&
+          roundingMode === ROUNDING_MODE_NEAREST_CENT &&
           summerRateSource === CUSTOM_RATE_OPTION &&
           releaseFringeRate === BUILTIN_RATE_DEFAULTS.releaseFringeRate &&
           overloadFringeRate === BUILTIN_RATE_DEFAULTS.overloadFringeRate &&
@@ -2085,6 +2123,7 @@
       if (scenarioNotes) params.set("notes", scenarioNotes);
       if (facultyMonths) params.set("facultyMonths", facultyMonths);
       if (summerRateSource) params.set("summerRateSource", summerRateSource);
+      if (roundingMode) params.set("roundingMode", roundingMode);
 
       return params;
     }
@@ -2160,8 +2199,10 @@
       const notes = params.get("notes");
       const facultyMonths = params.get("facultyMonths");
       const summerRateSource = params.get("summerRateSource");
+      const roundingMode = params.get("roundingMode");
 
       if (calculatorMode) setCheckedRadio("calculator-mode", calculatorMode);
+      if (roundingMode) setCheckedRadio("rounding-mode", roundingMode);
       if (salary !== null) elements.salary.value = formatCurrencyInputValue(salary);
       if (funding !== null) elements.funding.value = formatCurrencyInputValue(funding);
       if (desiredTE !== null) elements.desiredTE.value = desiredTE;
@@ -2518,6 +2559,30 @@
       return Math.ceil((value - 1e-9) * 100) / 100;
     }
 
+    function ceilToDollar(value) {
+      return Math.ceil(value - 1e-9);
+    }
+
+    function roundCurrencyStep(value, roundingMode = getRoundingMode()) {
+      if (!Number.isFinite(value)) {
+        return 0;
+      }
+
+      return roundingMode === ROUNDING_MODE_ROUND_UP_DOLLAR
+        ? ceilToDollar(value)
+        : value;
+    }
+
+    function roundCurrencyTotal(value, roundingMode = getRoundingMode()) {
+      if (!Number.isFinite(value)) {
+        return 0;
+      }
+
+      return roundingMode === ROUNDING_MODE_ROUND_UP_DOLLAR
+        ? ceilToDollar(value)
+        : ceilToCent(value);
+    }
+
     function resetOutputs() {
       const selectedFacultyMonths = Number.parseInt(selectedValue("faculty-months"), 10);
 
@@ -2588,7 +2653,7 @@
       elements.combinedTotalRow.style.display = isBudgetRequired ? "none" : "";
       elements.combinedTotalRow.classList.toggle("emphasis-metric", !isBudgetRequired);
       elements.fundingDisplayLabel.textContent = isBudgetRequired
-        ? "Required budget (rounded up)"
+        ? "Required budget (selected rounding)"
         : "Funding amount";
       elements.fundingDisplayRow.hidden = !isBudgetRequired;
       elements.fundingDisplayRow.style.display = isBudgetRequired ? "" : "none";
@@ -2707,6 +2772,7 @@
         "",
         "Inputs",
         `Calculator Mode: ${isBudgetRequired ? "Budget Required" : "Budget Available"}`,
+        `Rounding Mode: ${inputs.roundingModeLabel}`,
         `Annual Salary: ${formatCurrency(inputs.annualSalary)}`,
         `Faculty Term: ${inputs.facultyMonths}-month`,
         ...(isBudgetRequired ? [] : [`Funding Amount: ${formatCurrency(inputs.fundingAmount)}`]),
@@ -2812,6 +2878,7 @@
       savedCustomInstructionalRate = "";
 
       setCheckedRadio("calculator-mode", "budget-available");
+      setCheckedRadio("rounding-mode", ROUNDING_MODE_NEAREST_CENT);
       elements.salary.value = "";
       elements.funding.value = "";
       elements.desiredTE.value = "";
@@ -2851,6 +2918,7 @@
     function calculate() {
       const calculatorMode = getCalculatorMode();
       const isBudgetRequired = calculatorMode === "budget-required";
+      const roundingMode = getRoundingMode();
       const annualSalary = readNumber(elements.salary);
       const fundingAmountInput = readNumber(elements.funding);
       const desiredTE = readNumber(elements.desiredTE);
@@ -2939,12 +3007,12 @@
       const indirectRate = indirectRatePercent / 100;
       const overloadLoadFactor = (1 + overloadFringeRate) * (1 + indirectRate);
       const nonInstructionalDayFactor = facultyMonths === 11 ? 260 : 195;
-      const costPerTE = annualSalary / annualTeachingLoad;
-      const releaseTimeCost = costPerTE * desiredTE;
-      const releaseFringe = releaseTimeCost * releaseFringeRate;
-      const releaseDirectCost = releaseTimeCost + releaseFringe;
-      const releaseIndirectCost = releaseDirectCost * indirectRate;
-      const releaseTotalCost = releaseDirectCost + releaseIndirectCost;
+      const costPerTE = roundCurrencyStep(annualSalary / annualTeachingLoad, roundingMode);
+      const releaseTimeCost = roundCurrencyStep(costPerTE * desiredTE, roundingMode);
+      const releaseFringe = roundCurrencyStep(releaseTimeCost * releaseFringeRate, roundingMode);
+      const releaseDirectCost = roundCurrencyStep(releaseTimeCost + releaseFringe, roundingMode);
+      const releaseIndirectCost = roundCurrencyStep(releaseDirectCost * indirectRate, roundingMode);
+      const releaseTotalCost = roundCurrencyStep(releaseDirectCost + releaseIndirectCost, roundingMode);
       const rawRemainingBeforeOverload = fundingAmount - releaseTotalCost;
       const availableOverloadBudget = Math.max(fundingAmount - releaseTotalCost, 0);
 
@@ -2977,18 +3045,18 @@
       let instructionalExceedsFunding = false;
 
       if (desiredTE > 0 && monthsCharged > 0) {
-        releaseExtramuralPercent = (releaseTotalCost * 12 * 100) / (monthsCharged * annualSalary);
+        releaseExtramuralPercent = (releaseTimeCost * 12 * 100) / (monthsCharged * annualSalary);
         releaseCollegePercent = 100 - releaseExtramuralPercent;
       }
 
       if (isBudgetRequired) {
-        instructionalRequestedPay = desiredInstructionalTE * (instructionalCostPerTE ?? 0);
-        instructionalRequestedTotalCost = instructionalRequestedPay * overloadLoadFactor;
+        instructionalRequestedPay = roundCurrencyStep(desiredInstructionalTE * (instructionalCostPerTE ?? 0), roundingMode);
+        instructionalRequestedTotalCost = roundCurrencyStep(instructionalRequestedPay * overloadLoadFactor, roundingMode);
         instructionalPay = instructionalRequestedPay;
-        instructionalFringe = instructionalPay * overloadFringeRate;
-        instructionalDirectCost = instructionalPay + instructionalFringe;
-        instructionalIndirectCost = instructionalDirectCost * indirectRate;
-        instructionalTotalCost = instructionalDirectCost + instructionalIndirectCost;
+        instructionalFringe = roundCurrencyStep(instructionalPay * overloadFringeRate, roundingMode);
+        instructionalDirectCost = roundCurrencyStep(instructionalPay + instructionalFringe, roundingMode);
+        instructionalIndirectCost = roundCurrencyStep(instructionalDirectCost * indirectRate, roundingMode);
+        instructionalTotalCost = roundCurrencyStep(instructionalDirectCost + instructionalIndirectCost, roundingMode);
         instructionalFundedTE = desiredInstructionalTE;
 
         if (desiredInstructionalTE > 0) {
@@ -2998,48 +3066,56 @@
 
         nonInstructionalOverloadDays = desiredNonInstructionalDays;
         nonInstructionalPay = desiredNonInstructionalDays > 0
-          ? (desiredNonInstructionalDays * annualSalary) / nonInstructionalDayFactor
+          ? roundCurrencyStep((desiredNonInstructionalDays * annualSalary) / nonInstructionalDayFactor, roundingMode)
           : 0;
-        nonInstructionalFringe = nonInstructionalPay * overloadFringeRate;
-        nonInstructionalDirectCost = nonInstructionalPay + nonInstructionalFringe;
-        nonInstructionalIndirectCost = nonInstructionalDirectCost * indirectRate;
-        nonInstructionalTotalCost = nonInstructionalDirectCost + nonInstructionalIndirectCost;
+        nonInstructionalFringe = roundCurrencyStep(nonInstructionalPay * overloadFringeRate, roundingMode);
+        nonInstructionalDirectCost = roundCurrencyStep(nonInstructionalPay + nonInstructionalFringe, roundingMode);
+        nonInstructionalIndirectCost = roundCurrencyStep(nonInstructionalDirectCost * indirectRate, roundingMode);
+        nonInstructionalTotalCost = roundCurrencyStep(nonInstructionalDirectCost + nonInstructionalIndirectCost, roundingMode);
         nonInstructionalBudget = nonInstructionalTotalCost;
 
-        totalOverloadCost = instructionalTotalCost + nonInstructionalTotalCost;
-        combinedTotal = releaseTotalCost + totalOverloadCost;
-        roundedCombinedTotal = ceilToCent(combinedTotal);
+        totalOverloadCost = roundCurrencyStep(instructionalTotalCost + nonInstructionalTotalCost, roundingMode);
+        combinedTotal = roundCurrencyStep(releaseTotalCost + totalOverloadCost, roundingMode);
+        roundedCombinedTotal = roundCurrencyTotal(combinedTotal, roundingMode);
       } else if (releaseTotalCost <= fundingAmount) {
-        instructionalRequestedPay = desiredInstructionalTE * (instructionalCostPerTE ?? 0);
-        instructionalRequestedTotalCost = instructionalRequestedPay * overloadLoadFactor;
+        instructionalRequestedPay = roundCurrencyStep(desiredInstructionalTE * (instructionalCostPerTE ?? 0), roundingMode);
+        instructionalRequestedTotalCost = roundCurrencyStep(instructionalRequestedPay * overloadLoadFactor, roundingMode);
         instructionalTotalCost = Math.min(instructionalRequestedTotalCost, availableOverloadBudget);
         instructionalTECapped = instructionalRequestedTotalCost > availableOverloadBudget + 1e-9;
 
-        instructionalPay = instructionalTotalCost / overloadLoadFactor;
-        instructionalFringe = instructionalPay * overloadFringeRate;
-        instructionalDirectCost = instructionalPay + instructionalFringe;
-        instructionalIndirectCost = instructionalDirectCost * indirectRate;
-        instructionalFundedTE = instructionalCostPerTE > 0 ? instructionalPay / instructionalCostPerTE : 0;
+        instructionalPay = instructionalTotalCost > 0
+          ? roundCurrencyStep(instructionalTotalCost / overloadLoadFactor, roundingMode)
+          : 0;
+        instructionalFringe = roundCurrencyStep(instructionalPay * overloadFringeRate, roundingMode);
+        instructionalDirectCost = roundCurrencyStep(instructionalPay + instructionalFringe, roundingMode);
+        instructionalIndirectCost = roundCurrencyStep(instructionalDirectCost * indirectRate, roundingMode);
+        instructionalTotalCost = roundCurrencyStep(instructionalDirectCost + instructionalIndirectCost, roundingMode);
+        instructionalFundedTE = instructionalCostPerTE > 0
+          ? Math.min(instructionalPay / instructionalCostPerTE, desiredInstructionalTE)
+          : 0;
 
         if (desiredInstructionalTE > 0) {
-          instructionalExtramuralPercent = (instructionalFundedTE * 100) / desiredInstructionalTE;
+          instructionalExtramuralPercent = Math.min((instructionalFundedTE * 100) / desiredInstructionalTE, 100);
           instructionalCollegePercent = 100 - instructionalExtramuralPercent;
         }
 
         nonInstructionalBudget = Math.max(0, availableOverloadBudget - instructionalTotalCost);
-        nonInstructionalPay = nonInstructionalBudget / overloadLoadFactor;
-        nonInstructionalFringe = nonInstructionalPay * overloadFringeRate;
-        nonInstructionalDirectCost = nonInstructionalPay + nonInstructionalFringe;
-        nonInstructionalIndirectCost = nonInstructionalDirectCost * indirectRate;
-        nonInstructionalTotalCost = nonInstructionalDirectCost + nonInstructionalIndirectCost;
-        nonInstructionalOverloadDays = (nonInstructionalPay * nonInstructionalDayFactor) / annualSalary;
+        nonInstructionalPay = nonInstructionalBudget > 0
+          ? roundCurrencyStep(nonInstructionalBudget / overloadLoadFactor, roundingMode)
+          : 0;
+        nonInstructionalFringe = roundCurrencyStep(nonInstructionalPay * overloadFringeRate, roundingMode);
+        nonInstructionalDirectCost = roundCurrencyStep(nonInstructionalPay + nonInstructionalFringe, roundingMode);
+        nonInstructionalIndirectCost = roundCurrencyStep(nonInstructionalDirectCost * indirectRate, roundingMode);
+        nonInstructionalTotalCost = roundCurrencyStep(nonInstructionalDirectCost + nonInstructionalIndirectCost, roundingMode);
+        const nonInstructionalDaysBudgetBasis = nonInstructionalBudget;
+        nonInstructionalOverloadDays = (nonInstructionalDaysBudgetBasis * nonInstructionalDayFactor) / annualSalary;
 
-        totalOverloadCost = instructionalTotalCost + nonInstructionalTotalCost;
-        combinedTotal = releaseTotalCost + totalOverloadCost;
+        totalOverloadCost = roundCurrencyStep(instructionalTotalCost + nonInstructionalTotalCost, roundingMode);
+        combinedTotal = roundCurrencyStep(releaseTotalCost + totalOverloadCost, roundingMode);
       }
 
       if (!isBudgetRequired) {
-        roundedCombinedTotal = ceilToCent(combinedTotal);
+        roundedCombinedTotal = roundCurrencyTotal(combinedTotal, roundingMode);
         fundingBalance = fundingAmount - roundedCombinedTotal;
         releaseExceedsFunding = releaseTotalCost > fundingAmount;
         instructionalExceedsFunding = desiredInstructionalTE > instructionalFundedTE + 1e-9;
@@ -3105,6 +3181,7 @@
           desiredInstructionalTE,
           desiredNonInstructionalDays,
           summerRateSourceLabel: getSummerRateSourceLabel(),
+          roundingModeLabel: getRoundingModeLabel(roundingMode),
           instructionalCostPerTE,
           notes: elements.scenarioNotes.value.trim()
         },
@@ -3198,6 +3275,12 @@
         calculate();
       });
     });
+    document.querySelectorAll('input[name="rounding-mode"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        updateRoundingModeHelp();
+        calculate();
+      });
+    });
     elements.summerRateSource.addEventListener("change", () => {
       applySummerRateSourceSelection();
       calculate();
@@ -3233,6 +3316,7 @@
     restoreInitialStatus();
     updateCopySummaryButton(false);
     applyCalculatorModeVisibility();
+    updateRoundingModeHelp();
     const hasUrlState = loadStateFromUrl();
     if (!hasUrlState) {
       loadStateFromLocalStorage();
