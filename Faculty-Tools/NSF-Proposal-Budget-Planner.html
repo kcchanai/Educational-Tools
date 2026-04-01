@@ -75,6 +75,7 @@
 
     .hero-copy {
       min-width: 0;
+      max-width: 78ch;
     }
 
     .hero-seal {
@@ -86,7 +87,7 @@
 
     .hero-seal img {
       display: block;
-      width: min(170px, 22vw);
+      width: min(180px, 22vw);
       max-width: 100%;
       height: auto;
       object-fit: contain;
@@ -123,7 +124,7 @@
 
     .hero p {
       margin: 14px 0 0;
-      max-width: 70ch;
+      max-width: none;
       line-height: 1.6;
       color: var(--muted);
     }
@@ -152,12 +153,14 @@
     }
 
     input,
-    button {
+    button,
+    select {
       font: inherit;
     }
 
     input[type="text"],
-    input[type="number"] {
+    input[type="number"],
+    select {
       width: 100%;
       min-height: 46px;
       padding: 11px 12px;
@@ -178,6 +181,54 @@
       color: var(--muted);
       font-size: 0.78rem;
       line-height: 1.45;
+    }
+
+    .rate-source-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .rate-source-card {
+      padding: 14px 16px;
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      border-radius: var(--radius-md);
+      background: var(--panel-strong);
+    }
+
+    .rate-source-card h3 {
+      margin: 0;
+      font-size: 0.84rem;
+      letter-spacing: 0.03em;
+      color: var(--accent);
+    }
+
+    .rate-status {
+      font-weight: 700;
+    }
+
+    .rate-status.warn {
+      color: #8e2638;
+    }
+
+    .rate-status.good {
+      color: #1e6a49;
+    }
+
+    .rate-status.quiet {
+      color: var(--muted);
+    }
+
+    .live-update {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+    }
+
+    .rate-action-row {
+      margin-top: 10px;
     }
 
     .summary-grid {
@@ -732,6 +783,10 @@
         flex-direction: column;
       }
 
+      .rate-source-grid {
+        grid-template-columns: 1fr;
+      }
+
       .hero-content {
         grid-template-columns: 1fr;
       }
@@ -817,11 +872,9 @@
           <p class="eyebrow">NSF Budget Planning</p>
           <h1>NSF Proposal Budget Planner</h1>
           <p>
-            Plan one NSF proposal budget period in a worksheet-style format before entering values into the
-            official proposal system. Personnel rows capture person-months, salary-before-fringe, and fringe,
-            with an optional Budget Helper for release time and overload estimates. The worksheet carries
-            calculations to the nearest cent internally and displays rounded-up whole-dollar totals for direct
-            costs, modified total direct costs, and indirect cost for the full budget period.
+            Plan one NSF budget period before entering it into the official proposal system. Personnel rows
+            track person-months, salary-before-fringe, and fringe, with Budget Helper support and live ORS
+            and summer-rate defaults for faster setup.
           </p>
         </div>
         <figure class="hero-seal">
@@ -861,6 +914,34 @@
       <div class="help">
         For categories with special indirect-cost treatment, enter only the allowable direct-cost base here
         or clear IDC for that row. MTDC is calculated from the direct-cost lines that remain eligible for IDC.
+      </div>
+      <div class="rate-source-grid">
+        <section class="rate-source-card" aria-label="Live ORS defaults">
+          <h3>Live ORS Defaults</h3>
+          <div class="help">
+            Current rates:
+            <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">UH ORS rate page</a>
+          </div>
+          <div class="help rate-status warn" id="ors-rate-status">
+            Using built-in default rates until live ORS defaults load.
+          </div>
+          <div class="live-update" id="ors-rate-updated">Updated: unavailable.</div>
+          <div class="rate-action-row">
+            <button type="button" id="reload-ors-rates-button">Reload Live ORS Defaults</button>
+          </div>
+        </section>
+        <section class="rate-source-card" aria-label="Live summer instructional rates">
+          <h3>Live Summer Rates</h3>
+          <div class="help">
+            Current summer instructional pay rates:<br>
+            <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">UH summer faculty pay-rate page</a><br>
+            <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-casual.asp" target="_blank" rel="noopener noreferrer">UH summer lecturer pay-rate page</a>
+          </div>
+          <div class="help rate-status warn" id="summer-rate-status">
+            Live summer rates are unavailable until a proxy URL is configured. Manual entry remains available in Budget Helper.
+          </div>
+          <div class="live-update" id="summer-rate-updated">Updated: unavailable.</div>
+        </section>
       </div>
 
       <div class="action-row">
@@ -1125,6 +1206,7 @@
               <li>Enter CAL, ACAD, and SUMR person-months for both Sections A and B.</li>
               <li>Enter the salary amount before fringe and the fringe amount separately for each person.</li>
               <li>Use Budget Helper on a row to derive person-months, salary before fringe, and fringe from release time and overload inputs.</li>
+              <li>Each Budget Helper row can use a Summer Rate Source selector to choose a live faculty rate, a live lecturer rate, or a custom instructional Summer TE value.</li>
               <li>Budget Helper calculates ACAD months as release TE divided by 3, and SUMR months as summer instructional TE divided by 3 plus non-instructional overload days divided by 21.</li>
               <li>Summer person-month calculations assume 63 work days across 3 months of summer.</li>
             </ul>
@@ -1133,6 +1215,8 @@
             <h3>Rates</h3>
             <ul>
               <li>The default indirect cost rate is editable at the top of the page.</li>
+              <li>Use Reload Live ORS Defaults to refresh the planner's default indirect rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
+              <li>Budget Helper can load live summer instructional pay rates from the UH summer faculty and lecturer pay-rate pages.</li>
               <li>Leave a row IDC override blank to use the default indirect rate.</li>
               <li>Clear a row's IDC checkbox when indirect cost should not apply.</li>
             </ul>
@@ -1179,6 +1263,11 @@
       piLabel: document.getElementById("pi-label"),
       budgetPeriodLabel: document.getElementById("budget-period-label"),
       defaultIndirectRate: document.getElementById("default-indirect-rate"),
+      orsRateStatus: document.getElementById("ors-rate-status"),
+      orsRateUpdated: document.getElementById("ors-rate-updated"),
+      reloadOrsRatesButton: document.getElementById("reload-ors-rates-button"),
+      summerRateStatus: document.getElementById("summer-rate-status"),
+      summerRateUpdated: document.getElementById("summer-rate-updated"),
       resetButton: document.getElementById("reset-button"),
       copySummaryButton: document.getElementById("copy-summary-button"),
       copyLinkButton: document.getElementById("copy-link-button"),
@@ -1225,13 +1314,31 @@
       maximumFractionDigits: 0
     });
 
+    const liveUpdatedFormatter = new Intl.DateTimeFormat("en-US", {
+      dateStyle: "long",
+      timeStyle: "short"
+    });
+
+    const RATE_PROXY_URL = "https://script.google.com/macros/s/AKfycby3BQh0o2lOd0B4iO1rrPVy75a9c6--Io7kgGPnDqkuXMfT8OJwcDjSGbiImPMnAWch6Q/exec";
+    const CUSTOM_RATE_OPTION = "__custom__";
     let lastFocusedElement = null;
     let suppressUrlSync = false;
-    const helperStateDefaults = {
-      facultyTerm: "9",
+    let suppressRateFieldTracking = false;
+    let defaultIndirectRateTouched = false;
+    let liveSummerRateOptions = [];
+    const builtInHelperRateDefaults = {
+      defaultIndirectRate: elements.defaultIndirectRate.value,
       releaseFringeRate: "59.5",
       overloadFringeRate: "2.47"
     };
+    const helperStateDefaults = {
+      defaultIndirectRate: elements.defaultIndirectRate.value,
+      facultyTerm: "9",
+      releaseFringeRate: "59.5",
+      overloadFringeRate: "2.47",
+      summerRateSource: CUSTOM_RATE_OPTION
+    };
+    const liveHelperRateDefaults = { ...builtInHelperRateDefaults };
 
     function roundToCent(value) {
       return Number.isFinite(value) ? Math.round(value * 100) / 100 : 0;
@@ -1256,6 +1363,15 @@
 
     function formatPercent(value) {
       return `${formatDecimal(value)}%`;
+    }
+
+    function formatLiveUpdatedText(timestamp) {
+      const date = new Date(timestamp);
+      if (Number.isNaN(date.getTime())) {
+        return "Updated: unavailable.";
+      }
+
+      return `Updated: ${liveUpdatedFormatter.format(date)}.`;
     }
 
     function normalizeCurrencyInputValue(value) {
@@ -1342,6 +1458,82 @@
       input.value = "";
     }
 
+    function storeCustomMoneyValueFromInput(input) {
+      const value = getMoneyStateValue(input);
+      if (value === "") {
+        delete input.dataset.customMoneyValue;
+        return;
+      }
+
+      const numericValue = Number.parseFloat(value);
+      input.dataset.customMoneyValue = Number.isFinite(numericValue)
+        ? roundToCent(Math.max(numericValue, 0)).toFixed(2)
+        : value;
+    }
+
+    function restoreCustomMoneyValueToInput(input) {
+      const storedValue = input.dataset.customMoneyValue ?? "";
+      if (storedValue === "") {
+        clearMoneyInputValue(input);
+        return;
+      }
+
+      const numericValue = Number.parseFloat(storedValue);
+      if (Number.isFinite(numericValue)) {
+        input.dataset.moneyValue = roundToCent(Math.max(numericValue, 0)).toFixed(2);
+        formatMoneyInputDisplay(input);
+      } else {
+        input.value = storedValue;
+      }
+    }
+
+    function setSummerRateStatus(message, tone) {
+      elements.summerRateStatus.className = `help rate-status ${tone}`;
+      elements.summerRateStatus.textContent = message;
+    }
+
+    function setOrsRateStatus(message, tone) {
+      elements.orsRateStatus.className = `help rate-status ${tone}`;
+      elements.orsRateStatus.textContent = message;
+    }
+
+    function setOrsReloadButtonState(isLoading) {
+      elements.reloadOrsRatesButton.disabled = isLoading;
+      elements.reloadOrsRatesButton.textContent = isLoading
+        ? "Reloading ORS Defaults..."
+        : "Reload Live ORS Defaults";
+    }
+
+    function wasRateFieldTouched(input) {
+      return input.dataset.rateTouched === "true";
+    }
+
+    function markRateFieldTouched(input) {
+      if (!suppressRateFieldTracking) {
+        input.dataset.rateTouched = "true";
+      }
+    }
+
+    function setTrackedRateFieldValue(input, value, forceApply = false) {
+      if (wasRateFieldTouched(input) && !forceApply) {
+        return;
+      }
+
+      suppressRateFieldTracking = true;
+      input.value = String(value);
+      suppressRateFieldTracking = false;
+    }
+
+    function setTrackedDefaultIndirectRate(value, forceApply = false) {
+      if (defaultIndirectRateTouched && !forceApply) {
+        return;
+      }
+
+      suppressRateFieldTracking = true;
+      elements.defaultIndirectRate.value = String(value);
+      suppressRateFieldTracking = false;
+    }
+
     function getPersonnelValueInputs(row) {
       return {
         calMonths: row.querySelector(".cal-months"),
@@ -1373,6 +1565,7 @@
         monthsCharged: helperRow.querySelector(".helper-months-charged"),
         releaseFringeRate: helperRow.querySelector(".helper-release-fringe-rate"),
         overloadFringeRate: helperRow.querySelector(".helper-overload-fringe-rate"),
+        summerRateSource: helperRow.querySelector(".helper-summer-rate-source"),
         instructionalCostPerTE: helperRow.querySelector(".helper-instructional-cost-per-te"),
         applyToggle: helperRow.querySelector(".helper-apply-toggle"),
         calOutput: helperRow.querySelector(".helper-output-cal"),
@@ -1434,6 +1627,16 @@
       return body.querySelectorAll(".personnel-row").length;
     }
 
+    function getPersonnelRowForHelperControl(control) {
+      const helperRow = control.closest(".personnel-helper-row");
+      if (!helperRow) {
+        return null;
+      }
+
+      const row = helperRow.previousElementSibling;
+      return row && row.classList.contains("personnel-row") ? row : null;
+    }
+
     function sumRoundedDisplay(values) {
       return values.reduce((sum, value) => sum + roundUpDollar(value), 0);
     }
@@ -1483,6 +1686,7 @@
         monthsCharged: helperControls.monthsCharged.value.trim(),
         releaseFringeRate: helperControls.releaseFringeRate.value.trim(),
         overloadFringeRate: helperControls.overloadFringeRate.value.trim(),
+        summerRateSource: helperControls.summerRateSource.value,
         instructionalCostPerTE: getMoneyStateValue(helperControls.instructionalCostPerTE)
       } : null;
       const hasHelperContent = Boolean(helperState) && (
@@ -1496,6 +1700,7 @@
         helperState.monthsCharged !== "" ||
         helperState.releaseFringeRate !== helperStateDefaults.releaseFringeRate ||
         helperState.overloadFringeRate !== helperStateDefaults.overloadFringeRate ||
+        helperState.summerRateSource !== helperStateDefaults.summerRateSource ||
         helperState.instructionalCostPerTE !== ""
       );
 
@@ -1560,7 +1765,7 @@
         Boolean(state.settings.proposalNumber) ||
         Boolean(state.settings.piLabel) ||
         Boolean(state.settings.budgetPeriodLabel) ||
-        (state.settings.defaultIndirectRate && state.settings.defaultIndirectRate !== "45.50") ||
+        (state.settings.defaultIndirectRate && state.settings.defaultIndirectRate !== helperStateDefaults.defaultIndirectRate) ||
         Object.values(state.personnel).some((rows) => rows.length > 0) ||
         state.nonPersonnel.length > 0;
 
@@ -1585,11 +1790,12 @@
 
       resetPlanner();
 
+      defaultIndirectRateTouched = Boolean(state.settings && Object.prototype.hasOwnProperty.call(state.settings, "defaultIndirectRate"));
       elements.organizationLabel.value = state.settings?.organizationLabel || "";
       elements.proposalNumber.value = state.settings?.proposalNumber || "";
       elements.piLabel.value = state.settings?.piLabel || "";
       elements.budgetPeriodLabel.value = state.settings?.budgetPeriodLabel || "";
-      elements.defaultIndirectRate.value = state.settings?.defaultIndirectRate || "45.50";
+      elements.defaultIndirectRate.value = state.settings?.defaultIndirectRate || helperStateDefaults.defaultIndirectRate;
 
       personnelSections.forEach((section) => {
         section.body.innerHTML = "";
@@ -1643,6 +1849,224 @@
         suppressUrlSync = false;
         paintStatus("warn", "Shareable link could not be loaded.", "The URL state was invalid or incomplete.");
         return false;
+      }
+    }
+
+    function appendHelperSummerRateOption(select, label, value) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = `${label} (${formatCurrency(value)})`;
+      select.appendChild(option);
+    }
+
+    function populateHelperSummerRateSelect(select) {
+      const requestedSource = select.dataset.requestedSource || select.value || CUSTOM_RATE_OPTION;
+      select.innerHTML = "";
+
+      liveSummerRateOptions.forEach((rate) => {
+        appendHelperSummerRateOption(select, rate.label, rate.value);
+      });
+
+      const customOption = document.createElement("option");
+      customOption.value = CUSTOM_RATE_OPTION;
+      customOption.textContent = "Custom value";
+      select.appendChild(customOption);
+
+      const hasRequestedSource = Array.from(select.options).some((option) => option.value === requestedSource);
+      select.value = hasRequestedSource ? requestedSource : CUSTOM_RATE_OPTION;
+    }
+
+    function applyHelperSummerRateSourceSelection(row) {
+      const controls = getPersonnelHelperControls(row);
+      if (!controls) {
+        return;
+      }
+
+      const selectedSource = controls.summerRateSource.value || CUSTOM_RATE_OPTION;
+      const previousSource = controls.summerRateSource.dataset.previousValue || CUSTOM_RATE_OPTION;
+
+      if (selectedSource === CUSTOM_RATE_OPTION) {
+        controls.instructionalCostPerTE.readOnly = false;
+        restoreCustomMoneyValueToInput(controls.instructionalCostPerTE);
+      } else {
+        if (previousSource === CUSTOM_RATE_OPTION) {
+          storeCustomMoneyValueFromInput(controls.instructionalCostPerTE);
+        }
+        setMoneyInputValue(controls.instructionalCostPerTE, Number(selectedSource));
+        controls.instructionalCostPerTE.readOnly = true;
+      }
+
+      controls.summerRateSource.dataset.previousValue = selectedSource;
+    }
+
+    function populateAllHelperSummerRateSelects() {
+      document.querySelectorAll(".helper-summer-rate-source").forEach((select) => {
+        const row = getPersonnelRowForHelperControl(select);
+        if (row && select.value && select.value !== CUSTOM_RATE_OPTION && liveSummerRateOptions.length === 0) {
+          const controls = getPersonnelHelperControls(row);
+          if (controls) {
+            storeCustomMoneyValueFromInput(controls.instructionalCostPerTE);
+          }
+        }
+
+        populateHelperSummerRateSelect(select);
+        if (row) {
+          applyHelperSummerRateSourceSelection(row);
+        }
+      });
+    }
+
+    function applyHelperOrsDefaults(forceApply = false) {
+      if (forceApply) {
+        defaultIndirectRateTouched = false;
+        document.querySelectorAll(".helper-release-fringe-rate, .helper-overload-fringe-rate").forEach((input) => {
+          delete input.dataset.rateTouched;
+        });
+      }
+
+      setTrackedDefaultIndirectRate(helperStateDefaults.defaultIndirectRate, forceApply);
+
+      document.querySelectorAll(".personnel-row").forEach((row) => {
+        const controls = getPersonnelHelperControls(row);
+        if (!controls) {
+          return;
+        }
+
+        setTrackedRateFieldValue(controls.releaseFringeRate, helperStateDefaults.releaseFringeRate, forceApply);
+        setTrackedRateFieldValue(controls.overloadFringeRate, helperStateDefaults.overloadFringeRate, forceApply);
+      });
+    }
+
+    async function loadSummerRates() {
+      if (!RATE_PROXY_URL) {
+        liveSummerRateOptions = [];
+        populateAllHelperSummerRateSelects();
+        setSummerRateStatus(
+          "Live summer rates are unavailable until a proxy URL is configured. Manual entry remains available in Budget Helper.",
+          "warn"
+        );
+        elements.summerRateUpdated.textContent = "Updated: unavailable.";
+        calculate();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${RATE_PROXY_URL}?source=summer-pay-rates`, {
+          method: "GET"
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const rates = Array.isArray(payload.rates)
+          ? payload.rates.filter((rate) =>
+              rate &&
+              typeof rate.label === "string" &&
+              Number.isFinite(Number(rate.value))
+            ).map((rate) => ({
+              label: rate.label.trim(),
+              value: Number(rate.value)
+            }))
+          : [];
+
+        if (rates.length === 0) {
+          throw new Error("No usable rates returned.");
+        }
+
+        liveSummerRateOptions = rates;
+        populateAllHelperSummerRateSelects();
+        elements.summerRateUpdated.textContent = formatLiveUpdatedText(payload.fetchedAt);
+        setSummerRateStatus(
+          "Live summer rates loaded. Budget Helper can use faculty or lecturer rates, or a custom value.",
+          "good"
+        );
+        calculate();
+      } catch (error) {
+        liveSummerRateOptions = [];
+        populateAllHelperSummerRateSelects();
+        elements.summerRateUpdated.textContent = "Updated: unavailable.";
+        setSummerRateStatus(
+          "Live summer rates could not be loaded. Manual entry remains available in Budget Helper.",
+          "warn"
+        );
+        calculate();
+      }
+    }
+
+    async function loadOrsRates(options = {}) {
+      const forceApply = Boolean(options.forceApply);
+      setOrsReloadButtonState(true);
+
+      try {
+        if (!RATE_PROXY_URL) {
+          const defaults = forceApply ? liveHelperRateDefaults : builtInHelperRateDefaults;
+          helperStateDefaults.defaultIndirectRate = defaults.defaultIndirectRate;
+          helperStateDefaults.releaseFringeRate = defaults.releaseFringeRate;
+          helperStateDefaults.overloadFringeRate = defaults.overloadFringeRate;
+          applyHelperOrsDefaults(forceApply);
+          setOrsRateStatus(
+            forceApply
+              ? "Live ORS defaults are unavailable. Restored the last available default rates."
+              : "Using built-in default rates until live ORS defaults load.",
+            "warn"
+          );
+          elements.orsRateUpdated.textContent = "Updated: unavailable.";
+          calculate();
+          return;
+        }
+
+        const response = await fetch(`${RATE_PROXY_URL}?source=ors-rates`, {
+          method: "GET"
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const releaseFringeRate = Number(payload.releaseFringeRate);
+        const overloadFringeRate = Number(payload.overloadFringeRate);
+        const indirectRate = Number(payload.indirectRate);
+
+        if (
+          !Number.isFinite(releaseFringeRate) ||
+          !Number.isFinite(overloadFringeRate) ||
+          !Number.isFinite(indirectRate)
+        ) {
+          throw new Error("Malformed ORS rate payload.");
+        }
+
+        liveHelperRateDefaults.defaultIndirectRate = String(indirectRate);
+        liveHelperRateDefaults.releaseFringeRate = String(releaseFringeRate);
+        liveHelperRateDefaults.overloadFringeRate = String(overloadFringeRate);
+        helperStateDefaults.defaultIndirectRate = liveHelperRateDefaults.defaultIndirectRate;
+        helperStateDefaults.releaseFringeRate = liveHelperRateDefaults.releaseFringeRate;
+        helperStateDefaults.overloadFringeRate = liveHelperRateDefaults.overloadFringeRate;
+        applyHelperOrsDefaults(forceApply);
+        elements.orsRateUpdated.textContent = formatLiveUpdatedText(payload.fetchedAt);
+        setOrsRateStatus(
+          "Live ORS default rates loaded. You can still overwrite any helper or indirect-cost rate manually.",
+          "good"
+        );
+        calculate();
+      } catch (error) {
+        const defaults = forceApply ? liveHelperRateDefaults : builtInHelperRateDefaults;
+        helperStateDefaults.defaultIndirectRate = defaults.defaultIndirectRate;
+        helperStateDefaults.releaseFringeRate = defaults.releaseFringeRate;
+        helperStateDefaults.overloadFringeRate = defaults.overloadFringeRate;
+        applyHelperOrsDefaults(forceApply);
+        elements.orsRateUpdated.textContent = "Updated: unavailable.";
+        setOrsRateStatus(
+          forceApply
+            ? "Live ORS defaults could not be refreshed. Restored the last available default rates."
+            : "Live ORS defaults could not be loaded. Using built-in default rates.",
+          "warn"
+        );
+        calculate();
+      } finally {
+        setOrsReloadButtonState(false);
       }
     }
 
@@ -1780,6 +2204,10 @@
     }
 
     function registerPlannerInput(input) {
+      if (input.classList.contains("helper-summer-rate-source")) {
+        return;
+      }
+
       if (input.classList.contains("money-input")) {
         input.addEventListener("input", () => {
           nonNegativeMoney(input);
@@ -1920,6 +2348,10 @@
                 <input type="number" class="helper-overload-fringe-rate" min="0" step="0.01" inputmode="decimal" value="2.47">
               </div>
               <div>
+                <label>Summer Rate Source</label>
+                <select class="helper-summer-rate-source"></select>
+              </div>
+              <div>
                 <label>Instructional Cost per Summer TE</label>
                 <input type="text" inputmode="numeric" class="helper-instructional-cost-per-te money-input" placeholder="0">
               </div>
@@ -1966,8 +2398,9 @@
       helperRow.querySelector(".helper-annual-salary").value = helperState.annualSalary || "";
       helperRow.querySelector(".helper-faculty-term").value = helperState.facultyTerm || "9";
       helperRow.querySelector(".helper-months-charged").value = helperState.monthsCharged || "";
-      helperRow.querySelector(".helper-release-fringe-rate").value = helperState.releaseFringeRate || "59.5";
-      helperRow.querySelector(".helper-overload-fringe-rate").value = helperState.overloadFringeRate || "2.47";
+      helperRow.querySelector(".helper-release-fringe-rate").value = helperState.releaseFringeRate || helperStateDefaults.releaseFringeRate;
+      helperRow.querySelector(".helper-overload-fringe-rate").value = helperState.overloadFringeRate || helperStateDefaults.overloadFringeRate;
+      helperRow.querySelector(".helper-summer-rate-source").dataset.requestedSource = helperState.summerRateSource || helperStateDefaults.summerRateSource;
       helperRow.querySelector(".helper-instructional-cost-per-te").value = helperState.instructionalCostPerTE || "";
       helperRow.querySelector(".helper-apply-toggle").checked = Boolean(helperState.apply);
 
@@ -1991,8 +2424,52 @@
         }
       });
 
+      if (Object.prototype.hasOwnProperty.call(helperState, "releaseFringeRate")) {
+        helperRow.querySelector(".helper-release-fringe-rate").dataset.rateTouched = "true";
+      }
+
+      if (Object.prototype.hasOwnProperty.call(helperState, "overloadFringeRate")) {
+        helperRow.querySelector(".helper-overload-fringe-rate").dataset.rateTouched = "true";
+      }
+
+      if (helperState.instructionalCostPerTE) {
+        storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+      }
+
+      fragment.appendChild(row);
+      fragment.appendChild(helperRow);
+
+      populateHelperSummerRateSelect(helperRow.querySelector(".helper-summer-rate-source"));
+      applyHelperSummerRateSourceSelection(row);
+
       row.querySelector(".row-helper-toggle").addEventListener("click", () => {
         toggleBudgetHelper(row);
+      });
+
+      helperRow.querySelector(".helper-release-fringe-rate").addEventListener("input", (event) => {
+        markRateFieldTouched(event.currentTarget);
+      });
+
+      helperRow.querySelector(".helper-overload-fringe-rate").addEventListener("input", (event) => {
+        markRateFieldTouched(event.currentTarget);
+      });
+
+      helperRow.querySelector(".helper-summer-rate-source").addEventListener("change", (event) => {
+        event.currentTarget.dataset.requestedSource = event.currentTarget.value;
+        applyHelperSummerRateSourceSelection(row);
+        calculate();
+      });
+
+      helperRow.querySelector(".helper-instructional-cost-per-te").addEventListener("input", () => {
+        if (helperRow.querySelector(".helper-summer-rate-source").value === CUSTOM_RATE_OPTION) {
+          storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+        }
+      });
+
+      helperRow.querySelector(".helper-instructional-cost-per-te").addEventListener("change", () => {
+        if (helperRow.querySelector(".helper-summer-rate-source").value === CUSTOM_RATE_OPTION) {
+          storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+        }
       });
 
       if (helperState.open) {
@@ -2009,8 +2486,6 @@
         calculate();
       });
 
-      fragment.appendChild(row);
-      fragment.appendChild(helperRow);
       return fragment;
     }
 
@@ -2361,11 +2836,12 @@
     }
 
     function resetPlanner() {
+      defaultIndirectRateTouched = false;
       elements.organizationLabel.value = "";
       elements.proposalNumber.value = "";
       elements.piLabel.value = "";
       elements.budgetPeriodLabel.value = "";
-      elements.defaultIndirectRate.value = "45.50";
+      elements.defaultIndirectRate.value = helperStateDefaults.defaultIndirectRate;
 
       personnelSections.forEach((section) => {
         section.body.innerHTML = "";
@@ -2398,6 +2874,12 @@
       registerPlannerInput(input);
     });
 
+    elements.defaultIndirectRate.addEventListener("input", () => {
+      if (!suppressRateFieldTracking) {
+        defaultIndirectRateTouched = true;
+      }
+    });
+
     document.querySelectorAll(".money-input").forEach((input) => {
       if (input.value !== "") {
         formatMoneyInputDisplay(input);
@@ -2407,6 +2889,9 @@
     elements.resetButton.addEventListener("click", resetPlanner);
     elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);
     elements.copyLinkButton.addEventListener("click", copyShareableLink);
+    elements.reloadOrsRatesButton.addEventListener("click", () => {
+      loadOrsRates({ forceApply: true });
+    });
     elements.printButton.addEventListener("click", () => {
       window.print();
     });
@@ -2427,6 +2912,9 @@
     if (!loadStateFromUrl()) {
       resetPlanner();
     }
+
+    loadOrsRates();
+    loadSummerRates();
   </script>
 </body>
 </html>
