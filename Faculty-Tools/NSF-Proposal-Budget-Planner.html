@@ -527,9 +527,21 @@
 
     .personnel-helper-summary {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 10px;
       margin-top: 14px;
+    }
+
+    .personnel-helper-summary-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .personnel-helper-summary-row.primary {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .personnel-helper-summary-row.secondary {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 
     .helper-card {
@@ -667,6 +679,26 @@
     .rollup-row dd {
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
+    }
+
+    .rollup-metric-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 14px;
+    }
+
+    .rollup-metric {
+      display: inline-flex;
+      gap: 6px;
+      align-items: baseline;
+    }
+
+    .rollup-metric-label {
+      color: var(--muted);
+      font-size: 0.82em;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     .action-row {
@@ -851,7 +883,7 @@
       }
 
       .personnel-helper-grid,
-      .personnel-helper-summary {
+      .personnel-helper-summary-row {
         grid-template-columns: 1fr;
       }
     }
@@ -1172,8 +1204,24 @@
             <dd id="rollup-senior-salary">$0</dd>
           </div>
           <div class="rollup-row">
+            <dt>A. Senior personnel months totals</dt>
+            <dd class="rollup-metric-group">
+              <span class="rollup-metric"><span class="rollup-metric-label">CAL</span><span id="rollup-senior-cal">0.00</span></span>
+              <span class="rollup-metric"><span class="rollup-metric-label">ACAD</span><span id="rollup-senior-acad">0.00</span></span>
+              <span class="rollup-metric"><span class="rollup-metric-label">SUMR</span><span id="rollup-senior-sumr">0.00</span></span>
+            </dd>
+          </div>
+          <div class="rollup-row">
             <dt>B. Other personnel salaries requested</dt>
             <dd id="rollup-other-salary">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>B. Other personnel months totals</dt>
+            <dd class="rollup-metric-group">
+              <span class="rollup-metric"><span class="rollup-metric-label">CAL</span><span id="rollup-other-cal">0.00</span></span>
+              <span class="rollup-metric"><span class="rollup-metric-label">ACAD</span><span id="rollup-other-acad">0.00</span></span>
+              <span class="rollup-metric"><span class="rollup-metric-label">SUMR</span><span id="rollup-other-sumr">0.00</span></span>
+            </dd>
           </div>
           <div class="rollup-row">
             <dt>Total salaries and wages (A + B)</dt>
@@ -1313,7 +1361,13 @@
       statusBox: document.getElementById("status-box"),
       nonPersonnelTable: document.getElementById("non-personnel-table"),
       rollupSeniorSalary: document.getElementById("rollup-senior-salary"),
+      rollupSeniorCal: document.getElementById("rollup-senior-cal"),
+      rollupSeniorAcad: document.getElementById("rollup-senior-acad"),
+      rollupSeniorSumr: document.getElementById("rollup-senior-sumr"),
       rollupOtherSalary: document.getElementById("rollup-other-salary"),
+      rollupOtherCal: document.getElementById("rollup-other-cal"),
+      rollupOtherAcad: document.getElementById("rollup-other-acad"),
+      rollupOtherSumr: document.getElementById("rollup-other-sumr"),
       rollupSalariesWages: document.getElementById("rollup-salaries-wages"),
       rollupFringe: document.getElementById("rollup-fringe"),
       rollupSalariesFringe: document.getElementById("rollup-salaries-fringe"),
@@ -1606,6 +1660,12 @@
         sumrOutput: helperRow.querySelector(".helper-output-sumr"),
         salaryOutput: helperRow.querySelector(".helper-output-salary"),
         fringeOutput: helperRow.querySelector(".helper-output-fringe"),
+        releaseSalaryOutput: helperRow.querySelector(".helper-output-release-salary"),
+        instructionalSalaryOutput: helperRow.querySelector(".helper-output-instructional-salary"),
+        nonInstructionalSalaryOutput: helperRow.querySelector(".helper-output-non-instructional-salary"),
+        releaseFringeOutput: helperRow.querySelector(".helper-output-release-fringe"),
+        instructionalFringeOutput: helperRow.querySelector(".helper-output-instructional-fringe"),
+        nonInstructionalFringeOutput: helperRow.querySelector(".helper-output-non-instructional-fringe"),
         statusNote: helperRow.querySelector(".helper-status-note")
       };
     }
@@ -2169,6 +2229,12 @@
         calMonths: 0,
         acadMonths: roundToCent(desiredTE / 3),
         sumrMonths: roundToCent((desiredInstructionalTE / 3) + (desiredNonInstructionalDays / 21)),
+        releaseSalary: releaseTimeCost,
+        instructionalSalary: instructionalPay,
+        nonInstructionalSalary: nonInstructionalPay,
+        releaseFringe,
+        instructionalFringe,
+        nonInstructionalFringe,
         salaryBeforeFringe: roundToCent(releaseTimeCost + instructionalPay + nonInstructionalPay),
         fringe: roundToCent(releaseFringe + instructionalFringe + nonInstructionalFringe)
       };
@@ -2190,6 +2256,12 @@
       controls.sumrOutput.textContent = formatDecimal(results.sumrMonths);
       controls.salaryOutput.textContent = formatCurrency(results.salaryBeforeFringe);
       controls.fringeOutput.textContent = formatCurrency(results.fringe);
+      controls.releaseSalaryOutput.textContent = formatCurrency(results.releaseSalary);
+      controls.instructionalSalaryOutput.textContent = formatCurrency(results.instructionalSalary);
+      controls.nonInstructionalSalaryOutput.textContent = formatCurrency(results.nonInstructionalSalary);
+      controls.releaseFringeOutput.textContent = formatCurrency(results.releaseFringe);
+      controls.instructionalFringeOutput.textContent = formatCurrency(results.instructionalFringe);
+      controls.nonInstructionalFringeOutput.textContent = formatCurrency(results.nonInstructionalFringe);
 
       if (results.validationMessage) {
         controls.statusNote.textContent = results.validationMessage;
@@ -2390,25 +2462,53 @@
               </div>
             </div>
             <div class="personnel-helper-summary">
-              <div class="helper-card">
-                <span class="label">CAL Months</span>
-                <span class="value helper-output-cal">0</span>
+              <div class="personnel-helper-summary-row primary">
+                <div class="helper-card">
+                  <span class="label">CAL Months</span>
+                  <span class="value helper-output-cal">0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">ACAD Months</span>
+                  <span class="value helper-output-acad">0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">SUMR Months</span>
+                  <span class="value helper-output-sumr">0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">Total Salary Before Fringe</span>
+                  <span class="value helper-output-salary">$0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">Total Fringe</span>
+                  <span class="value helper-output-fringe">$0</span>
+                </div>
               </div>
-              <div class="helper-card">
-                <span class="label">ACAD Months</span>
-                <span class="value helper-output-acad">0</span>
-              </div>
-              <div class="helper-card">
-                <span class="label">SUMR Months</span>
-                <span class="value helper-output-sumr">0</span>
-              </div>
-              <div class="helper-card">
-                <span class="label">Salary Before Fringe</span>
-                <span class="value helper-output-salary">$0</span>
-              </div>
-              <div class="helper-card">
-                <span class="label">Fringe</span>
-                <span class="value helper-output-fringe">$0</span>
+              <div class="personnel-helper-summary-row secondary">
+                <div class="helper-card">
+                  <span class="label">Release Time Salary</span>
+                  <span class="value helper-output-release-salary">$0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">Instructional Overload Salary</span>
+                  <span class="value helper-output-instructional-salary">$0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">Non-Instructional Overload Salary</span>
+                  <span class="value helper-output-non-instructional-salary">$0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">Release Time Fringe</span>
+                  <span class="value helper-output-release-fringe">$0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">Instructional Overload Fringe</span>
+                  <span class="value helper-output-instructional-fringe">$0</span>
+                </div>
+                <div class="helper-card">
+                  <span class="label">Non-Instructional Overload Fringe</span>
+                  <span class="value helper-output-non-instructional-fringe">$0</span>
+                </div>
               </div>
             </div>
             <p class="helper-assumption-note">Summer person-month calculations assume 63 work days across 3 months of summer.</p>
@@ -2701,7 +2801,13 @@
       const displayTotals = computeDisplayedBudgetTotals(personnelResults, nonPersonnelResults, totals);
 
       elements.rollupSeniorSalary.textContent = formatCurrency(displayTotals.seniorSalary);
+      elements.rollupSeniorCal.textContent = formatDecimal(personnelResults.senior.calMonths);
+      elements.rollupSeniorAcad.textContent = formatDecimal(personnelResults.senior.acadMonths);
+      elements.rollupSeniorSumr.textContent = formatDecimal(personnelResults.senior.sumrMonths);
       elements.rollupOtherSalary.textContent = formatCurrency(displayTotals.otherSalary);
+      elements.rollupOtherCal.textContent = formatDecimal(personnelResults.otherPersonnel.calMonths);
+      elements.rollupOtherAcad.textContent = formatDecimal(personnelResults.otherPersonnel.acadMonths);
+      elements.rollupOtherSumr.textContent = formatDecimal(personnelResults.otherPersonnel.sumrMonths);
       elements.rollupSalariesWages.textContent = formatCurrency(displayTotals.salariesWages);
       elements.rollupFringe.textContent = formatCurrency(displayTotals.fringe);
       elements.rollupSalariesFringe.textContent = formatCurrency(displayTotals.salariesFringe);
