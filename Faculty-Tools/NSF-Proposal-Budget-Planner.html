@@ -978,7 +978,7 @@
           <input id="budget-period-label" type="text">
         </div>
         <div>
-          <label for="default-indirect-rate">Default Indirect Cost Rate (%)</label>
+          <label for="default-indirect-rate">Default IDC Rate (%)</label>
           <input id="default-indirect-rate" type="number" min="0" step="0.01" value="45.50">
         </div>
       </div>
@@ -2869,7 +2869,7 @@
         `Proposal No.: ${elements.proposalNumber.value.trim() || "Not specified"}`,
         `PI / PD Name: ${elements.piLabel.value.trim() || "Not specified"}`,
         `Budget Period Label: ${elements.budgetPeriodLabel.value.trim() || "One budget period"}`,
-        `Default Indirect Cost Rate: ${formatPercent(state.defaults.indirectRate)}`,
+        `Default IDC Rate: ${formatPercent(state.defaults.indirectRate)}`,
         ""
       ];
 
@@ -2913,7 +2913,7 @@
       lines.push(`Modified Total Direct Costs: ${formatCurrency(displayTotals.mtdc)}`);
       lines.push(`Total Indirect Costs: ${formatCurrency(displayTotals.indirect)}`);
       lines.push(`Total Budget: ${formatCurrency(displayTotals.totalBudget)}`);
-      lines.push(`Default Indirect Cost Rate: ${formatPercent(state.totals.indirectRate)}`);
+      lines.push(`Default IDC Rate: ${formatPercent(state.totals.indirectRate)}`);
 
       return lines.join("\n");
     }
