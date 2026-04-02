@@ -1263,6 +1263,11 @@
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
               </tr>
+              <tr class="participant-count-row">
+                <th scope="row">Total Number of Participants</th>
+                <td><input id="participant-count" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"></td>
+              </tr>
               <tr data-category-key="materials" data-category-label="Materials and Supplies">
                 <th scope="row">G1. Materials and Supplies</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
@@ -1352,7 +1357,7 @@
             <dd id="rollup-travel">$0</dd>
           </div>
           <div class="rollup-row">
-            <dt>F. Total participant support costs</dt>
+            <dt id="rollup-participant-label">F. Total participant support costs</dt>
             <dd id="rollup-participant">$0</dd>
           </div>
           <div class="rollup-row">
@@ -1486,6 +1491,7 @@
       helpCloseButton: document.getElementById("help-close-button"),
       statusBox: document.getElementById("status-box"),
       nonPersonnelTable: document.getElementById("non-personnel-table"),
+      participantCount: document.getElementById("participant-count"),
       rollupSeniorSalary: document.getElementById("rollup-senior-salary"),
       rollupSeniorCal: document.getElementById("rollup-senior-cal"),
       rollupSeniorAcad: document.getElementById("rollup-senior-acad"),
@@ -1499,6 +1505,7 @@
       rollupSalariesFringe: document.getElementById("rollup-salaries-fringe"),
       rollupEquipment: document.getElementById("rollup-equipment"),
       rollupTravel: document.getElementById("rollup-travel"),
+      rollupParticipantLabel: document.getElementById("rollup-participant-label"),
       rollupParticipant: document.getElementById("rollup-participant"),
       rollupOtherDirect: document.getElementById("rollup-other-direct"),
       rollupTotalDirect: document.getElementById("rollup-total-direct"),
@@ -1979,13 +1986,16 @@
           budgetPeriodLabel: elements.budgetPeriodLabel.value.trim(),
           defaultIndirectRate: elements.defaultIndirectRate.value.trim()
         },
+        participantSupport: {
+          participantCount: elements.participantCount.value.trim()
+        },
         personnel: Object.fromEntries(personnelSections.map((section) => [
           section.key,
           Array.from(section.body.querySelectorAll(section.mode === "fixedSenior" ? ".personnel-row" : ".other-personnel-row"))
             .map((row) => (section.mode === "fixedSenior" ? buildSeniorPersonnelRowState(row) : buildOtherPersonnelRowState(row)))
             .filter(Boolean)
         ])),
-        nonPersonnel: Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr"))
+        nonPersonnel: Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr[data-category-key]"))
           .map((row) => {
             const amount = getMoneyStateValue(row.querySelector(".direct-amount"));
             const idcApplies = row.querySelector(".idc-applies").checked;
@@ -2014,6 +2024,7 @@
         Boolean(state.settings.piLabel) ||
         Boolean(state.settings.budgetPeriodLabel) ||
         (state.settings.defaultIndirectRate && state.settings.defaultIndirectRate !== helperStateDefaults.defaultIndirectRate) ||
+        Boolean(state.participantSupport?.participantCount) ||
         Object.values(state.personnel).some((rows) => rows.length > 0) ||
         state.nonPersonnel.length > 0;
 
@@ -2057,12 +2068,13 @@
       elements.piLabel.value = state.settings?.piLabel || "";
       elements.budgetPeriodLabel.value = state.settings?.budgetPeriodLabel || "";
       elements.defaultIndirectRate.value = state.settings?.defaultIndirectRate || helperStateDefaults.defaultIndirectRate;
+      elements.participantCount.value = state.participantSupport?.participantCount || "";
 
       personnelSections.forEach((section) => {
         populatePersonnelSection(section, state.personnel?.[section.key] || []);
       });
 
-      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
+      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr[data-category-key]")).forEach((row) => {
         const stateRow = (state.nonPersonnel || []).find((entry) => entry.key === row.dataset.categoryKey);
         const amountInput = row.querySelector(".direct-amount");
         const checkbox = row.querySelector(".idc-applies");
@@ -3060,10 +3072,11 @@
         includedDirect: 0,
         excludedDirect: 0,
         indirect: 0,
-        total: 0
+        total: 0,
+        participantCount: Math.max(readNumber(elements.participantCount) ?? 0, 0)
       };
 
-      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
+      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr[data-category-key]")).forEach((row) => {
         const key = row.dataset.categoryKey;
         const label = row.dataset.categoryLabel;
         const amount = nonNegativeMoney(row.querySelector(".direct-amount"));
@@ -3157,6 +3170,7 @@
         equipment: equipmentDisplay,
         travel: travelDisplay,
         participant: participantDisplay,
+        participantCount: nonPersonnelResults.participantCount,
         otherDirect: otherDirectDisplay,
         totalDirect: totalDirectDisplay,
         mtdc: mtdcDisplay,
@@ -3181,6 +3195,9 @@
       elements.rollupSalariesFringe.textContent = formatCurrency(displayTotals.salariesFringe);
       elements.rollupEquipment.textContent = formatCurrency(displayTotals.equipment);
       elements.rollupTravel.textContent = formatCurrency(displayTotals.travel);
+      elements.rollupParticipantLabel.textContent = displayTotals.participantCount > 0
+        ? `F. Total participant support costs (${formatDecimal(displayTotals.participantCount)} participants)`
+        : "F. Total participant support costs";
       elements.rollupParticipant.textContent = formatCurrency(displayTotals.participant);
       elements.rollupOtherDirect.textContent = formatCurrency(displayTotals.otherDirect);
       elements.rollupTotalDirect.textContent = formatCurrency(displayTotals.totalDirect);
@@ -3286,6 +3303,9 @@
       lines.push(
         `Subtotal: direct ${formatCurrency(state.nonPersonnel.direct)}, indirect ${formatCurrency(state.nonPersonnel.indirect)}, total ${formatCurrency(state.nonPersonnel.total)}`
       );
+      if (state.nonPersonnel.participantCount > 0) {
+        lines.push(`Participant count: ${formatDecimal(state.nonPersonnel.participantCount)}`);
+      }
       lines.push("");
       lines.push("Budget Totals");
       const displayTotals = computeDisplayedBudgetTotals(state.personnel, state.nonPersonnel, state.totals);
@@ -3355,12 +3375,13 @@
       elements.piLabel.value = "";
       elements.budgetPeriodLabel.value = "";
       elements.defaultIndirectRate.value = helperStateDefaults.defaultIndirectRate;
+      elements.participantCount.value = "";
 
       personnelSections.forEach((section) => {
         populatePersonnelSection(section);
       });
 
-      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
+      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr[data-category-key]")).forEach((row) => {
         row.querySelector(".direct-amount").value = "";
         delete row.querySelector(".direct-amount").dataset.moneyValue;
         row.querySelector(".idc-applies").checked =
