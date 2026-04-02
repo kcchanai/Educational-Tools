@@ -984,7 +984,7 @@
       </div>
       <div class="help">
         Enter salary-before-fringe and fringe directly for each person. Clear a row's IDC checkbox when
-        indirect cost should not apply to that direct-cost line.
+        indirect cost should not apply to that direct-cost line. Checked rows use the default IDC rate.
       </div>
       <div class="help">
         For categories with special indirect-cost treatment, enter only the allowable direct-cost base here
@@ -1103,7 +1103,6 @@
                 <th>Category</th>
                 <th>Funds Requested</th>
                 <th class="checkbox-cell">IDC?</th>
-                <th>IDC %<br>Override</th>
               </tr>
             </thead>
             <tbody>
@@ -1111,79 +1110,66 @@
                 <th scope="row">D. Equipment</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="travelDomestic" data-category-label="Domestic Travel">
                 <th scope="row">E1. Domestic Travel</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="travelInternational" data-category-label="International Travel">
                 <th scope="row">E2. International Travel</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="participantStipends" data-category-label="Participant Support - Stipends">
                 <th scope="row">F1. Participant Support - Stipends</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="participantTravel" data-category-label="Participant Support - Travel">
                 <th scope="row">F2. Participant Support - Travel</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="participantSubsistence" data-category-label="Participant Support - Subsistence">
                 <th scope="row">F3. Participant Support - Subsistence</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="participantOther" data-category-label="Participant Support - Other">
                 <th scope="row">F4. Participant Support - Other</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="materials" data-category-label="Materials and Supplies">
                 <th scope="row">G1. Materials and Supplies</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="publication" data-category-label="Publication Costs / Documentation / Dissemination">
                 <th scope="row">G2. Publication Costs / Documentation / Dissemination</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="consultant" data-category-label="Consultant Services">
                 <th scope="row">G3. Consultant Services</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="computer" data-category-label="Computer Services">
                 <th scope="row">G4. Computer Services</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="subawards" data-category-label="Subawards">
                 <th scope="row">G5. Subawards</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
               <tr data-category-key="otherDirect" data-category-label="Other">
                 <th scope="row">G6. Other</th>
                 <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                 <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
-                <td><input class="idc-override" type="number" min="0" step="0.01" placeholder="Default"></td>
               </tr>
             </tbody>
           </table>
@@ -1300,7 +1286,7 @@
               <li>The default indirect cost rate is editable at the top of the page.</li>
               <li>Use Reload Live ORS Defaults to refresh the planner's default indirect rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
               <li>Budget Helper can load live summer instructional pay rates from the UH summer faculty and lecturer pay-rate pages.</li>
-              <li>Leave a row IDC override blank to use the default indirect rate.</li>
+              <li>Checked direct-cost rows use the default indirect cost rate.</li>
               <li>Clear a row's IDC checkbox when indirect cost should not apply.</li>
             </ul>
           </section>
@@ -1309,7 +1295,7 @@
             <ul>
               <li>Section A is senior personnel and Section B is one combined other-personnel list.</li>
               <li>Sections D, E, F, and G share one table, with participant support split into F1-F4 and other direct costs split into G1-G6.</li>
-              <li>Each D, E, F, and G row includes Funds Requested, an IDC checkbox, and an optional IDC override rate.</li>
+              <li>Each D, E, F, and G row includes Funds Requested and an IDC checkbox.</li>
             </ul>
           </section>
           <section class="modal-section">
@@ -1410,6 +1396,7 @@
     const CUSTOM_RATE_OPTION = "__custom__";
     let lastFocusedElement = null;
     let suppressUrlSync = false;
+    let urlSyncDisabled = false;
     let suppressRateFieldTracking = false;
     let defaultIndirectRateTouched = false;
     let liveSummerRateOptions = [];
@@ -1831,10 +1818,9 @@
         nonPersonnel: Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr"))
           .map((row) => {
             const amount = getMoneyStateValue(row.querySelector(".direct-amount"));
-            const idcOverride = row.querySelector(".idc-override").value.trim();
             const idcApplies = row.querySelector(".idc-applies").checked;
             const key = row.dataset.categoryKey;
-            const hasContent = amount !== "" || idcOverride !== "" || idcApplies !== defaultIdcAppliesForCategory(key);
+            const hasContent = amount !== "" || idcApplies !== defaultIdcAppliesForCategory(key);
 
             if (!hasContent) {
               return null;
@@ -1843,8 +1829,7 @@
             return {
               key,
               amount,
-              idcApplies,
-              idcOverride
+              idcApplies
             };
           })
           .filter(Boolean)
@@ -1869,13 +1854,26 @@
       return `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
     }
 
+    function buildAbsoluteShareableUrl(state = collectPlannerState()) {
+      return new URL(buildShareableUrl(state), window.location.href).href;
+    }
+
     function syncUrlState() {
-      if (suppressUrlSync) {
+      if (suppressUrlSync || urlSyncDisabled) {
         return;
       }
 
-      const nextUrl = buildShareableUrl();
-      window.history.replaceState({}, "", nextUrl);
+      try {
+        const nextUrl = buildShareableUrl();
+        window.history.replaceState({}, "", nextUrl);
+      } catch (error) {
+        urlSyncDisabled = true;
+        paintStatus(
+          "warn",
+          "Shareable URL updates are unavailable.",
+          "Worksheet calculations still work, but this browser did not allow live URL updates."
+        );
+      }
     }
 
     function applyPlannerState(state) {
@@ -1905,11 +1903,9 @@
       Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
         const stateRow = (state.nonPersonnel || []).find((entry) => entry.key === row.dataset.categoryKey);
         const amountInput = row.querySelector(".direct-amount");
-        const overrideInput = row.querySelector(".idc-override");
         const checkbox = row.querySelector(".idc-applies");
 
         clearMoneyInputValue(amountInput);
-        overrideInput.value = "";
         checkbox.checked = defaultIdcAppliesForCategory(row.dataset.categoryKey);
 
         if (stateRow) {
@@ -1917,7 +1913,6 @@
           if (amountInput.value !== "") {
             formatMoneyInputDisplay(amountInput);
           }
-          overrideInput.value = stateRow.idcOverride || "";
           checkbox.checked = Boolean(stateRow.idcApplies);
         }
       });
@@ -2697,9 +2692,7 @@
         const label = row.dataset.categoryLabel;
         const amount = nonNegativeMoney(row.querySelector(".direct-amount"));
         const idcApplies = row.querySelector(".idc-applies").checked;
-        const idcOverride = readNumber(row.querySelector(".idc-override"));
-        const indirectRate = idcOverride !== null && idcOverride >= 0 ? idcOverride : defaultIndirectRate;
-        const indirectCost = idcApplies ? roundToCent(amount * indirectRate / 100) : 0;
+        const indirectCost = idcApplies ? roundToCent(amount * defaultIndirectRate / 100) : 0;
         const totalCost = roundToCent(amount + indirectCost);
 
         totals.direct = roundToCent(totals.direct + amount);
@@ -2712,7 +2705,6 @@
           label,
           amount,
           idcApplies,
-          indirectRate,
           indirectCost,
           totalCost
         };
@@ -2899,7 +2891,7 @@
       Object.values(state.nonPersonnel.categories).forEach((category) => {
         lines.push(
           `${category.label}: direct ${formatCurrency(category.amount)}, ` +
-          `${category.idcApplies ? `indirect ${formatCurrency(category.indirectCost)} at ${formatPercent(category.indirectRate)}` : "no indirect cost"}, ` +
+          `${category.idcApplies ? `indirect ${formatCurrency(category.indirectCost)} at the default IDC rate` : "no indirect cost"}, ` +
           `total ${formatCurrency(category.totalCost)}`
         );
       });
@@ -2945,7 +2937,7 @@
 
     async function copyShareableLink() {
       calculate();
-      const shareUrl = window.location.href;
+      const shareUrl = buildAbsoluteShareableUrl();
 
       try {
         if (navigator.clipboard && window.isSecureContext) {
@@ -2984,7 +2976,6 @@
       Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
         row.querySelector(".direct-amount").value = "";
         delete row.querySelector(".direct-amount").dataset.moneyValue;
-        row.querySelector(".idc-override").value = "";
         row.querySelector(".idc-applies").checked =
           row.dataset.categoryKey !== "equipment" &&
           row.dataset.categoryKey !== "participantStipends" &&
