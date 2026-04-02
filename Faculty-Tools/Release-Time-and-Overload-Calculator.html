@@ -3241,8 +3241,7 @@
         nonInstructionalDirectCost = roundCurrencyStep(nonInstructionalPay + nonInstructionalFringe, roundingMode);
         nonInstructionalIndirectCost = roundCurrencyStep(nonInstructionalDirectCost * indirectRate, roundingMode);
         nonInstructionalTotalCost = roundCurrencyStep(nonInstructionalDirectCost + nonInstructionalIndirectCost, roundingMode);
-        const nonInstructionalDaysBudgetBasis = nonInstructionalBudget;
-        nonInstructionalOverloadDays = (nonInstructionalDaysBudgetBasis * nonInstructionalDayFactor) / annualSalary;
+        nonInstructionalOverloadDays = (nonInstructionalPay * nonInstructionalDayFactor) / annualSalary;
 
         totalOverloadCost = roundCurrencyStep(instructionalTotalCost + nonInstructionalTotalCost, roundingMode);
         combinedTotal = roundCurrencyStep(releaseTotalCost + totalOverloadCost, roundingMode);
