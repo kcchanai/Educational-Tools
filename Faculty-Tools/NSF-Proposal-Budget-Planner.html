@@ -355,9 +355,30 @@
     }
 
     .person-cell {
+      --person-prefix-width: 1.5em;
       display: grid;
       gap: 6px;
       min-width: 240px;
+    }
+
+    .person-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .person-prefix {
+      flex: 0 0 var(--person-prefix-width);
+      width: var(--person-prefix-width);
+      font-weight: 700;
+      line-height: 1.4;
+      text-align: right;
+    }
+
+    .person-input-row .person-label {
+      flex: 1 1 auto;
+      min-width: 0;
     }
 
     .personnel-row td {
@@ -368,6 +389,7 @@
 
     .row-helper-toggle {
       justify-self: start;
+      margin-left: calc(var(--person-prefix-width) + 8px);
       min-height: 32px;
       padding: 0 10px;
       border: 1px solid var(--line);
@@ -412,6 +434,14 @@
       table-layout: fixed;
     }
 
+    .senior-personnel-table {
+      table-layout: fixed;
+    }
+
+    .other-personnel-table {
+      table-layout: fixed;
+    }
+
     .personnel-table > thead th:first-child,
     .personnel-table > tbody > .personnel-row > td:first-child {
       width: 31%;
@@ -436,6 +466,100 @@
     .personnel-table > thead th:last-child,
     .personnel-table > tbody > .personnel-row > td:last-child {
       width: 56px;
+    }
+
+    .senior-personnel-table > thead th:first-child,
+    .senior-personnel-table > tbody > .personnel-row > td:first-child {
+      width: 28%;
+    }
+
+    .senior-personnel-table > thead th:nth-child(2),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(2) {
+      width: 76px;
+    }
+
+    .senior-personnel-table > thead th:nth-child(3),
+    .senior-personnel-table > thead th:nth-child(4),
+    .senior-personnel-table > thead th:nth-child(5),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(3),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(4),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(5) {
+      width: 86px;
+    }
+
+    .senior-personnel-table > thead th:nth-child(6),
+    .senior-personnel-table > thead th:nth-child(7),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(6),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(7) {
+      width: 172px;
+    }
+
+    .fixed-person-label {
+      min-height: 40px;
+      display: grid;
+      grid-template-columns: 1.5em minmax(0, 1fr);
+      column-gap: 8px;
+      align-items: start;
+      padding: 8px 10px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .fixed-person-label .person-text {
+      min-width: 0;
+    }
+
+    .other-personnel-table > thead th:first-child,
+    .other-personnel-table > tbody > tr > th:first-child {
+      width: 34%;
+    }
+
+    .other-personnel-table > thead th:nth-child(2),
+    .other-personnel-table > tbody > tr > td:nth-child(2) {
+      width: 76px;
+    }
+
+    .other-personnel-table > thead th:nth-child(3),
+    .other-personnel-table > thead th:nth-child(4),
+    .other-personnel-table > thead th:nth-child(5),
+    .other-personnel-table > tbody > tr > td:nth-child(3),
+    .other-personnel-table > tbody > tr > td:nth-child(4),
+    .other-personnel-table > tbody > tr > td:nth-child(5) {
+      width: 86px;
+    }
+
+    .other-personnel-table > thead th:nth-child(6),
+    .other-personnel-table > thead th:nth-child(7),
+    .other-personnel-table > tbody > tr > td:nth-child(6),
+    .other-personnel-table > tbody > tr > td:nth-child(7) {
+      width: 172px;
+    }
+
+    .quantity-input {
+      width: 68px;
+      min-width: 0;
+      text-align: right;
+    }
+
+    .other-personnel-table tbody th {
+      text-align: left;
+      font-weight: 700;
+      padding-left: 16px;
+      vertical-align: middle;
+    }
+
+    .other-personnel-label {
+      display: grid;
+      grid-template-columns: 1.5em minmax(0, 1fr);
+      column-gap: 8px;
+      align-items: start;
+      line-height: 1.4;
+    }
+
+    .other-personnel-table .empty-months {
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
     }
 
     .budget-table .checkbox-cell {
@@ -1047,49 +1171,47 @@
       <section class="worksheet-section">
         <div class="section-header">
           <h3>A. Senior Personnel</h3>
-          <button type="button" class="section-action" data-add-personnel="senior">Add Person</button>
         </div>
         <div class="table-wrap">
-          <table class="budget-table personnel-table">
+          <table class="budget-table senior-personnel-table">
             <thead>
               <tr>
                 <th>Name / Role</th>
+                <th>Qty</th>
                 <th class="months-column">CAL<br>Months</th>
                 <th class="months-column">ACAD<br>Months</th>
                 <th class="months-column">SUMR<br>Months</th>
                 <th>Salary Before<br>Fringe</th>
                 <th>Fringe</th>
-                <th class="remove-cell">Remove</th>
               </tr>
             </thead>
             <tbody id="senior-personnel-body"></tbody>
           </table>
         </div>
-        <div class="section-help">Use for PI, Co-PI, and other senior personnel. Enter the salary amount before fringe and the fringe amount separately for each person, or use Budget Helper to derive them from release time and overload inputs.</div>
+        <div class="section-help">Section A uses five named senior-personnel rows plus a sixth fixed Others row with a quantity field. Budget Helper remains available on the five named rows.</div>
       </section>
 
       <section class="worksheet-section">
         <div class="section-header">
           <h3>B. Other Personnel</h3>
-          <button type="button" class="section-action" data-add-personnel="otherPersonnel">Add Person</button>
         </div>
         <div class="table-wrap">
-          <table class="budget-table personnel-table">
+          <table class="budget-table other-personnel-table">
             <thead>
               <tr>
-                <th>Name / Role</th>
+                <th>Category</th>
+                <th>Qty</th>
                 <th class="months-column">CAL<br>Months</th>
                 <th class="months-column">ACAD<br>Months</th>
                 <th class="months-column">SUMR<br>Months</th>
                 <th>Salary Before<br>Fringe</th>
                 <th>Fringe</th>
-                <th class="remove-cell">Remove</th>
               </tr>
             </thead>
             <tbody id="otherPersonnel-personnel-body"></tbody>
           </table>
         </div>
-        <div class="section-help">Use one running Section B list for postdocs, professionals, students, staff, and any other non-senior personnel. Budget Helper is available on each row here as well.</div>
+        <div class="section-help">Section B uses the six standard NSF other-personnel categories. Enter quantity for each category, plus salary before fringe and fringe. Only B1 and B2 track CAL, ACAD, and SUMR months.</div>
       </section>
 
       <section class="worksheet-section">
@@ -1271,11 +1393,11 @@
           <section class="modal-section">
             <h3>Personnel Rows</h3>
             <ul>
-              <li>Enter one row per person.</li>
-              <li>Enter CAL, ACAD, and SUMR person-months for both Sections A and B.</li>
-              <li>Enter the salary amount before fringe and the fringe amount separately for each person.</li>
-              <li>Use Budget Helper on a row to derive person-months, salary before fringe, and fringe from release time and overload inputs.</li>
-              <li>Each Budget Helper row can use a Summer Rate Source selector to choose a live faculty rate, a live lecturer rate, or a custom instructional Summer TE value.</li>
+              <li>Section A uses five named senior-person rows plus a sixth Others row with a quantity field.</li>
+              <li>Section B uses six fixed NSF categories with a quantity field and salary/fringe inputs.</li>
+              <li>Only B1 and B2 track CAL, ACAD, and SUMR person-months.</li>
+              <li>Use Budget Helper on the five named Section A rows to derive person-months, salary before fringe, and fringe from release time and overload inputs.</li>
+              <li>Each Section A Budget Helper row can use a Summer Rate Source selector to choose a live faculty rate, a live lecturer rate, or a custom instructional Summer TE value.</li>
               <li>Budget Helper calculates ACAD months as release TE divided by 3, and SUMR months as summer instructional TE divided by 3 plus non-instructional overload days divided by 21.</li>
               <li>Summer person-month calculations assume 63 work days across 3 months of summer.</li>
             </ul>
@@ -1293,7 +1415,7 @@
           <section class="modal-section">
             <h3>Worksheet Structure</h3>
             <ul>
-              <li>Section A is senior personnel and Section B is one combined other-personnel list.</li>
+              <li>Section A is a fixed six-row senior-personnel table. Section B is a fixed six-row NSF other-personnel table.</li>
               <li>Sections D, E, F, and G share one table, with participant support split into F1-F4 and other direct costs split into G1-G6.</li>
               <li>Each D, E, F, and G row includes Funds Requested and an IDC checkbox.</li>
             </ul>
@@ -1321,9 +1443,27 @@
   </main>
 
   <script>
+    const seniorPersonnelDefinitions = [
+      { key: "senior1", kind: "named", prefix: "1." },
+      { key: "senior2", kind: "named", prefix: "2." },
+      { key: "senior3", kind: "named", prefix: "3." },
+      { key: "senior4", kind: "named", prefix: "4." },
+      { key: "senior5", kind: "named", prefix: "5." },
+      { key: "others", kind: "others", prefix: "6.", label: "Others (List individually on budget justification page)" }
+    ];
+
+    const otherPersonnelDefinitions = [
+      { key: "postdoctoralScholars", prefix: "1.", label: "Post Doctoral Scholars", hasMonths: true },
+      { key: "otherProfessionals", prefix: "2.", label: "Other Professionals (Technician, Programmer, Etc.)", hasMonths: true },
+      { key: "graduateStudents", prefix: "3.", label: "Graduate Students", hasMonths: false },
+      { key: "undergraduateStudents", prefix: "4.", label: "Undergraduate Students", hasMonths: false },
+      { key: "secretarialClerical", prefix: "5.", label: "Secretarial - Clerical (If Charged Directly)", hasMonths: false },
+      { key: "other", prefix: "6.", label: "Other", hasMonths: false }
+    ];
+
     const personnelSections = [
-      { key: "senior", label: "Senior Personnel" },
-      { key: "otherPersonnel", label: "Other Personnel" }
+      { key: "senior", label: "Senior Personnel", mode: "fixedSenior" },
+      { key: "otherPersonnel", label: "Other Personnel", mode: "fixed" }
     ];
 
     const elements = {
@@ -1753,7 +1893,8 @@
       return JSON.parse(decodeURIComponent(percentEncoded));
     }
 
-    function buildPersonnelRowState(row) {
+    function buildSeniorPersonnelRowState(row) {
+      const isOthersRow = row.dataset.personnelKind === "others";
       const helperControls = getPersonnelHelperControls(row);
       const helperState = helperControls ? {
         open: !helperControls.row.hidden,
@@ -1784,18 +1925,47 @@
         helperState.instructionalCostPerTE !== ""
       );
 
-      if (!rowHasPersonnelContent(row) && !hasHelperContent) {
+      if (!rowHasSeniorPersonnelContent(row) && !hasHelperContent) {
         return null;
       }
 
       return {
-        label: row.querySelector(".person-label").value.trim(),
+        key: row.dataset.personnelKey,
+        label: isOthersRow ? row.dataset.personnelLabel : row.querySelector(".person-label").value.trim(),
+        quantity: row.querySelector(".person-quantity")?.value.trim() || "",
         calMonths: row.querySelector(".cal-months").value.trim(),
         acadMonths: row.querySelector(".acad-months").value.trim(),
         sumrMonths: row.querySelector(".sumr-months").value.trim(),
         baseSalary: getMoneyStateValue(row.querySelector(".base-salary")),
         fringeAmount: getMoneyStateValue(row.querySelector(".fringe-amount")),
-        helper: helperState
+        helper: isOthersRow ? null : helperState
+      };
+    }
+
+    function rowHasOtherPersonnelContent(row) {
+      return [
+        row.querySelector(".person-quantity")?.value ?? "",
+        row.querySelector(".cal-months")?.value ?? "",
+        row.querySelector(".acad-months")?.value ?? "",
+        row.querySelector(".sumr-months")?.value ?? "",
+        row.querySelector(".base-salary").value,
+        row.querySelector(".fringe-amount").value
+      ].some((value) => value !== "");
+    }
+
+    function buildOtherPersonnelRowState(row) {
+      if (!rowHasOtherPersonnelContent(row)) {
+        return null;
+      }
+
+      return {
+        key: row.dataset.personnelKey,
+        quantity: row.querySelector(".person-quantity")?.value.trim() || "",
+        calMonths: row.querySelector(".cal-months")?.value.trim() || "",
+        acadMonths: row.querySelector(".acad-months")?.value.trim() || "",
+        sumrMonths: row.querySelector(".sumr-months")?.value.trim() || "",
+        baseSalary: getMoneyStateValue(row.querySelector(".base-salary")),
+        fringeAmount: getMoneyStateValue(row.querySelector(".fringe-amount"))
       };
     }
 
@@ -1811,8 +1981,8 @@
         },
         personnel: Object.fromEntries(personnelSections.map((section) => [
           section.key,
-          Array.from(section.body.querySelectorAll(".personnel-row"))
-            .map((row) => buildPersonnelRowState(row))
+          Array.from(section.body.querySelectorAll(section.mode === "fixedSenior" ? ".personnel-row" : ".other-personnel-row"))
+            .map((row) => (section.mode === "fixedSenior" ? buildSeniorPersonnelRowState(row) : buildOtherPersonnelRowState(row)))
             .filter(Boolean)
         ])),
         nonPersonnel: Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr"))
@@ -1889,15 +2059,7 @@
       elements.defaultIndirectRate.value = state.settings?.defaultIndirectRate || helperStateDefaults.defaultIndirectRate;
 
       personnelSections.forEach((section) => {
-        section.body.innerHTML = "";
-        const rows = state.personnel?.[section.key] || [];
-        if (rows.length) {
-          rows.forEach((rowState) => {
-            section.body.appendChild(createPersonnelRow(section.key, rowState));
-          });
-        } else {
-          section.body.appendChild(createPersonnelRow(section.key));
-        }
+        populatePersonnelSection(section, state.personnel?.[section.key] || []);
       });
 
       Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
@@ -2378,141 +2540,164 @@
       }
     }
 
-    function createPersonnelRow(sectionKey, data = {}) {
+    function createSeniorPersonnelRow(definition, data = {}) {
       const fragment = document.createDocumentFragment();
       const row = document.createElement("tr");
       row.className = "personnel-row";
-      row.dataset.sectionKey = sectionKey;
-      row.innerHTML = `
-        <td>
-          <div class="person-cell">
-            <input type="text" class="person-label" placeholder="Name and/or role">
-            <button type="button" class="row-helper-toggle" aria-expanded="false">Budget Helper</button>
-          </div>
-        </td>
-        <td><input type="number" class="cal-months months-input" min="0" step="0.01" placeholder="0.00"></td>
-        <td><input type="number" class="acad-months months-input" min="0" step="0.01" placeholder="0.00"></td>
-        <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
-        <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
-        <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
-        <td class="remove-cell"><button type="button" class="row-remove" aria-label="Remove row">x</button></td>
-      `;
+      row.dataset.sectionKey = "senior";
+      row.dataset.personnelKey = definition.key;
+      row.dataset.personnelKind = definition.kind;
+      row.dataset.personnelLabel = definition.label || "";
+      row.innerHTML = definition.kind === "others"
+        ? `
+            <td><div class="fixed-person-label"><span class="person-prefix">${definition.prefix || ""}</span><span class="person-text">${definition.label}</span></div></td>
+            <td><input type="number" class="person-quantity quantity-input" min="0" step="1" placeholder="0"></td>
+            <td><input type="number" class="cal-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="acad-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
+            <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+          `
+        : `
+            <td>
+              <div class="person-cell">
+                <div class="person-input-row">
+                  <span class="person-prefix">${definition.prefix || ""}</span>
+                  <input type="text" class="person-label" placeholder="Name and title">
+                </div>
+                <button type="button" class="row-helper-toggle" aria-expanded="false">Budget Helper</button>
+              </div>
+            </td>
+            <td class="empty-months">--</td>
+            <td><input type="number" class="cal-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="acad-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
+            <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+          `;
 
-      const helperRow = document.createElement("tr");
-      helperRow.className = "personnel-helper-row";
-      helperRow.hidden = true;
-      helperRow.innerHTML = `
-        <td colspan="7">
-          <div class="personnel-helper-panel">
-            <div class="personnel-helper-header">
-              <h4>Budget Required Helper</h4>
-              <label class="personnel-helper-apply">
-                <input type="checkbox" class="helper-apply-toggle">
-                <span>Apply helper outputs to this row</span>
-              </label>
+      let helperRow = null;
+      if (definition.kind !== "others") {
+        helperRow = document.createElement("tr");
+        helperRow.className = "personnel-helper-row";
+        helperRow.hidden = true;
+        helperRow.innerHTML = `
+          <td colspan="7">
+            <div class="personnel-helper-panel">
+              <div class="personnel-helper-header">
+                <h4>Budget Required Helper</h4>
+                <label class="personnel-helper-apply">
+                  <input type="checkbox" class="helper-apply-toggle">
+                  <span>Apply helper outputs to this row</span>
+                </label>
+              </div>
+              <div class="personnel-helper-grid">
+                <div>
+                  <label>Desired Release Time (TE)</label>
+                  <input type="number" class="helper-desired-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
+                </div>
+                <div>
+                  <label>Desired Instructional Summer TE</label>
+                  <input type="number" class="helper-desired-instructional-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
+                </div>
+                <div>
+                  <label>Desired Non-Instructional Overload Days</label>
+                  <input type="number" class="helper-desired-non-instructional-days" min="0" step="1" inputmode="numeric" placeholder="0">
+                </div>
+                <div>
+                  <label>Salary</label>
+                  <input type="text" inputmode="numeric" class="helper-annual-salary money-input" placeholder="0">
+                </div>
+                <div>
+                  <label>Faculty Term</label>
+                  <select class="helper-faculty-term">
+                    <option value="9">9-Month</option>
+                    <option value="11">11-Month</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Months Charged to the Account</label>
+                  <input type="number" class="helper-months-charged" min="0" step="0.5" inputmode="decimal" placeholder="0">
+                </div>
+                <div>
+                  <label>Release Fringe Rate (%)</label>
+                  <input type="number" class="helper-release-fringe-rate" min="0" step="0.01" inputmode="decimal" value="59.5">
+                </div>
+                <div>
+                  <label>Overload Fringe Rate (%)</label>
+                  <input type="number" class="helper-overload-fringe-rate" min="0" step="0.01" inputmode="decimal" value="2.47">
+                </div>
+                <div>
+                  <label>Summer Rate Source</label>
+                  <select class="helper-summer-rate-source"></select>
+                </div>
+                <div>
+                  <label>Instructional Cost per Summer TE</label>
+                  <input type="text" inputmode="numeric" class="helper-instructional-cost-per-te money-input" placeholder="0">
+                </div>
+              </div>
+              <div class="personnel-helper-summary">
+                <div class="personnel-helper-summary-row primary">
+                  <div class="helper-card">
+                    <span class="label">CAL Months</span>
+                    <span class="value helper-output-cal">0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">ACAD Months</span>
+                    <span class="value helper-output-acad">0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">SUMR Months</span>
+                    <span class="value helper-output-sumr">0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Total Salary Before Fringe</span>
+                    <span class="value helper-output-salary">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Total Fringe</span>
+                    <span class="value helper-output-fringe">$0</span>
+                  </div>
+                </div>
+                <div class="personnel-helper-summary-row secondary">
+                  <div class="helper-card">
+                    <span class="label">Release Time Salary</span>
+                    <span class="value helper-output-release-salary">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Instructional Overload Salary</span>
+                    <span class="value helper-output-instructional-salary">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Non-Instructional Overload Salary</span>
+                    <span class="value helper-output-non-instructional-salary">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Release Time Fringe</span>
+                    <span class="value helper-output-release-fringe">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Instructional Overload Fringe</span>
+                    <span class="value helper-output-instructional-fringe">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Non-Instructional Overload Fringe</span>
+                    <span class="value helper-output-non-instructional-fringe">$0</span>
+                  </div>
+                </div>
+              </div>
+              <p class="helper-assumption-note">Summer person-month calculations assume 63 work days across 3 months of summer.</p>
+              <p class="helper-status-note">Enter release and overload inputs to calculate person-months, salary before fringe, and fringe.</p>
             </div>
-            <div class="personnel-helper-grid">
-              <div>
-                <label>Desired Release Time (TE)</label>
-                <input type="number" class="helper-desired-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
-              </div>
-              <div>
-                <label>Desired Instructional Summer TE</label>
-                <input type="number" class="helper-desired-instructional-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
-              </div>
-              <div>
-                <label>Desired Non-Instructional Overload Days</label>
-                <input type="number" class="helper-desired-non-instructional-days" min="0" step="1" inputmode="numeric" placeholder="0">
-              </div>
-              <div>
-                <label>Salary</label>
-                <input type="text" inputmode="numeric" class="helper-annual-salary money-input" placeholder="0">
-              </div>
-              <div>
-                <label>Faculty Term</label>
-                <select class="helper-faculty-term">
-                  <option value="9">9-Month</option>
-                  <option value="11">11-Month</option>
-                </select>
-              </div>
-              <div>
-                <label>Months Charged to the Account</label>
-                <input type="number" class="helper-months-charged" min="0" step="0.5" inputmode="decimal" placeholder="0">
-              </div>
-              <div>
-                <label>Release Fringe Rate (%)</label>
-                <input type="number" class="helper-release-fringe-rate" min="0" step="0.01" inputmode="decimal" value="59.5">
-              </div>
-              <div>
-                <label>Overload Fringe Rate (%)</label>
-                <input type="number" class="helper-overload-fringe-rate" min="0" step="0.01" inputmode="decimal" value="2.47">
-              </div>
-              <div>
-                <label>Summer Rate Source</label>
-                <select class="helper-summer-rate-source"></select>
-              </div>
-              <div>
-                <label>Instructional Cost per Summer TE</label>
-                <input type="text" inputmode="numeric" class="helper-instructional-cost-per-te money-input" placeholder="0">
-              </div>
-            </div>
-            <div class="personnel-helper-summary">
-              <div class="personnel-helper-summary-row primary">
-                <div class="helper-card">
-                  <span class="label">CAL Months</span>
-                  <span class="value helper-output-cal">0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">ACAD Months</span>
-                  <span class="value helper-output-acad">0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">SUMR Months</span>
-                  <span class="value helper-output-sumr">0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">Total Salary Before Fringe</span>
-                  <span class="value helper-output-salary">$0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">Total Fringe</span>
-                  <span class="value helper-output-fringe">$0</span>
-                </div>
-              </div>
-              <div class="personnel-helper-summary-row secondary">
-                <div class="helper-card">
-                  <span class="label">Release Time Salary</span>
-                  <span class="value helper-output-release-salary">$0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">Instructional Overload Salary</span>
-                  <span class="value helper-output-instructional-salary">$0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">Non-Instructional Overload Salary</span>
-                  <span class="value helper-output-non-instructional-salary">$0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">Release Time Fringe</span>
-                  <span class="value helper-output-release-fringe">$0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">Instructional Overload Fringe</span>
-                  <span class="value helper-output-instructional-fringe">$0</span>
-                </div>
-                <div class="helper-card">
-                  <span class="label">Non-Instructional Overload Fringe</span>
-                  <span class="value helper-output-non-instructional-fringe">$0</span>
-                </div>
-              </div>
-            </div>
-            <p class="helper-assumption-note">Summer person-month calculations assume 63 work days across 3 months of summer.</p>
-            <p class="helper-status-note">Enter release and overload inputs to calculate person-months, salary before fringe, and fringe.</p>
-          </div>
-        </td>
-      `;
+          </td>
+        `;
+      }
 
-      row.querySelector(".person-label").value = data.label || "";
+      if (definition.kind !== "others") {
+        row.querySelector(".person-label").value = data.label || "";
+      } else {
+        row.querySelector(".person-quantity").value = data.quantity || "";
+      }
       row.querySelector(".cal-months").value = data.calMonths || "";
       row.querySelector(".acad-months").value = data.acadMonths || "";
       row.querySelector(".sumr-months").value = data.sumrMonths || "";
@@ -2520,23 +2705,140 @@
       row.querySelector(".fringe-amount").value = data.fringeAmount || "";
 
       const helperState = data.helper || {};
-      helperRow.querySelector(".helper-desired-te").value = helperState.desiredTE || "";
-      helperRow.querySelector(".helper-desired-instructional-te").value = helperState.desiredInstructionalTE || "";
-      helperRow.querySelector(".helper-desired-non-instructional-days").value = helperState.desiredNonInstructionalDays || "";
-      helperRow.querySelector(".helper-annual-salary").value = helperState.annualSalary || "";
-      helperRow.querySelector(".helper-faculty-term").value = helperState.facultyTerm || "9";
-      helperRow.querySelector(".helper-months-charged").value = helperState.monthsCharged || "";
-      helperRow.querySelector(".helper-release-fringe-rate").value = helperState.releaseFringeRate || helperStateDefaults.releaseFringeRate;
-      helperRow.querySelector(".helper-overload-fringe-rate").value = helperState.overloadFringeRate || helperStateDefaults.overloadFringeRate;
-      helperRow.querySelector(".helper-summer-rate-source").dataset.requestedSource = helperState.summerRateSource || helperStateDefaults.summerRateSource;
-      helperRow.querySelector(".helper-instructional-cost-per-te").value = helperState.instructionalCostPerTE || "";
-      helperRow.querySelector(".helper-apply-toggle").checked = Boolean(helperState.apply);
+      if (helperRow) {
+        helperRow.querySelector(".helper-desired-te").value = helperState.desiredTE || "";
+        helperRow.querySelector(".helper-desired-instructional-te").value = helperState.desiredInstructionalTE || "";
+        helperRow.querySelector(".helper-desired-non-instructional-days").value = helperState.desiredNonInstructionalDays || "";
+        helperRow.querySelector(".helper-annual-salary").value = helperState.annualSalary || "";
+        helperRow.querySelector(".helper-faculty-term").value = helperState.facultyTerm || "9";
+        helperRow.querySelector(".helper-months-charged").value = helperState.monthsCharged || "";
+        helperRow.querySelector(".helper-release-fringe-rate").value = helperState.releaseFringeRate || helperStateDefaults.releaseFringeRate;
+        helperRow.querySelector(".helper-overload-fringe-rate").value = helperState.overloadFringeRate || helperStateDefaults.overloadFringeRate;
+        helperRow.querySelector(".helper-summer-rate-source").dataset.requestedSource = helperState.summerRateSource || helperStateDefaults.summerRateSource;
+        helperRow.querySelector(".helper-instructional-cost-per-te").value = helperState.instructionalCostPerTE || "";
+        helperRow.querySelector(".helper-apply-toggle").checked = Boolean(helperState.apply);
+      }
 
       row.querySelectorAll("input").forEach((input) => {
         registerPlannerInput(input);
       });
 
-      helperRow.querySelectorAll("input, select").forEach((input) => {
+      if (helperRow) {
+        helperRow.querySelectorAll("input, select").forEach((input) => {
+          registerPlannerInput(input);
+        });
+      }
+
+      row.querySelectorAll(".money-input").forEach((input) => {
+        if (input.value !== "") {
+          formatMoneyInputDisplay(input);
+        }
+      });
+
+      if (helperRow) {
+        helperRow.querySelectorAll(".money-input").forEach((input) => {
+          if (input.value !== "") {
+            formatMoneyInputDisplay(input);
+          }
+        });
+
+        if (Object.prototype.hasOwnProperty.call(helperState, "releaseFringeRate")) {
+          helperRow.querySelector(".helper-release-fringe-rate").dataset.rateTouched = "true";
+        }
+
+        if (Object.prototype.hasOwnProperty.call(helperState, "overloadFringeRate")) {
+          helperRow.querySelector(".helper-overload-fringe-rate").dataset.rateTouched = "true";
+        }
+
+        if (helperState.instructionalCostPerTE) {
+          storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+        }
+      }
+
+      fragment.appendChild(row);
+      if (helperRow) {
+        fragment.appendChild(helperRow);
+
+        populateHelperSummerRateSelect(helperRow.querySelector(".helper-summer-rate-source"));
+        applyHelperSummerRateSourceSelection(row);
+
+        row.querySelector(".row-helper-toggle").addEventListener("click", () => {
+          toggleBudgetHelper(row);
+        });
+
+        helperRow.querySelector(".helper-release-fringe-rate").addEventListener("input", (event) => {
+          markRateFieldTouched(event.currentTarget);
+        });
+
+        helperRow.querySelector(".helper-overload-fringe-rate").addEventListener("input", (event) => {
+          markRateFieldTouched(event.currentTarget);
+        });
+
+        helperRow.querySelector(".helper-summer-rate-source").addEventListener("change", (event) => {
+          event.currentTarget.dataset.requestedSource = event.currentTarget.value;
+          applyHelperSummerRateSourceSelection(row);
+          calculate();
+        });
+
+        helperRow.querySelector(".helper-instructional-cost-per-te").addEventListener("input", () => {
+          if (helperRow.querySelector(".helper-summer-rate-source").value === CUSTOM_RATE_OPTION) {
+            storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+          }
+        });
+
+        helperRow.querySelector(".helper-instructional-cost-per-te").addEventListener("change", () => {
+          if (helperRow.querySelector(".helper-summer-rate-source").value === CUSTOM_RATE_OPTION) {
+            storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+          }
+        });
+
+        if (helperState.open) {
+          toggleBudgetHelper(row);
+        }
+      }
+
+      return fragment;
+    }
+
+    function createOtherPersonnelRow(definition, data = {}) {
+      const row = document.createElement("tr");
+      row.className = "other-personnel-row";
+      row.dataset.personnelKey = definition.key;
+      row.dataset.personnelPrefix = definition.prefix || "";
+      row.dataset.personnelLabel = definition.label;
+      row.dataset.personnelDisplayLabel = `${definition.prefix || ""} ${definition.label}`.trim();
+      row.dataset.hasMonths = String(definition.hasMonths);
+
+      const monthCells = definition.hasMonths
+        ? `
+            <td><input type="number" class="cal-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="acad-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+          `
+        : `
+            <td class="empty-months">--</td>
+            <td class="empty-months">--</td>
+            <td class="empty-months">--</td>
+          `;
+
+      row.innerHTML = `
+        <th scope="row"><div class="other-personnel-label"><span class="person-prefix">${row.dataset.personnelPrefix}</span><span class="person-text">${row.dataset.personnelLabel}</span></div></th>
+        <td><input type="number" class="person-quantity quantity-input" min="0" step="1" placeholder="0"></td>
+        ${monthCells}
+        <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
+        <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+      `;
+
+      row.querySelector(".person-quantity").value = data.quantity || "";
+      if (definition.hasMonths) {
+        row.querySelector(".cal-months").value = data.calMonths || "";
+        row.querySelector(".acad-months").value = data.acadMonths || "";
+        row.querySelector(".sumr-months").value = data.sumrMonths || "";
+      }
+      row.querySelector(".base-salary").value = data.baseSalary || "";
+      row.querySelector(".fringe-amount").value = data.fringeAmount || "";
+
+      row.querySelectorAll("input").forEach((input) => {
         registerPlannerInput(input);
       });
 
@@ -2546,87 +2848,57 @@
         }
       });
 
-      helperRow.querySelectorAll(".money-input").forEach((input) => {
-        if (input.value !== "") {
-          formatMoneyInputDisplay(input);
-        }
-      });
+      return row;
+    }
 
-      if (Object.prototype.hasOwnProperty.call(helperState, "releaseFringeRate")) {
-        helperRow.querySelector(".helper-release-fringe-rate").dataset.rateTouched = "true";
+    function populatePersonnelSection(section, rows = []) {
+      section.body.innerHTML = "";
+
+      if (section.mode === "fixedSenior") {
+        const rowMap = new Map(
+          rows
+            .filter((row) => row && typeof row.key === "string")
+            .map((row) => [row.key, row])
+        );
+
+        seniorPersonnelDefinitions.forEach((definition) => {
+          section.body.appendChild(createSeniorPersonnelRow(definition, rowMap.get(definition.key) || {}));
+        });
+        return;
       }
 
-      if (Object.prototype.hasOwnProperty.call(helperState, "overloadFringeRate")) {
-        helperRow.querySelector(".helper-overload-fringe-rate").dataset.rateTouched = "true";
-      }
+      const rowMap = new Map(
+        rows
+          .filter((row) => row && typeof row.key === "string")
+          .map((row) => [row.key, row])
+      );
 
-      if (helperState.instructionalCostPerTE) {
-        storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
-      }
-
-      fragment.appendChild(row);
-      fragment.appendChild(helperRow);
-
-      populateHelperSummerRateSelect(helperRow.querySelector(".helper-summer-rate-source"));
-      applyHelperSummerRateSourceSelection(row);
-
-      row.querySelector(".row-helper-toggle").addEventListener("click", () => {
-        toggleBudgetHelper(row);
+      otherPersonnelDefinitions.forEach((definition) => {
+        section.body.appendChild(createOtherPersonnelRow(definition, rowMap.get(definition.key) || {}));
       });
-
-      helperRow.querySelector(".helper-release-fringe-rate").addEventListener("input", (event) => {
-        markRateFieldTouched(event.currentTarget);
-      });
-
-      helperRow.querySelector(".helper-overload-fringe-rate").addEventListener("input", (event) => {
-        markRateFieldTouched(event.currentTarget);
-      });
-
-      helperRow.querySelector(".helper-summer-rate-source").addEventListener("change", (event) => {
-        event.currentTarget.dataset.requestedSource = event.currentTarget.value;
-        applyHelperSummerRateSourceSelection(row);
-        calculate();
-      });
-
-      helperRow.querySelector(".helper-instructional-cost-per-te").addEventListener("input", () => {
-        if (helperRow.querySelector(".helper-summer-rate-source").value === CUSTOM_RATE_OPTION) {
-          storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
-        }
-      });
-
-      helperRow.querySelector(".helper-instructional-cost-per-te").addEventListener("change", () => {
-        if (helperRow.querySelector(".helper-summer-rate-source").value === CUSTOM_RATE_OPTION) {
-          storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
-        }
-      });
-
-      if (helperState.open) {
-        toggleBudgetHelper(row);
-      }
-
-      row.querySelector(".row-remove").addEventListener("click", () => {
-        const body = row.parentElement;
-        helperRow.remove();
-        row.remove();
-        if (!countPersonnelRows(body)) {
-          addPersonnelRow(sectionKey);
-        }
-        calculate();
-      });
-
-      return fragment;
     }
 
     function addPersonnelRow(sectionKey, data = {}) {
       const section = personnelSections.find((entry) => entry.key === sectionKey);
-      if (!section) {
+      if (!section || section.mode !== "dynamic") {
         return;
       }
-      section.body.appendChild(createPersonnelRow(sectionKey, data));
+      section.body.appendChild(createSeniorPersonnelRow({ key: section.key, kind: "named" }, data));
       calculate();
     }
 
-    function rowHasPersonnelContent(row) {
+    function rowHasSeniorPersonnelContent(row) {
+      if (row.dataset.personnelKind === "others") {
+        return [
+          row.querySelector(".person-quantity")?.value ?? "",
+          row.querySelector(".cal-months").value,
+          row.querySelector(".acad-months").value,
+          row.querySelector(".sumr-months").value,
+          row.querySelector(".base-salary").value,
+          row.querySelector(".fringe-amount").value
+        ].some((value) => value !== "");
+      }
+
       return [
         row.querySelector(".person-label").value.trim(),
         row.querySelector(".cal-months").value,
@@ -2638,6 +2910,14 @@
     }
 
     function computePersonnelSection(section) {
+      if (section.mode === "fixedSenior") {
+        return computeSeniorPersonnelSection(section);
+      }
+
+      if (section.mode === "fixed") {
+        return computeOtherPersonnelSection(section);
+      }
+
       const totals = {
         rows: [],
         calMonths: 0,
@@ -2662,9 +2942,105 @@
         totals.salary = roundToCent(totals.salary + baseSalary);
         totals.fringe = roundToCent(totals.fringe + fringeAmount);
 
-        if (rowHasPersonnelContent(row)) {
+        if (rowHasSeniorPersonnelContent(row)) {
           totals.rows.push({
+            key: row.dataset.personnelKey,
+            kind: row.dataset.personnelKind,
             label: label || `${section.label} row`,
+            quantity: 0,
+            calMonths,
+            acadMonths,
+            sumrMonths,
+            baseSalary,
+            fringeAmount
+          });
+        }
+      });
+
+      return totals;
+    }
+
+    function computeSeniorPersonnelSection(section) {
+      const totals = {
+        rows: [],
+        calMonths: 0,
+        acadMonths: 0,
+        sumrMonths: 0,
+        salary: 0,
+        fringe: 0
+      };
+
+      Array.from(section.body.querySelectorAll(".personnel-row")).forEach((row) => {
+        syncBudgetHelperRow(row);
+        const kind = row.dataset.personnelKind;
+        const label = kind === "others"
+          ? row.dataset.personnelLabel
+          : row.querySelector(".person-label").value.trim();
+        const quantity = kind === "others"
+          ? nonNegativeNumber(row.querySelector(".person-quantity"))
+          : 0;
+        const calMonths = nonNegativeNumber(row.querySelector(".cal-months"));
+        const acadMonths = nonNegativeNumber(row.querySelector(".acad-months"));
+        const sumrMonths = nonNegativeNumber(row.querySelector(".sumr-months"));
+        const baseSalary = nonNegativeMoney(row.querySelector(".base-salary"));
+        const fringeAmount = nonNegativeMoney(row.querySelector(".fringe-amount"));
+
+        totals.calMonths += calMonths;
+        totals.acadMonths += acadMonths;
+        totals.sumrMonths += sumrMonths;
+        totals.salary = roundToCent(totals.salary + baseSalary);
+        totals.fringe = roundToCent(totals.fringe + fringeAmount);
+
+        if (rowHasSeniorPersonnelContent(row)) {
+          totals.rows.push({
+            key: row.dataset.personnelKey,
+            kind,
+            label: kind === "others" ? label : (label || `${section.label} row`),
+            quantity,
+            calMonths,
+            acadMonths,
+            sumrMonths,
+            baseSalary,
+            fringeAmount
+          });
+        }
+      });
+
+      return totals;
+    }
+
+    function computeOtherPersonnelSection(section) {
+      const totals = {
+        rows: [],
+        calMonths: 0,
+        acadMonths: 0,
+        sumrMonths: 0,
+        salary: 0,
+        fringe: 0
+      };
+
+      Array.from(section.body.querySelectorAll(".other-personnel-row")).forEach((row) => {
+        const label = row.dataset.personnelDisplayLabel;
+        const hasMonths = row.dataset.hasMonths === "true";
+        const quantity = nonNegativeNumber(row.querySelector(".person-quantity"));
+        const calMonths = hasMonths ? nonNegativeNumber(row.querySelector(".cal-months")) : 0;
+        const acadMonths = hasMonths ? nonNegativeNumber(row.querySelector(".acad-months")) : 0;
+        const sumrMonths = hasMonths ? nonNegativeNumber(row.querySelector(".sumr-months")) : 0;
+        const baseSalary = nonNegativeMoney(row.querySelector(".base-salary"));
+        const fringeAmount = nonNegativeMoney(row.querySelector(".fringe-amount"));
+
+        totals.calMonths += calMonths;
+        totals.acadMonths += acadMonths;
+        totals.sumrMonths += sumrMonths;
+        totals.salary = roundToCent(totals.salary + baseSalary);
+        totals.fringe = roundToCent(totals.fringe + fringeAmount);
+
+        if (rowHasOtherPersonnelContent(row)) {
+          totals.rows.push({
+            key: row.dataset.personnelKey,
+            label,
+            quantity,
+            hasMonths,
             calMonths,
             acadMonths,
             sumrMonths,
@@ -2870,13 +3246,25 @@
         lines.push(section.label);
 
         if (!sectionState.rows.length) {
-          lines.push("No personnel rows entered.");
+          lines.push(section.mode === "fixedSenior" ? "No Section A amounts entered." : "No Section B amounts entered.");
         } else {
           sectionState.rows.forEach((row) => {
-            lines.push(
-              `${row.label}: ${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months, ` +
-              `salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}`
-            );
+            if (section.mode === "fixedSenior") {
+              const quantityText = row.kind === "others"
+                ? `, qty ${formatDecimal(row.quantity)}`
+                : "";
+              lines.push(
+                `${row.label}: ${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months, ` +
+                `salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}${quantityText}`
+              );
+            } else {
+              const monthsText = row.hasMonths
+                ? `, ${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months`
+                : "";
+              lines.push(
+                `${row.label}: qty ${formatDecimal(row.quantity)}${monthsText}, salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}`
+              );
+            }
           });
         }
 
@@ -2969,8 +3357,7 @@
       elements.defaultIndirectRate.value = helperStateDefaults.defaultIndirectRate;
 
       personnelSections.forEach((section) => {
-        section.body.innerHTML = "";
-        section.body.appendChild(createPersonnelRow(section.key));
+        populatePersonnelSection(section);
       });
 
       Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr")).forEach((row) => {
