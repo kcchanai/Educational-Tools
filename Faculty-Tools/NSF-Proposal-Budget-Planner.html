@@ -1102,17 +1102,15 @@
           <input id="budget-period-label" type="text">
         </div>
         <div>
-          <label for="default-indirect-rate">Default IDC Rate (%)</label>
+          <label for="default-indirect-rate">IDC Rate (%)</label>
           <input id="default-indirect-rate" type="number" min="0" step="0.01" value="45.50">
         </div>
       </div>
       <div class="help">
-        Enter salary-before-fringe and fringe directly for each person. Clear a row's IDC checkbox when
-        indirect cost should not apply to that direct-cost line. Checked rows use the default IDC rate.
-      </div>
-      <div class="help">
-        For categories with special indirect-cost treatment, enter only the allowable direct-cost base here
-        or clear IDC for that row. MTDC is calculated from the direct-cost lines that remain eligible for IDC.
+        Enter salary-before-fringe and fringe directly for each person. For non-personnel lines, leave IDC
+        checked when the cost belongs in the indirect-cost base and clear it when it does not. If a category
+        has special indirect-cost treatment, enter only the allowable direct-cost base for that line. MTDC is
+        calculated from the direct-cost lines that remain IDC-eligible.
       </div>
       <div class="rate-source-grid">
         <section class="rate-source-card" aria-label="Live ORS defaults">
@@ -1410,8 +1408,8 @@
           <section class="modal-section">
             <h3>Rates</h3>
             <ul>
-              <li>The default indirect cost rate is editable at the top of the page.</li>
-              <li>Use Reload Live ORS Defaults to refresh the planner's default indirect rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
+              <li>The IDC rate is editable at the top of the page.</li>
+              <li>Use Reload Live ORS Defaults to refresh the planner's IDC rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
               <li>Budget Helper can load live summer instructional pay rates from the UH summer faculty and lecturer pay-rate pages.</li>
               <li>Checked direct-cost rows use the default indirect cost rate.</li>
               <li>Clear a row's IDC checkbox when indirect cost should not apply.</li>
@@ -1422,7 +1420,7 @@
             <ul>
               <li>Section A is a fixed six-row senior-personnel table. Section B is a fixed six-row NSF other-personnel table.</li>
               <li>Sections D, E, F, and G share one table, with participant support split into F1-F4 and other direct costs split into G1-G6.</li>
-              <li>Each D, E, F, and G row includes Funds Requested and an IDC checkbox.</li>
+              <li>Each D, E, F, and G budget line includes Funds Requested and an IDC checkbox. Section F also includes a Total Number of Participants input under F4.</li>
             </ul>
           </section>
           <section class="modal-section">
@@ -3254,7 +3252,7 @@
         `Proposal No.: ${elements.proposalNumber.value.trim() || "Not specified"}`,
         `PI / PD Name: ${elements.piLabel.value.trim() || "Not specified"}`,
         `Budget Period Label: ${elements.budgetPeriodLabel.value.trim() || "One budget period"}`,
-        `Default IDC Rate: ${formatPercent(state.defaults.indirectRate)}`,
+        `IDC Rate: ${formatPercent(state.defaults.indirectRate)}`,
         ""
       ];
 
@@ -3313,7 +3311,7 @@
       lines.push(`Modified Total Direct Costs: ${formatCurrency(displayTotals.mtdc)}`);
       lines.push(`Total Indirect Costs: ${formatCurrency(displayTotals.indirect)}`);
       lines.push(`Total Budget: ${formatCurrency(displayTotals.totalBudget)}`);
-      lines.push(`Default IDC Rate: ${formatPercent(state.totals.indirectRate)}`);
+      lines.push(`IDC Rate: ${formatPercent(state.totals.indirectRate)}`);
 
       return lines.join("\n");
     }
