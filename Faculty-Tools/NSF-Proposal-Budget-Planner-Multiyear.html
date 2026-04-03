@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NSF Proposal Budget Planner</title>
+  <title>NSF Budget Planner</title>
   <style>
     :root {
       --bg-top: #f4efe4;
@@ -566,9 +566,17 @@
       width: var(--funds-column-width);
     }
 
+    .compact-budget-table > thead th:nth-child(2) {
+      text-align: center;
+    }
+
     .participant-support-table > thead th:nth-child(2),
     .participant-support-table > tbody > tr > td:nth-child(2) {
       width: var(--funds-column-width);
+    }
+
+    .participant-support-table > thead th:nth-child(2) {
+      text-align: center;
     }
 
     .participant-count-inline {
@@ -596,18 +604,16 @@
       white-space: nowrap;
     }
 
-    .participant-support-table #rollup-participant {
-      text-align: left;
-    }
-
     .participant-support-total-cell {
       padding-left: 8px;
       padding-right: 8px;
+      text-align: right;
     }
 
     .participant-support-total-chip {
       display: inline-flex;
       align-items: center;
+      justify-content: flex-end;
       width: min(100%, var(--funds-column-width));
       min-height: 46px;
       padding: 11px 12px;
@@ -617,7 +623,7 @@
       color: var(--accent);
       font-weight: 800;
       font-variant-numeric: tabular-nums;
-      text-align: left;
+      text-align: right;
       box-sizing: border-box;
     }
 
@@ -632,6 +638,10 @@
     .entry-text-input,
     .summary-text-input {
       width: 100%;
+    }
+
+    .money-input {
+      text-align: right;
     }
 
     .summary-money-input {
@@ -836,6 +846,11 @@
       width: var(--funds-column-width);
     }
 
+    .senior-personnel-table > thead th:nth-child(6),
+    .senior-personnel-table > thead th:nth-child(7) {
+      text-align: center;
+    }
+
     .fixed-person-label {
       min-height: 40px;
       display: grid;
@@ -926,6 +941,11 @@
       width: var(--funds-column-width);
     }
 
+    .other-personnel-table > thead th:nth-child(6),
+    .other-personnel-table > thead th:nth-child(7) {
+      text-align: center;
+    }
+
     .quantity-input {
       width: 68px;
       min-width: 0;
@@ -970,6 +990,11 @@
       padding-left: 16px;
     }
 
+    #non-personnel-sections tfoot th {
+      text-align: left;
+      padding-left: 16px;
+    }
+
     .computed-cell {
       min-width: 110px;
       font-variant-numeric: tabular-nums;
@@ -978,8 +1003,13 @@
     }
 
     .senior-total-money-cell {
-      text-align: left;
-      padding-left: 8px;
+      text-align: right;
+    }
+
+    .money-input + .cumulative-static-value,
+    .summary-money-input + .cumulative-static-value {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     .inline-note {
@@ -1591,12 +1621,11 @@
     <section class="hero">
       <div class="hero-content">
         <div class="hero-copy">
-          <p class="eyebrow">NSF Budget Planning</p>
-          <h1>NSF Proposal Budget Planner</h1>
+          <h1>NSF Budget Planner</h1>
           <p>
-            Plan one or more National Science Foundation (NSF) budget periods before entering them into the
-            official proposal system. Personnel rows track person-months, salary-before-fringe, and fringe, with
-            Budget Helper support and live ORS and summer-rate defaults for faster setup.
+            Plan one or more National Science Foundation (NSF) budget periods before entering them into the NSF
+            budget worksheet or Research.gov. Shared proposal settings, year tabs, a read-only cumulative view,
+            Budget Helper support, and live ORS and summer-rate defaults help you prepare Sections A through M.
           </p>
         </div>
         <figure class="hero-seal">
@@ -1615,10 +1644,6 @@
             <input id="organization-label" type="text">
           </div>
           <div>
-            <label for="proposal-number">Proposal No.</label>
-            <input id="proposal-number" type="text">
-          </div>
-          <div>
             <label for="pi-label">PI / PD Name</label>
             <input id="pi-label" type="text">
           </div>
@@ -1626,18 +1651,22 @@
             <label for="org-rep-name">Org. Rep. Name</label>
             <input id="org-rep-name" type="text">
           </div>
+          <div>
+            <label for="proposal-number">Proposal No.</label>
+            <input id="proposal-number" type="text">
+          </div>
         </div>
       </div>
       <div class="settings-section" id="active-budget-settings">
         <h3>Active Budget Period Settings</h3>
         <div class="settings-grid">
           <div>
-            <label for="budget-period-label">Budget Period Label</label>
+            <label for="budget-period-label">Budget Period Label<br><span>(defaults to year #)</span></label>
             <input id="budget-period-label" type="text">
             <div class="cumulative-static-value" id="budget-period-label-static"></div>
           </div>
           <div>
-            <label for="default-indirect-rate">IDC Rate (%)</label>
+            <label for="default-indirect-rate">IDC Rate (%)<br><span>for current period</span></label>
             <input id="default-indirect-rate" type="number" min="0" step="0.01" value="45.50">
             <div class="cumulative-static-value" id="default-indirect-rate-static"></div>
           </div>
@@ -2053,13 +2082,15 @@
         <div class="modal-body">
           <section class="modal-section">
             <h3>Purpose</h3>
-            <p>This tool helps a PI plan one or more NSF proposal budget periods in a worksheet-style format before entering values into the official NSF budget system.</p>
+            <p>This tool helps you plan one or more NSF proposal budget periods in a worksheet-style format before entering values into the NSF budget worksheet or Research.gov.</p>
           </section>
           <section class="modal-section">
             <h3>Personnel Rows</h3>
             <ul>
-              <li>Section A uses five named senior-person rows plus a sixth Others row with a quantity field.</li>
-              <li>Section B uses six fixed NSF categories with a quantity field and salary/fringe inputs.</li>
+              <li>Section A uses five shared senior-person rows plus a sixth Others row with a quantity field.</li>
+              <li>The A1 through A5 senior-person names are shared across the whole proposal and can be edited from any editable year tab.</li>
+              <li>Row 7 in Section A totals rows 1 through 6 automatically.</li>
+              <li>Section B uses six fixed NSF categories with a quantity field and Funds Requested (Before Fringe).</li>
               <li>Only B1 and B2 track CAL, ACAD, and SUMR person-months.</li>
               <li>Use Budget Helper on the five named Section A rows to derive person-months, salary before fringe, and fringe from release time and overload inputs.</li>
               <li>Each Section A Budget Helper row can use a Summer Rate Source selector to choose a live faculty rate, a live lecturer rate, or a custom instructional Summer TE value.</li>
@@ -2068,9 +2099,9 @@
             </ul>
           </section>
           <section class="modal-section">
-            <h3>Rates</h3>
+            <h3>Shared Settings and Rates</h3>
             <ul>
-              <li>Organization, proposal number, and PI / PD name are shared across the whole proposal.</li>
+              <li>Organization, proposal number, PI / PD name, and Org. Rep. Name are shared across the whole proposal.</li>
               <li>The budget period label and IDC rate belong to the active year tab.</li>
               <li>Use Reload Live ORS Defaults to refresh the planner's IDC rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
               <li>Budget Helper can load live summer instructional pay rates from the UH summer faculty and lecturer pay-rate pages.</li>
@@ -2083,8 +2114,10 @@
             <ul>
               <li>Use Add Year to create another proposal budget period and Remove Active Year to delete the selected tab.</li>
               <li>At least one budget period always remains.</li>
+              <li>Switching tabs preserves the active year's worksheet values, Budget Helper values, and totals.</li>
               <li>Reset clears only the active year and keeps shared proposal info plus the other year tabs intact.</li>
-              <li>When two or more years exist, a read-only Cumulative tab appears and sums each row across the earlier year tabs.</li>
+              <li>When two or more years exist, a read-only Cumulative tab appears and sums each row across the editable year tabs.</li>
+              <li>The sticky card near the top of the worksheet shows which year you are editing or when you are viewing Cumulative.</li>
             </ul>
           </section>
           <section class="modal-section">
@@ -2092,7 +2125,11 @@
             <ul>
               <li>Section A is a fixed six-row senior-personnel table. Section B is a fixed six-row NSF other-personnel table.</li>
               <li>Sections D through M follow the NSF worksheet order, with separate sections for equipment, travel, participant support, other direct costs, indirect costs, fee, amount requested, and cost sharing.</li>
-              <li>Each D, E, F, and G budget line includes Funds Requested and an IDC checkbox. Section F also includes a Total Number of Participants input under F4.</li>
+              <li>Section D includes a multiline equipment description field so you can list multiple equipment items.</li>
+              <li>Each D, E, F, and G budget line includes Funds Requested and an IDC checkbox.</li>
+              <li>Section F includes participant-support line items, a Total Number of Participants input, and a Total Participant Costs summary row.</li>
+              <li>Section I shows the Modified Total Direct Costs (MTDC) Base, IDC rate used, and indirect costs.</li>
+              <li>Section M includes both Cost Sharing Proposed Level and Agreed Level if Different.</li>
             </ul>
           </section>
           <section class="modal-section">
@@ -2106,11 +2143,11 @@
           <section class="modal-section">
             <h3>Outputs</h3>
             <ul>
-              <li>The budget totals section rolls the active worksheet into an NSF-style year summary.</li>
+              <li>The active worksheet displays NSF-style totals inline as you work through Sections A through M.</li>
               <li>When available, the Cumulative tab shows a summed multi-year view across all editable year tabs.</li>
               <li>Copy Text Summary creates a plain-text multi-year proposal summary for email or planning notes.</li>
               <li>Copy Shareable Link copies a URL containing the current proposal state.</li>
-              <li>Print / Save as PDF creates a print-friendly multi-year proposal summary.</li>
+              <li>Print / Save as PDF creates a print-friendly multi-year proposal summary, including the cumulative view when available.</li>
             </ul>
           </section>
         </div>
