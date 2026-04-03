@@ -1,6 +1,6 @@
 /**
  * Google Apps Script proxy for live summer instructional pay rates
- * and ORS default rate values.
+ * (faculty and lecturer) and ORS default rate values.
  *
  * Deployment:
  * 1. Create a new Apps Script project.
@@ -9,22 +9,31 @@
  * 4. Copy the web app URL into SUMMER_RATE_PROXY_URL in
  *    Release-Time-and-Overload-Calculator.html.
  */
-const SUMMER_PAY_RATE_URL = "https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp";
+const SUMMER_FACULTY_PAY_RATE_URL = "https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp";
+const SUMMER_LECTURER_PAY_RATE_URL = "https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-casual.asp";
 const ORS_RATES_URL = "https://research.hawaii.edu/ors/resources/rates/";
 
 function doGet(e) {
   const source = e && e.parameter ? e.parameter.source : "";
 
   if (source === "summer-pay-rates") {
-    const html = UrlFetchApp.fetch(SUMMER_PAY_RATE_URL, {
+    const facultyHtml = UrlFetchApp.fetch(SUMMER_FACULTY_PAY_RATE_URL, {
+      muteHttpExceptions: true,
+      followRedirects: true
+    }).getContentText();
+    const lecturerHtml = UrlFetchApp.fetch(SUMMER_LECTURER_PAY_RATE_URL, {
       muteHttpExceptions: true,
       followRedirects: true
     }).getContentText();
 
-    const rates = extractRatesFromHtml(html);
+    const rates = dedupeRates(
+      extractFacultyRatesFromHtml(facultyHtml).concat(
+        extractLecturerRatesFromHtml(lecturerHtml)
+      )
+    );
 
     return jsonResponse({
-      sourceUrl: SUMMER_PAY_RATE_URL,
+      sourceUrls: [SUMMER_FACULTY_PAY_RATE_URL, SUMMER_LECTURER_PAY_RATE_URL],
       fetchedAt: new Date().toISOString(),
       rates: rates
     });
@@ -59,7 +68,7 @@ function jsonResponse(payload) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function extractRatesFromHtml(html) {
+function extractFacultyRatesFromHtml(html) {
   const rows = html.match(/<tr[\s\S]*?<\/tr>/gi) || [];
   const rates = [];
 
@@ -98,10 +107,47 @@ function extractRatesFromHtml(html) {
   });
 
   if (rates.length === 0) {
-    throw new Error("No rate rows were parsed from the UH page.");
+    throw new Error("No faculty rate rows were parsed from the UH page.");
   }
 
   return dedupeRates(rates);
+}
+
+function extractLecturerRatesFromHtml(html) {
+  const text = htmlToPlainText(html);
+  const matches = [
+    {
+      label: "Lecturer A",
+      match: text.match(/Lecturer\s*A\s*\$?\s*([0-9][0-9,]*(?:\.[0-9]+)?)/i)
+    },
+    {
+      label: "Lecturer B",
+      match: text.match(/Lecturer\s*B\s*\$?\s*([0-9][0-9,]*(?:\.[0-9]+)?)/i)
+    },
+    {
+      label: "Lecturer C",
+      match: text.match(/Lecturer\s*C\s*\$?\s*([0-9][0-9,]*(?:\.[0-9]+)?)/i)
+    }
+  ];
+
+  const rates = matches.map(function (entry) {
+    if (!entry.match) {
+      return null;
+    }
+
+    return {
+      label: entry.label,
+      value: Number(entry.match[1].replace(/,/g, ""))
+    };
+  }).filter(function (entry) {
+    return entry && isFinite(entry.value);
+  });
+
+  if (rates.length < 3) {
+    throw new Error("Lecturer A/B/C rates could not be parsed from the casual hires page.");
+  }
+
+  return rates;
 }
 
 function cleanCellText(html) {
