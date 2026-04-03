@@ -21,6 +21,7 @@
       --radius-lg: 24px;
       --radius-md: 16px;
       --radius-sm: 12px;
+      --funds-column-width: 172px;
     }
 
     * {
@@ -168,6 +169,18 @@
       border-radius: var(--radius-sm);
       background: rgba(255, 255, 255, 0.94);
       color: var(--ink);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 46px;
+      padding: 11px 12px;
+      border: 1px solid rgba(23, 34, 44, 0.12);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      font: inherit;
+      resize: vertical;
     }
 
     input[type="checkbox"] {
@@ -375,7 +388,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 0;
     }
 
     .year-live-header h3 {
@@ -391,18 +404,84 @@
       line-height: 1.45;
     }
 
+    .sticky-year-card {
+      position: sticky;
+      top: 12px;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      max-width: min(100%, 720px);
+      padding: 8px 14px;
+      border: 1px solid rgba(14, 93, 115, 0.18);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 10px 24px rgba(21, 40, 49, 0.18);
+      backdrop-filter: blur(10px);
+      flex-wrap: wrap;
+    }
+
+    .sticky-year-eyebrow {
+      margin: 0;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .sticky-year-separator {
+      color: rgba(23, 34, 44, 0.28);
+      font-weight: 700;
+    }
+
+    .sticky-year-title {
+      margin: 0;
+      font-size: 0.94rem;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+
+    .sticky-year-meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.2;
+    }
+
+    .sticky-year-meta,
+    .sticky-year-separator:last-of-type {
+      display: none;
+    }
+
+    #worksheet-panel {
+      display: grid;
+      gap: 18px;
+    }
+
+    #non-personnel-sections {
+      display: grid;
+      gap: 18px;
+    }
+
     .worksheet-section {
       display: grid;
       gap: 10px;
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid var(--line);
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
     }
 
     .worksheet-section:first-of-type {
       margin-top: 0;
       padding-top: 0;
       border-top: 0;
+    }
+
+    .worksheet-section.no-heading-section {
+      padding-top: 0;
     }
 
     .section-header {
@@ -471,8 +550,75 @@
       font-size: 0.92rem;
     }
 
+    .budget-table textarea {
+      min-height: 88px;
+      padding: 8px 10px;
+      font-size: 0.92rem;
+    }
+
     .compact-budget-table {
       min-width: 0;
+    }
+
+    .compact-budget-table > thead th:nth-child(2),
+    .compact-budget-table > tbody > tr > td:nth-child(2),
+    .compact-budget-table > tfoot > tr > td:nth-child(2) {
+      width: var(--funds-column-width);
+    }
+
+    .participant-support-table > thead th:nth-child(2),
+    .participant-support-table > tbody > tr > td:nth-child(2) {
+      width: var(--funds-column-width);
+    }
+
+    .participant-count-inline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .participant-count-inline .quantity-input {
+      flex: 0 0 76px;
+    }
+
+    .participant-summary-row-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .participant-support-total-label {
+      text-align: left;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .participant-support-table #rollup-participant {
+      text-align: left;
+    }
+
+    .participant-support-total-cell {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+
+    .participant-support-total-chip {
+      display: inline-flex;
+      align-items: center;
+      width: min(100%, var(--funds-column-width));
+      min-height: 46px;
+      padding: 11px 12px;
+      border: 1px solid rgba(14, 93, 115, 0.24);
+      border-radius: var(--radius-sm);
+      background: rgba(14, 93, 115, 0.08);
+      color: var(--accent);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      text-align: left;
+      box-sizing: border-box;
     }
 
     .entry-text-input,
@@ -489,7 +635,7 @@
     }
 
     .summary-money-input {
-      width: min(100%, 200px);
+      width: min(100%, var(--funds-column-width));
       text-align: right;
       justify-self: end;
     }
@@ -506,6 +652,10 @@
       align-items: center;
       gap: 8px;
       min-width: 0;
+    }
+
+    .person-input-row.static-label-row {
+      align-items: flex-start;
     }
 
     .person-prefix {
@@ -549,6 +699,10 @@
       white-space: nowrap;
     }
 
+    #rollup-senior-quantity {
+      text-align: center;
+    }
+
     .row-helper-toggle {
       justify-self: start;
       margin-left: calc(var(--person-prefix-width) + 8px);
@@ -587,8 +741,9 @@
     }
 
     .budget-table .base-salary,
-    .budget-table .fringe-amount {
-      width: 166px;
+    .budget-table .fringe-amount,
+    .budget-table .direct-amount {
+      width: var(--funds-column-width);
       min-width: 0;
     }
 
@@ -642,6 +797,24 @@
       width: 76px;
     }
 
+    .senior-personnel-table > thead th:nth-child(2),
+    .senior-personnel-table > thead th:nth-child(3),
+    .senior-personnel-table > thead th:nth-child(4),
+    .senior-personnel-table > thead th:nth-child(5) {
+      text-align: center;
+    }
+
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(2),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(3),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(4),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(5),
+    .senior-personnel-table > tbody > .senior-total-row > td:nth-child(2),
+    .senior-personnel-table > tbody > .senior-total-row > td:nth-child(3),
+    .senior-personnel-table > tbody > .senior-total-row > td:nth-child(4),
+    .senior-personnel-table > tbody > .senior-total-row > td:nth-child(5) {
+      text-align: center;
+    }
+
     .senior-personnel-table > thead th:nth-child(3),
     .senior-personnel-table > thead th:nth-child(4),
     .senior-personnel-table > thead th:nth-child(5),
@@ -660,7 +833,7 @@
     .senior-personnel-table > tbody > .personnel-row > td:nth-child(7),
     .senior-personnel-table > tbody > .senior-total-row > td:nth-child(6),
     .senior-personnel-table > tbody > .senior-total-row > td:nth-child(7) {
-      width: 172px;
+      width: var(--funds-column-width);
     }
 
     .fixed-person-label {
@@ -723,6 +896,20 @@
       width: 76px;
     }
 
+    .other-personnel-table > thead th:nth-child(2),
+    .other-personnel-table > thead th:nth-child(3),
+    .other-personnel-table > thead th:nth-child(4),
+    .other-personnel-table > thead th:nth-child(5) {
+      text-align: center;
+    }
+
+    .other-personnel-table > tbody > tr > td:nth-child(2),
+    .other-personnel-table > tbody > tr > td:nth-child(3),
+    .other-personnel-table > tbody > tr > td:nth-child(4),
+    .other-personnel-table > tbody > tr > td:nth-child(5) {
+      text-align: center;
+    }
+
     .other-personnel-table > thead th:nth-child(3),
     .other-personnel-table > thead th:nth-child(4),
     .other-personnel-table > thead th:nth-child(5),
@@ -736,7 +923,7 @@
     .other-personnel-table > thead th:nth-child(7),
     .other-personnel-table > tbody > tr > td:nth-child(6),
     .other-personnel-table > tbody > tr > td:nth-child(7) {
-      width: 172px;
+      width: var(--funds-column-width);
     }
 
     .quantity-input {
@@ -1435,6 +1622,10 @@
             <label for="pi-label">PI / PD Name</label>
             <input id="pi-label" type="text">
           </div>
+          <div>
+            <label for="org-rep-name">Org. Rep. Name</label>
+            <input id="org-rep-name" type="text">
+          </div>
         </div>
       </div>
       <div class="settings-section" id="active-budget-settings">
@@ -1526,6 +1717,13 @@
           <p id="active-year-note">Each tab keeps its own worksheet values, totals, and copied summary content.</p>
         </div>
       </div>
+      <div class="sticky-year-card" aria-live="polite">
+        <p class="sticky-year-eyebrow" id="sticky-year-eyebrow">Editing</p>
+        <span class="sticky-year-separator" aria-hidden="true">|</span>
+        <p class="sticky-year-title" id="sticky-year-title">Year 1</p>
+        <span class="sticky-year-separator" aria-hidden="true">|</span>
+        <p class="sticky-year-meta" id="sticky-year-meta">IDC 45.50%</p>
+      </div>
       <div class="worksheet-note">
         This worksheet shows the active NSF budget period and mirrors the standard budget structure closely,
         while keeping salary and fringe entry simple and tracking direct, indirect, and MTDC totals automatically.
@@ -1533,7 +1731,7 @@
 
       <section class="worksheet-section">
         <div class="section-header">
-          <h3>A. Senior Personnel</h3>
+          <h3>A. SENIOR PERSONNEL: PI/PD, Co-PI’s, Faculty and Other Senior Associates (List each separately with title)</h3>
         </div>
         <div class="table-wrap">
           <table class="budget-table senior-personnel-table">
@@ -1544,14 +1742,13 @@
                 <th class="months-column">CAL<br>Months</th>
                 <th class="months-column">ACAD<br>Months</th>
                 <th class="months-column">SUMR<br>Months</th>
-                <th>Salary Before<br>Fringe</th>
+                <th>Funds Requested<br>(Before Fringe)</th>
                 <th>Fringe</th>
               </tr>
             </thead>
             <tbody id="senior-personnel-body"></tbody>
           </table>
         </div>
-        <div class="section-help">Section A uses five named senior-personnel rows plus a sixth fixed Others row with a quantity field. Budget Helper remains available on the five named rows.</div>
       </section>
 
       <section class="worksheet-section">
@@ -1567,20 +1764,16 @@
                 <th class="months-column">CAL<br>Months</th>
                 <th class="months-column">ACAD<br>Months</th>
                 <th class="months-column">SUMR<br>Months</th>
-                <th>Salary Before<br>Fringe</th>
+                <th>Funds Requested<br>(Before Fringe)</th>
                 <th>Fringe</th>
               </tr>
             </thead>
             <tbody id="otherPersonnel-personnel-body"></tbody>
           </table>
         </div>
-        <div class="section-help">Section B uses the six standard NSF other-personnel categories. Enter quantity for each category, plus salary before fringe and fringe. Only B1 and B2 track CAL, ACAD, and SUMR months.</div>
       </section>
 
-      <section class="worksheet-section">
-        <div class="section-header">
-          <h3>Total Salaries and Wages (A + B)</h3>
-        </div>
+      <section class="worksheet-section no-heading-section">
         <dl class="rollup-grid">
           <div class="rollup-row total">
             <dt>Total salaries and wages (A + B)</dt>
@@ -1589,22 +1782,16 @@
         </dl>
       </section>
 
-      <section class="worksheet-section">
-        <div class="section-header">
-          <h3>C. Fringe Benefits (If Charged as Direct Costs)</h3>
-        </div>
+      <section class="worksheet-section no-heading-section">
         <dl class="rollup-grid">
           <div class="rollup-row total">
-            <dt>C. Fringe benefits</dt>
+            <dt>C. Fringe Benefits (If Charged as Direct Costs)</dt>
             <dd id="rollup-fringe">$0</dd>
           </div>
         </dl>
       </section>
 
-      <section class="worksheet-section">
-        <div class="section-header">
-          <h3>Total Salaries, Wages and Fringe Benefits (A + B + C)</h3>
-        </div>
+      <section class="worksheet-section no-heading-section">
         <dl class="rollup-grid">
           <div class="rollup-row total">
             <dt>Total salaries, wages and fringe benefits (A + B + C)</dt>
@@ -1629,18 +1816,11 @@
               </thead>
               <tbody>
                 <tr data-category-key="equipment" data-category-label="Equipment">
-                  <td><input id="equipment-description" class="direct-detail entry-text-input" type="text" placeholder="Describe equipment item(s)"></td>
+                  <td><textarea id="equipment-description" class="direct-detail entry-text-input" rows="4" placeholder="Describe equipment item(s), one item per line"></textarea></td>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
                 </tr>
               </tbody>
-              <tfoot>
-                <tr>
-                  <th scope="row">Total Equipment</th>
-                  <td id="rollup-equipment" class="computed-cell">$0</td>
-                  <td class="checkbox-cell"></td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </section>
@@ -1660,23 +1840,16 @@
               </thead>
               <tbody>
                 <tr data-category-key="travelDomestic" data-category-label="Domestic Travel">
-                  <th scope="row">E1. Domestic Travel</th>
+                  <th scope="row">E1. Domestic (Incl. U.S. Possessions)</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
                 </tr>
                 <tr data-category-key="travelInternational" data-category-label="International Travel">
-                  <th scope="row">E2. International Travel</th>
+                  <th scope="row">E2. International</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
                 </tr>
               </tbody>
-              <tfoot>
-                <tr>
-                  <th scope="row">Total Travel</th>
-                  <td id="rollup-travel" class="computed-cell">$0</td>
-                  <td class="checkbox-cell"></td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </section>
@@ -1686,7 +1859,7 @@
             <h3>F. Participant Support Costs</h3>
           </div>
           <div class="table-wrap">
-            <table class="budget-table compact-budget-table">
+            <table class="budget-table compact-budget-table participant-support-table">
               <thead>
                 <tr>
                   <th>Category</th>
@@ -1716,18 +1889,21 @@
                   <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
                 </tr>
                 <tr class="participant-count-row">
-                  <th scope="row">Total Number of Participants</th>
-                  <td><input id="participant-count" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></td>
+                  <th scope="row">
+                    <div class="participant-summary-row-main">
+                      <div class="participant-count-inline">
+                        <span>Total Number of Participants</span>
+                        <input id="participant-count" class="quantity-input" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+                      </div>
+                      <span id="rollup-participant-label" class="participant-support-total-label">Total Participant Costs</span>
+                    </div>
+                  </th>
+                  <td class="participant-support-total-cell">
+                    <span id="rollup-participant" class="participant-support-total-chip">$0</span>
+                  </td>
                   <td class="checkbox-cell"></td>
                 </tr>
               </tbody>
-              <tfoot>
-                <tr>
-                  <th id="rollup-participant-label" scope="row">Total Participant Support Costs</th>
-                  <td id="rollup-participant" class="computed-cell">$0</td>
-                  <td class="checkbox-cell"></td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </section>
@@ -1786,17 +1962,10 @@
               </tfoot>
             </table>
           </div>
-          <div class="section-help">
-            Equipment and all participant-support rows are preloaded with IDC turned off. Use the IDC checkbox to control which direct-cost lines stay in the indirect-cost base.
-          </div>
-          <div class="section-help">Subawards stay on their own G5 line so you can include or exclude them from IDC as needed.</div>
         </section>
       </div>
 
-      <section class="worksheet-section">
-        <div class="section-header">
-          <h3>H. Total Direct Costs (A through G)</h3>
-        </div>
+      <section class="worksheet-section no-heading-section">
         <dl class="rollup-grid">
           <div class="rollup-row total">
             <dt>H. Total direct costs (A through G)</dt>
@@ -1811,7 +1980,7 @@
         </div>
         <dl class="rollup-grid">
           <div class="rollup-row">
-            <dt>MTDC. Modified total direct costs <span class="inline-note">This is the indirect-cost base and excludes direct-cost lines not subject to IDC, such as participant support costs.</span></dt>
+            <dt>Modified Total Direct Costs (MTDC) Base <span class="inline-note">This is the indirect-cost base and excludes direct-cost lines not subject to IDC, such as participant support costs.</span></dt>
             <dd id="rollup-mtdc">$0</dd>
           </div>
           <div class="rollup-row">
@@ -1825,10 +1994,7 @@
         </dl>
       </section>
 
-      <section class="worksheet-section">
-        <div class="section-header">
-          <h3>J. Total Direct and Indirect Costs (H + I)</h3>
-        </div>
+      <section class="worksheet-section no-heading-section">
         <dl class="rollup-grid">
           <div class="rollup-row grand-total">
             <dt>J. Total direct and indirect costs (H + I)</dt>
@@ -1837,10 +2003,7 @@
         </dl>
       </section>
 
-      <section class="worksheet-section">
-        <div class="section-header">
-          <h3>K. Fee</h3>
-        </div>
+      <section class="worksheet-section no-heading-section">
         <dl class="rollup-grid">
           <div class="rollup-row input-row">
             <dt>K. Fee</dt>
@@ -1849,10 +2012,7 @@
         </dl>
       </section>
 
-      <section class="worksheet-section">
-        <div class="section-header">
-          <h3>L. Amount of This Request</h3>
-        </div>
+      <section class="worksheet-section no-heading-section">
         <dl class="rollup-grid">
           <div class="rollup-row grand-total">
             <dt>L. Amount of this request (J) or (J minus K)</dt>
@@ -1863,12 +2023,16 @@
 
       <section class="worksheet-section">
         <div class="section-header">
-          <h3>M. Cost Sharing Proposed Level</h3>
+          <h3>M. Cost Sharing</h3>
         </div>
         <dl class="rollup-grid">
           <div class="rollup-row input-row">
             <dt>M. Cost sharing proposed level</dt>
             <dd><input id="cost-sharing-amount" class="money-input summary-money-input" type="text" inputmode="numeric" placeholder="0"></dd>
+          </div>
+          <div class="rollup-row input-row">
+            <dt>Agreed Level if Different</dt>
+            <dd><input id="cost-sharing-agreed-amount" class="money-input summary-money-input" type="text" inputmode="numeric" placeholder="0"></dd>
           </div>
         </dl>
       </section>
@@ -2001,6 +2165,7 @@
       organizationLabel: document.getElementById("organization-label"),
       proposalNumber: document.getElementById("proposal-number"),
       piLabel: document.getElementById("pi-label"),
+      orgRepName: document.getElementById("org-rep-name"),
       budgetPeriodLabel: document.getElementById("budget-period-label"),
       budgetPeriodLabelStatic: document.getElementById("budget-period-label-static"),
       defaultIndirectRate: document.getElementById("default-indirect-rate"),
@@ -2010,6 +2175,9 @@
       removeYearButton: document.getElementById("remove-year-button"),
       activeYearTitle: document.getElementById("active-year-title"),
       activeYearNote: document.getElementById("active-year-note"),
+      stickyYearEyebrow: document.getElementById("sticky-year-eyebrow"),
+      stickyYearTitle: document.getElementById("sticky-year-title"),
+      stickyYearMeta: document.getElementById("sticky-year-meta"),
       orsRateStatus: document.getElementById("ors-rate-status"),
       orsRateUpdated: document.getElementById("ors-rate-updated"),
       reloadOrsRatesButton: document.getElementById("reload-ors-rates-button"),
@@ -2029,6 +2197,7 @@
       rollupSeniorQuantity: document.getElementById("rollup-senior-quantity"),
       feeAmount: document.getElementById("fee-amount"),
       costSharingAmount: document.getElementById("cost-sharing-amount"),
+      costSharingAgreedAmount: document.getElementById("cost-sharing-agreed-amount"),
       rollupSeniorSalary: document.getElementById("rollup-senior-salary"),
       rollupSeniorFringe: document.getElementById("rollup-senior-fringe"),
       rollupSeniorCal: document.getElementById("rollup-senior-cal"),
@@ -2586,6 +2755,7 @@
         organizationLabel: elements.organizationLabel.value.trim(),
         proposalNumber: elements.proposalNumber.value.trim(),
         piLabel: elements.piLabel.value.trim(),
+        orgRepName: elements.orgRepName.value.trim(),
         seniorPersonnelLabels: collectSharedSeniorLabels()
       };
     }
@@ -2594,6 +2764,7 @@
       elements.organizationLabel.value = settings.organizationLabel || "";
       elements.proposalNumber.value = settings.proposalNumber || "";
       elements.piLabel.value = settings.piLabel || "";
+      elements.orgRepName.value = settings.orgRepName || "";
     }
 
     function createEmptyYearState() {
@@ -2604,7 +2775,8 @@
           defaultIndirectRate: helperStateDefaults.defaultIndirectRate,
           defaultIndirectRateTouched: false,
           feeAmount: "",
-          costSharingAmount: ""
+          costSharingAmount: "",
+          costSharingAgreedAmount: ""
         },
         participantSupport: {
           participantCount: ""
@@ -2625,6 +2797,7 @@
           organizationLabel: "",
           proposalNumber: "",
           piLabel: "",
+          orgRepName: "",
           seniorPersonnelLabels: createEmptySharedSeniorLabels()
         },
         years: [initialYear],
@@ -2673,6 +2846,7 @@
       elements.equipmentDescription.value = "";
       clearMoneyInputValue(elements.feeAmount);
       clearMoneyInputValue(elements.costSharingAmount);
+      clearMoneyInputValue(elements.costSharingAgreedAmount);
 
       personnelSections.forEach((section) => {
         populatePersonnelSection(section);
@@ -2698,7 +2872,8 @@
           defaultIndirectRate: elements.defaultIndirectRate.value.trim() || helperStateDefaults.defaultIndirectRate,
           defaultIndirectRateTouched,
           feeAmount: getMoneyStateValue(elements.feeAmount),
-          costSharingAmount: getMoneyStateValue(elements.costSharingAmount)
+          costSharingAmount: getMoneyStateValue(elements.costSharingAmount),
+          costSharingAgreedAmount: getMoneyStateValue(elements.costSharingAgreedAmount)
         },
         participantSupport: {
           participantCount: elements.participantCount.value.trim()
@@ -2759,6 +2934,7 @@
       normalizedYear.settings.defaultIndirectRateTouched = Boolean(normalizedYear.settings.defaultIndirectRateTouched);
       normalizedYear.settings.feeAmount = normalizedYear.settings.feeAmount || "";
       normalizedYear.settings.costSharingAmount = normalizedYear.settings.costSharingAmount || "";
+      normalizedYear.settings.costSharingAgreedAmount = normalizedYear.settings.costSharingAgreedAmount || "";
       normalizedYear.participantSupport.participantCount = normalizedYear.participantSupport.participantCount || "";
 
       return normalizedYear;
@@ -2787,6 +2963,7 @@
           organizationLabel: state.settings?.organizationLabel || "",
           proposalNumber: state.settings?.proposalNumber || "",
           piLabel: state.settings?.piLabel || "",
+          orgRepName: state.settings?.orgRepName || "",
           seniorPersonnelLabels: normalizeSharedSeniorLabels({}, [year])
         },
         years: [year],
@@ -2807,6 +2984,7 @@
               organizationLabel: state.globalSettings?.organizationLabel || "",
               proposalNumber: state.globalSettings?.proposalNumber || "",
               piLabel: state.globalSettings?.piLabel || "",
+              orgRepName: state.globalSettings?.orgRepName || "",
               seniorPersonnelLabels: normalizeSharedSeniorLabels(state.globalSettings?.seniorPersonnelLabels, state.years)
             },
             years: Array.isArray(state.years) && state.years.length
@@ -2865,6 +3043,7 @@
         Boolean(year?.settings?.defaultIndirectRateTouched) ||
         Boolean(year?.settings?.feeAmount) ||
         Boolean(year?.settings?.costSharingAmount) ||
+        Boolean(year?.settings?.costSharingAgreedAmount) ||
         (year?.settings?.defaultIndirectRate && year.settings.defaultIndirectRate !== helperStateDefaults.defaultIndirectRate) ||
         Object.values(year?.personnel || {}).some((rows) => Array.isArray(rows) && rows.length > 0) ||
         (Array.isArray(year?.nonPersonnel) && year.nonPersonnel.length > 0);
@@ -2874,6 +3053,7 @@
       return Boolean(state.globalSettings?.organizationLabel) ||
         Boolean(state.globalSettings?.proposalNumber) ||
         Boolean(state.globalSettings?.piLabel) ||
+        Boolean(state.globalSettings?.orgRepName) ||
         Object.values(state.globalSettings?.seniorPersonnelLabels || {}).some((value) => Boolean(String(value || "").trim())) ||
         state.years.length > 1 ||
         state.activeYearId !== state.years[0]?.id ||
@@ -2916,6 +3096,9 @@
       if (isCumulativeActive()) {
         elements.activeYearTitle.textContent = "Cumulative";
         elements.activeYearNote.textContent = "This tab is read-only and shows row-by-row sums across the prior year tabs.";
+        elements.stickyYearEyebrow.textContent = "Viewing";
+        elements.stickyYearTitle.textContent = "Cumulative";
+        elements.stickyYearMeta.textContent = "";
         return;
       }
 
@@ -2926,6 +3109,9 @@
       elements.activeYearNote.textContent = proposalState && proposalState.years.length > 1
         ? `Editing ${title}. Switching tabs preserves this year's worksheet, helper values, and totals.`
         : "Each tab keeps its own worksheet values, totals, and copied summary content.";
+      elements.stickyYearEyebrow.textContent = "Editing";
+      elements.stickyYearTitle.textContent = title;
+      elements.stickyYearMeta.textContent = "";
     }
 
     function renderYearTabs() {
@@ -3051,11 +3237,15 @@
       elements.equipmentDescription.value = (yearState.nonPersonnel || []).find((entry) => entry.key === "equipment")?.detail || "";
       elements.feeAmount.value = yearState.settings?.feeAmount || "";
       elements.costSharingAmount.value = yearState.settings?.costSharingAmount || "";
+      elements.costSharingAgreedAmount.value = yearState.settings?.costSharingAgreedAmount || "";
       if (elements.feeAmount.value !== "") {
         formatMoneyInputDisplay(elements.feeAmount);
       }
       if (elements.costSharingAmount.value !== "") {
         formatMoneyInputDisplay(elements.costSharingAmount);
+      }
+      if (elements.costSharingAgreedAmount.value !== "") {
+        formatMoneyInputDisplay(elements.costSharingAgreedAmount);
       }
       if (isReadOnly) {
         elements.budgetPeriodLabel.dataset.staticValue = yearState.settings?.budgetPeriodLabel || "Cumulative";
@@ -3606,7 +3796,7 @@
         ? `
             <td>
               <div class="person-cell">
-                <div class="person-input-row">
+                <div class="person-input-row static-label-row">
                   <span class="person-prefix">${definition.prefix || ""}</span>
                   <span class="person-label-static">${definition.label}</span>
                 </div>
@@ -3918,7 +4108,7 @@
       row.innerHTML = `
         <td>
           <div class="person-cell">
-            <div class="person-input-row">
+            <div class="person-input-row static-label-row">
               <span class="person-prefix">7.</span>
               <span class="person-label-static">Total Senior Personnel (1-6)</span>
             </div>
@@ -4267,6 +4457,7 @@
       const totalBudgetDisplay = roundUpDollar(totalDirectDisplay + totalIndirectDisplay);
       const feeDisplay = roundUpDollar(readStoredNumberValue(yearSettings.feeAmount));
       const costSharingDisplay = roundUpDollar(readStoredNumberValue(yearSettings.costSharingAmount));
+      const costSharingAgreedDisplay = roundUpDollar(readStoredNumberValue(yearSettings.costSharingAgreedAmount));
       const amountRequestedDisplay = roundUpDollar(Math.max(totalBudgetDisplay - feeDisplay, 0));
 
       return {
@@ -4288,7 +4479,8 @@
         totalBudget: totalBudgetDisplay,
         fee: feeDisplay,
         amountRequested: amountRequestedDisplay,
-        costSharing: costSharingDisplay
+        costSharing: costSharingDisplay,
+        costSharingAgreed: costSharingAgreedDisplay
       };
     }
 
@@ -4304,11 +4496,13 @@
       elements.rollupSalariesWages.textContent = formatCurrency(displayTotals.salariesWages);
       elements.rollupFringe.textContent = formatCurrency(displayTotals.fringe);
       elements.rollupSalariesFringe.textContent = formatCurrency(displayTotals.salariesFringe);
-      elements.rollupEquipment.textContent = formatCurrency(displayTotals.equipment);
-      elements.rollupTravel.textContent = formatCurrency(displayTotals.travel);
-      elements.rollupParticipantLabel.textContent = displayTotals.participantCount > 0
-        ? `F. Total participant support costs (${formatDecimal(displayTotals.participantCount)} participants)`
-        : "F. Total participant support costs";
+      if (elements.rollupEquipment) {
+        elements.rollupEquipment.textContent = formatCurrency(displayTotals.equipment);
+      }
+      if (elements.rollupTravel) {
+        elements.rollupTravel.textContent = formatCurrency(displayTotals.travel);
+      }
+      elements.rollupParticipantLabel.textContent = "Total Participant Costs";
       elements.rollupParticipant.textContent = formatCurrency(displayTotals.participant);
       elements.rollupOtherDirect.textContent = formatCurrency(displayTotals.otherDirect);
       elements.rollupTotalDirect.textContent = formatCurrency(displayTotals.totalDirect);
@@ -4521,6 +4715,7 @@
         aggregate.fee += evaluation.displayTotals.fee;
         aggregate.amountRequested += evaluation.displayTotals.amountRequested;
         aggregate.costSharing += evaluation.displayTotals.costSharing;
+        aggregate.costSharingAgreed += evaluation.displayTotals.costSharingAgreed;
         aggregate.yearLabels.push(getYearDisplayLabel(years[index], index));
         return aggregate;
       }, {
@@ -4549,6 +4744,7 @@
         fee: 0,
         amountRequested: 0,
         costSharing: 0,
+        costSharingAgreed: 0,
         yearLabels: []
       });
     }
@@ -4695,7 +4891,8 @@
           totalBudget: aggregate.totalBudget,
           fee: aggregate.fee,
           amountRequested: aggregate.amountRequested,
-          costSharing: aggregate.costSharing
+          costSharing: aggregate.costSharing,
+          costSharingAgreed: aggregate.costSharingAgreed
         }
       };
 
@@ -4706,7 +4903,8 @@
             budgetPeriodLabel: "Cumulative",
             defaultIndirectRate: "",
             feeAmount: formatInputDecimal(aggregate.fee),
-            costSharingAmount: formatInputDecimal(aggregate.costSharing)
+            costSharingAmount: formatInputDecimal(aggregate.costSharing),
+            costSharingAgreedAmount: formatInputDecimal(aggregate.costSharingAgreed)
           },
           participantSupport: {
             participantCount: formatInputDecimal(aggregate.participantCount)
@@ -4732,11 +4930,13 @@
       elements.rollupSalariesWages.textContent = formatCurrency(summary.salariesWages);
       elements.rollupFringe.textContent = formatCurrency(summary.fringe);
       elements.rollupSalariesFringe.textContent = formatCurrency(summary.salariesFringe);
-      elements.rollupEquipment.textContent = formatCurrency(summary.equipment);
-      elements.rollupTravel.textContent = formatCurrency(summary.travel);
-      elements.rollupParticipantLabel.textContent = summary.participantCount > 0
-        ? `F. Total participant support costs (${formatDecimal(summary.participantCount)} participants)`
-        : "F. Total participant support costs";
+      if (elements.rollupEquipment) {
+        elements.rollupEquipment.textContent = formatCurrency(summary.equipment);
+      }
+      if (elements.rollupTravel) {
+        elements.rollupTravel.textContent = formatCurrency(summary.travel);
+      }
+      elements.rollupParticipantLabel.textContent = "Total Participant Costs";
       elements.rollupParticipant.textContent = formatCurrency(summary.participant);
       elements.rollupOtherDirect.textContent = formatCurrency(summary.otherDirect);
       elements.rollupTotalDirect.textContent = formatCurrency(summary.totalDirect);
@@ -4831,6 +5031,7 @@
       lines.push(`K. Fee: ${formatCurrency(evaluation.displayTotals.fee)}`);
       lines.push(`L. Amount of This Request: ${formatCurrency(evaluation.displayTotals.amountRequested)}`);
       lines.push(`M. Cost Sharing Proposed Level: ${formatCurrency(evaluation.displayTotals.costSharing)}`);
+      lines.push(`Agreed Level if Different: ${formatCurrency(evaluation.displayTotals.costSharingAgreed)}`);
 
       return lines.join("\n");
     }
@@ -4843,6 +5044,7 @@
         `Organization: ${state.globalSettings.organizationLabel || "Not specified"}`,
         `Proposal No.: ${state.globalSettings.proposalNumber || "Not specified"}`,
         `PI / PD Name: ${state.globalSettings.piLabel || "Not specified"}`,
+        `Org. Rep. Name: ${state.globalSettings.orgRepName || "Not specified"}`,
         `Budget Periods: ${state.years.length}`,
         ""
       ];
@@ -4894,6 +5096,10 @@
             <div>
               <dt>PI / PD Name</dt>
               <dd>${escapeHtml(state.globalSettings.piLabel || "Not specified")}</dd>
+            </div>
+            <div>
+              <dt>Org. Rep. Name</dt>
+              <dd>${escapeHtml(state.globalSettings.orgRepName || "Not specified")}</dd>
             </div>
             <div>
               <dt>Budget Period Count</dt>
@@ -4997,6 +5203,7 @@
         proposalState.globalSettings = collectGlobalSettings();
         const cumulativeView = buildCumulativeView(proposalState);
         applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: "Varies by year" });
+        updateActiveYearHeader();
         updateRollupFromSummary({
           seniorCount: cumulativeView.aggregate.seniorCount,
           seniorSalary: cumulativeView.aggregate.seniorSalary,
@@ -5052,8 +5259,10 @@
 
       const displayTotals = updateRollup(personnelResults, nonPersonnelResults, totals, {
         feeAmount: getMoneyStateValue(elements.feeAmount),
-        costSharingAmount: getMoneyStateValue(elements.costSharingAmount)
+        costSharingAmount: getMoneyStateValue(elements.costSharingAmount),
+        costSharingAgreedAmount: getMoneyStateValue(elements.costSharingAgreedAmount)
       });
+      updateActiveYearHeader();
       syncProposalStateFromDom();
       renderYearTabs();
       renderPrintProposalSnapshot(collectPlannerState());
