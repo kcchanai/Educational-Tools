@@ -373,7 +373,7 @@
     }
 
     .budget-period-settings .year-tabs-card {
-      margin-top: -2px;
+      margin-top: 4px;
       margin-bottom: 10px;
     }
 
@@ -1237,8 +1237,23 @@
 
     .personnel-helper-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
+    }
+
+    .personnel-helper-grid.three-across {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 14px;
+    }
+
+    .personnel-helper-grid.four-across {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .personnel-helper-grid input,
+    .personnel-helper-grid select {
+      height: 46px;
+      min-height: 46px;
+      box-sizing: border-box;
     }
 
     .personnel-helper-summary {
@@ -1268,6 +1283,12 @@
       min-width: 0;
     }
 
+    .helper-card.output-card {
+      background: rgba(14, 93, 115, 0.08);
+      border-color: rgba(14, 93, 115, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
     .helper-card .label {
       display: block;
       margin-bottom: 4px;
@@ -1277,10 +1298,18 @@
       color: var(--muted);
     }
 
+    .helper-card.output-card .label {
+      color: var(--accent);
+    }
+
     .helper-card .value {
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       word-break: break-word;
+    }
+
+    .helper-card.output-card .value {
+      color: var(--accent);
     }
 
     .helper-status-note {
@@ -1291,16 +1320,13 @@
       min-height: 1.45em;
     }
 
+    .helper-status-note:empty {
+      display: none;
+    }
+
     .helper-status-note.warn {
       color: #8e2638;
       font-weight: 700;
-    }
-
-    .helper-assumption-note {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.45;
     }
 
     .derived-field {
@@ -2148,7 +2174,7 @@
         </div>
         <dl class="rollup-grid">
           <div class="rollup-row">
-            <dt>Modified Total Direct Costs (MTDC) Base <span class="inline-note">This is the indirect-cost base and excludes direct-cost lines not subject to IDC, such as participant support costs.</span></dt>
+            <dt>Base: Modified Total Direct Costs (MTDC) <span class="inline-note">This is the indirect-cost base and excludes direct-cost lines not subject to IDC, such as participant support costs.</span></dt>
             <dd id="rollup-mtdc">$0</dd>
           </div>
           <div class="rollup-row">
@@ -2241,7 +2267,7 @@
             <h3>Shared Settings and Rates</h3>
             <ul>
               <li>Organization, proposal number, PI / PD name, and Org. Rep. Name are shared across the whole proposal.</li>
-              <li>The budget period label and IDC rate belong to the active year tab.</li>
+              <li>The budget period label and IDC rate belong to the active year tab and are edited in Active Budget Period Settings.</li>
               <li>Use Reload Live ORS Defaults to refresh the planner's IDC rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
               <li>Budget Helper can load live summer instructional pay rates from the UH summer faculty and lecturer pay-rate pages.</li>
               <li>Checked direct-cost rows use the default indirect cost rate.</li>
@@ -2256,7 +2282,7 @@
               <li>Switching tabs preserves the active year's worksheet values, Budget Helper values, and totals.</li>
               <li>Reset clears only the active year and keeps shared proposal info plus the other year tabs intact.</li>
               <li>When two or more years exist, a read-only Cumulative tab appears and sums each row across the editable year tabs.</li>
-              <li>The sticky card near the top of the worksheet lets you switch between year tabs without scrolling back to the top.</li>
+              <li>The sticky Budget Period Tabs card near Active Budget Period Settings lets you switch between year tabs without scrolling back to the top.</li>
             </ul>
           </section>
           <section class="modal-section">
@@ -2672,7 +2698,6 @@
         desiredNonInstructionalDays: helperRow.querySelector(".helper-desired-non-instructional-days"),
         annualSalary: helperRow.querySelector(".helper-annual-salary"),
         facultyTerm: helperRow.querySelector(".helper-faculty-term"),
-        monthsCharged: helperRow.querySelector(".helper-months-charged"),
         releaseFringeRate: helperRow.querySelector(".helper-release-fringe-rate"),
         overloadFringeRate: helperRow.querySelector(".helper-overload-fringe-rate"),
         summerRateSource: helperRow.querySelector(".helper-summer-rate-source"),
@@ -2800,7 +2825,6 @@
         desiredNonInstructionalDays: helperControls.desiredNonInstructionalDays.value.trim(),
         annualSalary: getMoneyStateValue(helperControls.annualSalary),
         facultyTerm: helperControls.facultyTerm.value,
-        monthsCharged: helperControls.monthsCharged.value.trim(),
         releaseFringeRate: helperControls.releaseFringeRate.value.trim(),
         overloadFringeRate: helperControls.overloadFringeRate.value.trim(),
         summerRateSource: helperControls.summerRateSource.value,
@@ -2814,7 +2838,6 @@
         helperState.desiredNonInstructionalDays !== "" ||
         helperState.annualSalary !== "" ||
         helperState.facultyTerm !== helperStateDefaults.facultyTerm ||
-        helperState.monthsCharged !== "" ||
         helperState.releaseFringeRate !== helperStateDefaults.releaseFringeRate ||
         helperState.overloadFringeRate !== helperStateDefaults.overloadFringeRate ||
         helperState.summerRateSource !== helperStateDefaults.summerRateSource ||
@@ -3560,7 +3583,7 @@
 
       const customOption = document.createElement("option");
       customOption.value = CUSTOM_RATE_OPTION;
-      customOption.textContent = "Custom value";
+      customOption.textContent = "Custom (enter in cell below)";
       select.appendChild(customOption);
 
       const hasRequestedSource = Array.from(select.options).some((option) => option.value === requestedSource);
@@ -3578,6 +3601,7 @@
 
       if (selectedSource === CUSTOM_RATE_OPTION) {
         controls.instructionalCostPerTE.readOnly = false;
+        controls.instructionalCostPerTE.classList.remove("derived-field");
         restoreCustomMoneyValueToInput(controls.instructionalCostPerTE);
       } else {
         if (previousSource === CUSTOM_RATE_OPTION) {
@@ -3585,6 +3609,7 @@
         }
         setMoneyInputValue(controls.instructionalCostPerTE, Number(selectedSource));
         controls.instructionalCostPerTE.readOnly = true;
+        controls.instructionalCostPerTE.classList.add("derived-field");
       }
 
       controls.summerRateSource.dataset.previousValue = selectedSource;
@@ -3796,7 +3821,6 @@
       const desiredNonInstructionalDays = nonNegativeNumber(controls.desiredNonInstructionalDays);
       const annualSalary = nonNegativeMoney(controls.annualSalary);
       const facultyMonths = Number.parseInt(controls.facultyTerm.value, 10) === 11 ? 11 : 9;
-      const monthsCharged = nonNegativeNumber(controls.monthsCharged);
       const releaseFringeRatePercent = Math.max(readNumber(controls.releaseFringeRate) ?? 0, 0);
       const overloadFringeRatePercent = Math.max(readNumber(controls.overloadFringeRate) ?? 0, 0);
       const instructionalCostPerTE = nonNegativeMoney(controls.instructionalCostPerTE);
@@ -3805,7 +3829,6 @@
         desiredInstructionalTE,
         desiredNonInstructionalDays,
         annualSalary,
-        monthsCharged,
         releaseFringeRatePercent,
         overloadFringeRatePercent,
         instructionalCostPerTE
@@ -3814,8 +3837,6 @@
       let validationMessage = "";
       if (hasWorkInput && annualSalary <= 0) {
         validationMessage = "Annual salary must be greater than zero to use the budget helper.";
-      } else if (desiredTE > 0 && !(monthsCharged > 0)) {
-        validationMessage = "Months charged to the account must be greater than zero when release time is entered.";
       } else if (desiredInstructionalTE > 0 && !(instructionalCostPerTE > 0)) {
         validationMessage = "Instructional cost per Summer TE must be greater than zero when instructional TE is entered.";
       }
@@ -3889,13 +3910,13 @@
         controls.statusNote.textContent = results.validationMessage;
         controls.statusNote.className = "helper-status-note warn";
       } else if (results.hasWorkInput && controls.applyToggle.checked) {
-        controls.statusNote.textContent = "Helper outputs are applied to this row.";
+        controls.statusNote.textContent = "";
         controls.statusNote.className = "helper-status-note";
       } else if (results.hasWorkInput) {
         controls.statusNote.textContent = "Preview only. Check Apply helper outputs to fill this row.";
         controls.statusNote.className = "helper-status-note";
       } else {
-        controls.statusNote.textContent = "Enter release and overload inputs to calculate person-months, salary before fringe, and fringe.";
+        controls.statusNote.textContent = "";
         controls.statusNote.className = "helper-status-note";
       }
 
@@ -4064,7 +4085,7 @@
                   <span>Apply helper outputs to this row</span>
                 </label>
               </div>
-              <div class="personnel-helper-grid">
+              <div class="personnel-helper-grid three-across">
                 <div>
                   <label>Desired Release Time (TE)</label>
                   <input type="number" class="helper-desired-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
@@ -4077,6 +4098,8 @@
                   <label>Desired Non-Instructional Overload Days</label>
                   <input type="number" class="helper-desired-non-instructional-days" min="0" step="1" inputmode="numeric" placeholder="0">
                 </div>
+              </div>
+              <div class="personnel-helper-grid three-across">
                 <div>
                   <label>Salary</label>
                   <input type="text" inputmode="numeric" class="helper-annual-salary money-input" placeholder="0">
@@ -4089,9 +4112,11 @@
                   </select>
                 </div>
                 <div>
-                  <label>Months Charged to the Account</label>
-                  <input type="number" class="helper-months-charged" min="0" step="0.5" inputmode="decimal" placeholder="0">
+                  <label>Summer Rate Source</label>
+                  <select class="helper-summer-rate-source"></select>
                 </div>
+              </div>
+              <div class="personnel-helper-grid three-across">
                 <div>
                   <label>Release Fringe Rate (%)</label>
                   <input type="number" class="helper-release-fringe-rate" min="0" step="0.01" inputmode="decimal" value="59.5">
@@ -4101,66 +4126,61 @@
                   <input type="number" class="helper-overload-fringe-rate" min="0" step="0.01" inputmode="decimal" value="2.47">
                 </div>
                 <div>
-                  <label>Summer Rate Source</label>
-                  <select class="helper-summer-rate-source"></select>
-                </div>
-                <div>
                   <label>Instructional Cost per Summer TE</label>
                   <input type="text" inputmode="numeric" class="helper-instructional-cost-per-te money-input" placeholder="0">
                 </div>
               </div>
-              <div class="personnel-helper-summary">
+                <div class="personnel-helper-summary">
                 <div class="personnel-helper-summary-row primary">
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">CAL Months</span>
                     <span class="value helper-output-cal">0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">ACAD Months</span>
                     <span class="value helper-output-acad">0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">SUMR Months</span>
                     <span class="value helper-output-sumr">0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">Total Salary Before Fringe</span>
                     <span class="value helper-output-salary">$0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">Total Fringe</span>
                     <span class="value helper-output-fringe">$0</span>
                   </div>
                 </div>
                 <div class="personnel-helper-summary-row secondary">
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">Release Time Salary</span>
                     <span class="value helper-output-release-salary">$0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">Instructional Overload Salary</span>
                     <span class="value helper-output-instructional-salary">$0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">Non-Instructional Overload Salary</span>
                     <span class="value helper-output-non-instructional-salary">$0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">Release Time Fringe</span>
                     <span class="value helper-output-release-fringe">$0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">Instructional Overload Fringe</span>
                     <span class="value helper-output-instructional-fringe">$0</span>
                   </div>
-                  <div class="helper-card">
+                  <div class="helper-card output-card">
                     <span class="label">Non-Instructional Overload Fringe</span>
                     <span class="value helper-output-non-instructional-fringe">$0</span>
                   </div>
                 </div>
               </div>
-              <p class="helper-assumption-note">Summer person-month calculations assume 63 work days across 3 months of summer.</p>
-              <p class="helper-status-note">Enter release and overload inputs to calculate person-months, salary before fringe, and fringe.</p>
+              <p class="helper-status-note"></p>
             </div>
           </td>
         `;
@@ -4184,7 +4204,6 @@
         helperRow.querySelector(".helper-desired-non-instructional-days").value = helperState.desiredNonInstructionalDays || "";
         helperRow.querySelector(".helper-annual-salary").value = helperState.annualSalary || "";
         helperRow.querySelector(".helper-faculty-term").value = helperState.facultyTerm || "9";
-        helperRow.querySelector(".helper-months-charged").value = helperState.monthsCharged || "";
         helperRow.querySelector(".helper-release-fringe-rate").value = helperState.releaseFringeRate || helperStateDefaults.releaseFringeRate;
         helperRow.querySelector(".helper-overload-fringe-rate").value = helperState.overloadFringeRate || helperStateDefaults.overloadFringeRate;
         helperRow.querySelector(".helper-summer-rate-source").dataset.requestedSource = helperState.summerRateSource || helperStateDefaults.summerRateSource;
