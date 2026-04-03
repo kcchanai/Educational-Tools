@@ -287,6 +287,10 @@
       line-height: 1.5;
     }
 
+    #worksheet-panel > .worksheet-note {
+      margin: -10px 0 10px;
+    }
+
     .settings-section {
       display: grid;
       gap: 12px;
@@ -305,23 +309,52 @@
     }
 
     .year-toolbar {
-      display: grid;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
       gap: 12px;
       margin-bottom: 16px;
+    }
+
+    .year-card {
       padding: 14px 16px;
       border: 1px solid rgba(23, 34, 44, 0.08);
       border-radius: var(--radius-md);
       background: var(--panel-strong);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 8px 18px rgba(21, 40, 49, 0.05);
     }
 
-    .year-toolbar-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .year-toolbar-main {
+      flex: 1 1 520px;
+      min-width: 320px;
+      display: grid;
       gap: 12px;
     }
 
-    .year-toolbar-header h3 {
+    .year-tabs-card {
+      position: sticky;
+      top: 12px;
+      z-index: 8;
+      width: fit-content;
+      max-width: 100%;
+      justify-self: start;
+    }
+
+    .year-toolbar-side {
+      flex: 0 0 auto;
+      display: grid;
+      gap: 12px;
+      min-width: 250px;
+    }
+
+    .year-toolbar-header {
+      display: grid;
+      gap: 2px;
+    }
+
+    .year-toolbar-header h3,
+    .year-action-card h3 {
       margin: 0;
       font-size: 0.94rem;
       color: var(--ink);
@@ -337,7 +370,7 @@
     .year-tab-row {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 12px;
       flex-wrap: wrap;
     }
@@ -345,37 +378,90 @@
     .year-tabs {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      align-items: center;
+      gap: 12px;
     }
 
     .year-tab {
-      min-height: 38px;
-      padding: 0 14px;
+      position: relative;
+      min-height: 42px;
+      padding: 0 16px;
       border: 1px solid rgba(23, 34, 44, 0.12);
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.78);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 249, 250, 0.9));
       color: var(--ink);
       font-weight: 700;
       cursor: pointer;
-      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .year-tab::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 6px;
+      height: 2px;
+      border-radius: 999px;
+      background: transparent;
+      transition: background 140ms ease;
     }
 
     .year-tab:hover:not(.active) {
       transform: translateY(-1px);
       border-color: rgba(14, 93, 115, 0.34);
       background: rgba(14, 93, 115, 0.08);
+      box-shadow: 0 8px 18px rgba(21, 40, 49, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.88);
     }
 
     .year-tab.active {
-      border-color: rgba(14, 93, 115, 0.36);
-      background: rgba(14, 93, 115, 0.13);
+      transform: translateY(-1px);
+      border-color: rgba(14, 93, 115, 0.42);
+      background: linear-gradient(180deg, rgba(214, 235, 240, 0.98), rgba(196, 225, 231, 0.92));
       color: var(--accent);
+      box-shadow: 0 12px 24px rgba(14, 93, 115, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    }
+
+    .year-tab.active::after {
+      background: rgba(14, 93, 115, 0.5);
+    }
+
+    .year-tab.cumulative-tab {
+      border-style: dashed;
+      background: linear-gradient(180deg, rgba(241, 247, 249, 0.98), rgba(232, 242, 245, 0.92));
+    }
+
+    .year-tab.cumulative-tab.active {
+      border-color: rgba(14, 93, 115, 0.5);
+      background: linear-gradient(180deg, rgba(205, 230, 236, 0.98), rgba(187, 220, 228, 0.94));
     }
 
     .year-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+    }
+
+    .year-action-card {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-self: start;
+    }
+
+    .year-action-card h3 {
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .year-action-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
     }
 
     .year-actions button {
@@ -391,74 +477,69 @@
       margin-bottom: 0;
     }
 
-    .year-live-header h3 {
-      margin: 0;
-      font-size: 1rem;
-      color: var(--ink);
-    }
-
     .year-live-header p {
-      margin: 4px 0 0;
+      margin: 0;
       color: var(--muted);
       font-size: 0.8rem;
       line-height: 1.45;
     }
 
     .sticky-year-card {
-      position: sticky;
-      top: 12px;
-      z-index: 8;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: grid;
+      gap: 8px;
       width: fit-content;
-      max-width: min(100%, 720px);
-      padding: 8px 14px;
-      border: 1px solid rgba(14, 93, 115, 0.18);
-      border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.94);
-      box-shadow: 0 10px 24px rgba(21, 40, 49, 0.18);
-      backdrop-filter: blur(10px);
-      flex-wrap: wrap;
+      max-width: min(100%, 100%);
+      padding: 0;
     }
 
-    .sticky-year-eyebrow {
-      margin: 0;
-      font-size: 0.7rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent);
+    .sticky-year-tabs {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: thin;
+      width: max-content;
+      max-width: 100%;
     }
 
-    .sticky-year-separator {
-      color: rgba(23, 34, 44, 0.28);
-      font-weight: 700;
+    .sticky-year-tabs .year-tab {
+      min-height: 36px;
+      padding: 0 13px;
+      white-space: nowrap;
+      flex: 0 0 auto;
     }
 
-    .sticky-year-title {
-      margin: 0;
-      font-size: 0.94rem;
-      font-weight: 800;
-      color: var(--ink);
-      line-height: 1.2;
+    .sticky-year-tabs::-webkit-scrollbar {
+      height: 8px;
     }
 
-    .sticky-year-meta {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.2;
-    }
-
-    .sticky-year-meta,
-    .sticky-year-separator:last-of-type {
-      display: none;
+    .sticky-year-tabs::-webkit-scrollbar-thumb {
+      background: rgba(14, 93, 115, 0.18);
+      border-radius: 999px;
     }
 
     #worksheet-panel {
       display: grid;
+      grid-template-columns: 1fr;
+      align-items: start;
       gap: 18px;
+    }
+
+    #worksheet-panel > .year-action-card,
+    #worksheet-panel > .year-tabs-heading,
+    #worksheet-panel > .year-tabs-card {
+      grid-column: 1;
+    }
+
+    #worksheet-panel > .year-tabs-heading {
+      margin-bottom: -16px;
+    }
+
+    #worksheet-panel > .year-live-header,
+    #worksheet-panel > .worksheet-note,
+    #worksheet-panel > .worksheet-section,
+    #worksheet-panel > #non-personnel-sections {
+      grid-column: 1 / -1;
     }
 
     #non-personnel-sections {
@@ -484,6 +565,10 @@
       padding-top: 0;
     }
 
+    .worksheet-section.no-heading-section .rollup-grid {
+      box-shadow: inset 4px 0 0 rgba(14, 93, 115, 0.16);
+    }
+
     .section-header {
       display: flex;
       align-items: center;
@@ -495,10 +580,12 @@
       margin: 0;
       display: inline-flex;
       align-items: center;
-      min-height: 34px;
-      padding: 0 12px;
+      min-height: 36px;
+      padding: 0 14px;
       border-radius: 999px;
       background: rgba(14, 93, 115, 0.1);
+      border: 1px solid rgba(14, 93, 115, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
       color: var(--accent);
       font-size: 0.92rem;
       letter-spacing: 0.03em;
@@ -509,6 +596,7 @@
       border: 1px solid rgba(23, 34, 44, 0.08);
       border-radius: var(--radius-md);
       background: rgba(255, 255, 255, 0.76);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84), 0 8px 20px rgba(21, 40, 49, 0.04);
     }
 
     table {
@@ -535,6 +623,16 @@
       padding: 8px;
       border-bottom: 1px solid rgba(23, 34, 44, 0.08);
       vertical-align: middle;
+    }
+
+    .budget-table tbody > tr:nth-child(even):not(.personnel-helper-row):not(.senior-total-row):not(.participant-count-row) > td,
+    .budget-table tbody > tr:nth-child(even):not(.personnel-helper-row):not(.senior-total-row):not(.participant-count-row) > th {
+      background: rgba(14, 93, 115, 0.025);
+    }
+
+    .compact-budget-table tbody > tr[data-category-key="equipment"] > td,
+    .compact-budget-table tbody > tr[data-category-key="equipment"] > th {
+      vertical-align: top;
     }
 
     tfoot th,
@@ -700,7 +798,7 @@
 
     .senior-total-row td {
       font-weight: 800;
-      background: rgba(14, 93, 115, 0.08);
+      background: rgba(14, 93, 115, 0.1);
     }
 
     .computed-center-cell {
@@ -870,19 +968,20 @@
       display: none;
       min-height: 40px;
       padding: 8px 10px;
-      border: 1px solid rgba(23, 34, 44, 0.08);
+      border: 1px solid rgba(14, 93, 115, 0.16);
       border-radius: var(--radius-sm);
-      background: rgba(255, 255, 255, 0.72);
-      color: var(--ink);
+      background: linear-gradient(180deg, rgba(249, 252, 253, 0.98), rgba(242, 248, 250, 0.94));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+      color: var(--accent);
+      font-weight: 700;
       line-height: 1.4;
       word-break: break-word;
     }
 
     body.cumulative-view-active .cumulative-static-value {
-      background: rgba(14, 93, 115, 0.08) !important;
-      border-color: rgba(14, 93, 115, 0.24) !important;
-      color: var(--accent);
-      font-weight: 700;
+      background: linear-gradient(180deg, rgba(225, 239, 243, 0.98), rgba(212, 232, 237, 0.96)) !important;
+      border-color: rgba(14, 93, 115, 0.28) !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
 
     body.cumulative-view-active #worksheet-panel input,
@@ -899,6 +998,33 @@
     body.cumulative-view-active #worksheet-panel .cumulative-static-value,
     body.cumulative-view-active #active-budget-settings .cumulative-static-value {
       display: block;
+    }
+
+    body.cumulative-view-active .table-wrap {
+      border-color: rgba(14, 93, 115, 0.16);
+      background: linear-gradient(180deg, rgba(250, 252, 253, 0.98), rgba(239, 247, 249, 0.94));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 12px 28px rgba(14, 93, 115, 0.06);
+    }
+
+    body.cumulative-view-active .section-header h3 {
+      background: rgba(14, 93, 115, 0.14);
+      border-color: rgba(14, 93, 115, 0.16);
+      color: #0b4a5c;
+    }
+
+    body.cumulative-view-active .sticky-year-card {
+      border-color: rgba(14, 93, 115, 0.24);
+      background: linear-gradient(180deg, rgba(238, 247, 249, 0.98), rgba(226, 240, 243, 0.96));
+      box-shadow: 0 14px 30px rgba(14, 93, 115, 0.18);
+    }
+
+    body.cumulative-view-active .worksheet-note {
+      color: #335b66;
+    }
+
+    body.cumulative-view-active .rollup-grid {
+      border-color: rgba(14, 93, 115, 0.16);
+      background: rgba(248, 252, 253, 0.94);
     }
 
     .other-personnel-table > thead th:first-child,
@@ -1000,6 +1126,9 @@
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
       text-align: right;
+      color: var(--accent);
+      font-weight: 800;
+      background: rgba(14, 93, 115, 0.06);
     }
 
     .senior-total-money-cell {
@@ -1290,15 +1419,7 @@
     }
 
     .action-subrow {
-      display: flex;
-      justify-content: flex-end;
       margin-top: 8px;
-    }
-
-    .action-subrow button {
-      min-height: 38px;
-      padding: 0 14px;
-      background: rgba(255, 255, 255, 0.76);
     }
 
     .action-help {
@@ -1501,6 +1622,10 @@
         grid-template-columns: 1fr;
       }
 
+      #worksheet-panel {
+        grid-template-columns: 1fr;
+      }
+
       .year-toolbar-header,
       .year-tab-row,
       .year-live-header {
@@ -1526,14 +1651,6 @@
 
       .hero-seal img {
         width: min(140px, 38vw);
-      }
-
-      .action-subrow {
-        justify-content: stretch;
-      }
-
-      .action-subrow button {
-        width: 100%;
       }
 
       .year-actions {
@@ -1712,55 +1829,49 @@
         <button type="button" id="copy-summary-button">Copy Text Summary</button>
         <button type="button" id="copy-link-button">Copy Shareable Link</button>
         <button type="button" id="print-button">Print / Save as PDF</button>
-      </div>
-      <div class="action-subrow">
         <button type="button" id="help-button">Help</button>
       </div>
-      <div class="action-help">
-        Reset clears only the active budget period. Copy Text Summary copies a plain-text multi-year budget
-        summary to the clipboard. Copy Shareable Link copies a URL with the current proposal state. Print /
-        Save as PDF opens the browser print dialog for all years. Help opens a quick reference for the worksheet structure and
-        calculations.
+      <div class="action-subrow">
+        <div class="action-help">
+          Reset clears only the active budget period. Copy Text Summary copies a plain-text multi-year budget
+          summary to the clipboard. Copy Shareable Link copies a URL with the current proposal state. Print /
+          Save as PDF opens the browser print dialog for all years. Help opens a quick reference for the worksheet structure and
+          calculations.
+        </div>
       </div>
       <div class="status" id="status-box" hidden></div>
     </section>
 
     <section class="panel" id="worksheet-panel">
       <h2>NSF Budget Worksheet</h2>
-      <div class="year-toolbar">
-        <div class="year-toolbar-header">
-          <h3>Budget Period Tabs</h3>
-          <p class="year-toolbar-note">Switch tabs to edit different proposal years. The active tab uses the budget period label when present, otherwise a Year N fallback.</p>
-        </div>
-        <div class="year-tab-row">
-          <div class="year-tabs" id="year-tabs" role="tablist" aria-label="Budget period tabs"></div>
-          <div class="year-actions">
-            <button type="button" id="add-year-button">Add Year</button>
-            <button type="button" id="remove-year-button">Remove Active Year</button>
-          </div>
-        </div>
-      </div>
-      <div class="year-live-header">
-        <div>
-          <h3 id="active-year-title">Year 1</h3>
-          <p id="active-year-note">Each tab keeps its own worksheet values, totals, and copied summary content.</p>
-        </div>
-      </div>
-      <div class="sticky-year-card" aria-live="polite">
-        <p class="sticky-year-eyebrow" id="sticky-year-eyebrow">Editing</p>
-        <span class="sticky-year-separator" aria-hidden="true">|</span>
-        <p class="sticky-year-title" id="sticky-year-title">Year 1</p>
-        <span class="sticky-year-separator" aria-hidden="true">|</span>
-        <p class="sticky-year-meta" id="sticky-year-meta">IDC 45.50%</p>
-      </div>
       <div class="worksheet-note">
         This worksheet shows the active NSF budget period and mirrors the standard budget structure closely,
         while keeping salary and fringe entry simple and tracking direct, indirect, and MTDC totals automatically.
       </div>
+      <div class="year-tabs-heading">
+        <h3>Budget Period Tabs</h3>
+      </div>
+      <div class="year-card year-tabs-card">
+        <div class="sticky-year-card" aria-label="Sticky year navigation">
+          <div class="sticky-year-tabs year-tabs" id="year-tabs" role="tablist" aria-label="Budget period tabs"></div>
+        </div>
+      </div>
+      <div class="year-action-card">
+        <h3>Year Actions:</h3>
+        <div class="year-actions">
+          <button type="button" id="add-year-button">Add Year</button>
+          <button type="button" id="remove-year-button">Remove Active Year</button>
+        </div>
+      </div>
+      <div class="year-live-header">
+        <div>
+          <p id="active-year-note">Each tab keeps its own worksheet values, totals, and copied summary content.</p>
+        </div>
+      </div>
 
       <section class="worksheet-section">
         <div class="section-header">
-          <h3>A. SENIOR PERSONNEL: PI/PD, Co-PI’s, Faculty and Other Senior Associates (List each separately with title)</h3>
+          <h3>A. SENIOR PERSONNEL: PI/PD, Co-PIs, Faculty and Other Senior Associates (List each separately with title)</h3>
         </div>
         <div class="table-wrap">
           <table class="budget-table senior-personnel-table">
@@ -2117,7 +2228,7 @@
               <li>Switching tabs preserves the active year's worksheet values, Budget Helper values, and totals.</li>
               <li>Reset clears only the active year and keeps shared proposal info plus the other year tabs intact.</li>
               <li>When two or more years exist, a read-only Cumulative tab appears and sums each row across the editable year tabs.</li>
-              <li>The sticky card near the top of the worksheet shows which year you are editing or when you are viewing Cumulative.</li>
+              <li>The sticky card near the top of the worksheet lets you switch between year tabs without scrolling back to the top.</li>
             </ul>
           </section>
           <section class="modal-section">
@@ -2210,11 +2321,7 @@
       yearTabs: document.getElementById("year-tabs"),
       addYearButton: document.getElementById("add-year-button"),
       removeYearButton: document.getElementById("remove-year-button"),
-      activeYearTitle: document.getElementById("active-year-title"),
       activeYearNote: document.getElementById("active-year-note"),
-      stickyYearEyebrow: document.getElementById("sticky-year-eyebrow"),
-      stickyYearTitle: document.getElementById("sticky-year-title"),
-      stickyYearMeta: document.getElementById("sticky-year-meta"),
       orsRateStatus: document.getElementById("ors-rate-status"),
       orsRateUpdated: document.getElementById("ors-rate-updated"),
       reloadOrsRatesButton: document.getElementById("reload-ors-rates-button"),
@@ -3131,24 +3238,29 @@
 
     function updateActiveYearHeader() {
       if (isCumulativeActive()) {
-        elements.activeYearTitle.textContent = "Cumulative";
-        elements.activeYearNote.textContent = "This tab is read-only and shows row-by-row sums across the prior year tabs.";
-        elements.stickyYearEyebrow.textContent = "Viewing";
-        elements.stickyYearTitle.textContent = "Cumulative";
-        elements.stickyYearMeta.textContent = "";
+        elements.activeYearNote.textContent = "Viewing Cumulative. This tab is read-only and shows row-by-row sums across the prior year tabs.";
         return;
       }
 
       const activeIndex = getActiveYearIndex();
       const activeYear = getActiveYearRecord();
       const title = activeYear ? getYearDisplayLabel(activeYear, activeIndex) : "Year 1";
-      elements.activeYearTitle.textContent = title;
       elements.activeYearNote.textContent = proposalState && proposalState.years.length > 1
         ? `Editing ${title}. Switching tabs preserves this year's worksheet, helper values, and totals.`
         : "Each tab keeps its own worksheet values, totals, and copied summary content.";
-      elements.stickyYearEyebrow.textContent = "Editing";
-      elements.stickyYearTitle.textContent = title;
-      elements.stickyYearMeta.textContent = "";
+    }
+
+    function appendYearTabButton(container, label, yearId, isActive, options = {}) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `year-tab${options.isCumulative ? " cumulative-tab" : ""}${isActive ? " active" : ""}`;
+      button.textContent = label;
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", String(isActive));
+      button.addEventListener("click", () => {
+        switchToYear(yearId);
+      });
+      container.appendChild(button);
     }
 
     function renderYearTabs() {
@@ -3158,29 +3270,13 @@
 
       elements.yearTabs.innerHTML = "";
       proposalState.years.forEach((year, index) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = `year-tab${year.id === proposalState.activeYearId ? " active" : ""}`;
-        button.textContent = getYearDisplayLabel(year, index);
-        button.setAttribute("role", "tab");
-        button.setAttribute("aria-selected", String(year.id === proposalState.activeYearId));
-        button.addEventListener("click", () => {
-          switchToYear(year.id);
-        });
-        elements.yearTabs.appendChild(button);
+        const label = getYearDisplayLabel(year, index);
+        const isActive = year.id === proposalState.activeYearId;
+        appendYearTabButton(elements.yearTabs, label, year.id, isActive);
       });
 
       if (hasCumulativeTab()) {
-        const cumulativeButton = document.createElement("button");
-        cumulativeButton.type = "button";
-        cumulativeButton.className = `year-tab${isCumulativeActive() ? " active" : ""}`;
-        cumulativeButton.textContent = "Cumulative";
-        cumulativeButton.setAttribute("role", "tab");
-        cumulativeButton.setAttribute("aria-selected", String(isCumulativeActive()));
-        cumulativeButton.addEventListener("click", () => {
-          switchToYear(CUMULATIVE_YEAR_ID);
-        });
-        elements.yearTabs.appendChild(cumulativeButton);
+        appendYearTabButton(elements.yearTabs, "Cumulative", CUMULATIVE_YEAR_ID, isCumulativeActive(), { isCumulative: true });
       }
 
       elements.removeYearButton.disabled = proposalState.years.length <= 1 || isCumulativeActive();
@@ -4856,6 +4952,7 @@
           const sourceEntry = (year.nonPersonnel || []).find((entry) => entry.key === definition.key);
           const sourceEval = evaluations[yearIndex].nonPersonnel.categories[definition.key];
           const target = nonPersonnelByKey.get(definition.key);
+          const forceCumulativeIdcOff = definition.key === "equipment";
           const sourceIdc = sourceEntry ? Boolean(sourceEntry.idcApplies) : defaultIdcAppliesForCategory(definition.key);
           const idcStateKey = `year${yearIndex}`;
           const sourceDetail = typeof sourceEntry?.detail === "string" ? sourceEntry.detail.trim() : "";
@@ -4866,7 +4963,10 @@
             target.detail = target.detailParts.join(" | ");
           }
           target[idcStateKey] = sourceIdc;
-          if (yearIndex === 0) {
+          if (forceCumulativeIdcOff) {
+            target.idcApplies = false;
+            target.idcAppliesMixed = false;
+          } else if (yearIndex === 0) {
             target.idcApplies = sourceIdc;
           } else if (target.idcApplies !== sourceIdc) {
             target.idcAppliesMixed = true;
