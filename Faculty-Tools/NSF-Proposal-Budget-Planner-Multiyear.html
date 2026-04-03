@@ -134,6 +134,11 @@
       padding: 24px;
     }
 
+    #settings-panel {
+      isolation: auto;
+      overflow: visible;
+    }
+
     .panel h2 {
       margin: 0 0 16px;
       font-size: 1.16rem;
@@ -333,13 +338,43 @@
     }
 
     .year-tabs-card {
-      position: sticky;
-      top: 12px;
+      position: relative;
       z-index: 8;
       width: fit-content;
       max-width: 100%;
       justify-self: start;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 14px 28px rgba(21, 40, 49, 0.16);
+    }
+
+    .year-tabs-card.floating {
+      position: fixed;
+      top: 12px;
+      z-index: 1000;
+      margin: 0;
+    }
+
+    .year-tabs-card-placeholder {
+      display: block;
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .budget-period-settings {
+      gap: 10px;
+    }
+
+    .budget-period-settings .year-tabs-heading {
+      margin-top: -8px;
+      margin-bottom: -20px;
+    }
+
+    .budget-period-settings .year-tabs-heading h3 {
+      margin: 0;
+    }
+
+    .budget-period-settings .year-tabs-card {
+      margin-top: -2px;
+      margin-bottom: 10px;
     }
 
     .year-toolbar-side {
@@ -525,21 +560,6 @@
       grid-template-columns: 1fr;
       align-items: start;
       gap: 18px;
-    }
-
-    #worksheet-panel > .year-action-card,
-    #worksheet-panel > .year-tabs-heading,
-    #worksheet-panel > .year-tabs-card {
-      grid-column: 1;
-    }
-
-    #worksheet-panel > .year-tabs-heading {
-      margin-top: -8px;
-      margin-bottom: -20px;
-    }
-
-    #worksheet-panel > .year-tabs-heading h3 {
-      margin: 0;
     }
 
     #worksheet-panel > .year-live-header,
@@ -1800,11 +1820,28 @@
           </div>
         </div>
       </div>
-      <div class="help">
-        Enter salary-before-fringe and fringe directly for each person. For non-personnel lines, leave IDC
-        checked when the cost belongs in the indirect-cost base and clear it when it does not. If a category
-        has special indirect-cost treatment, enter only the allowable direct-cost base for that line. MTDC is
-        calculated from the direct-cost lines that remain IDC-eligible.
+      <div class="settings-section budget-period-settings">
+        <div class="year-tabs-heading">
+          <h3>Budget Period Tabs</h3>
+        </div>
+        <div class="year-card year-tabs-card">
+          <div class="sticky-year-card" aria-label="Sticky year navigation">
+            <div class="sticky-year-tabs year-tabs" id="year-tabs" role="tablist" aria-label="Budget period tabs"></div>
+          </div>
+        </div>
+        <div id="year-tabs-card-placeholder" class="year-tabs-card-placeholder" hidden aria-hidden="true"></div>
+        <div class="year-live-header">
+          <div>
+            <p id="active-year-note">Each tab keeps its own worksheet values, totals, and copied summary content.</p>
+          </div>
+        </div>
+        <div class="year-action-card">
+          <h3>Year Actions:</h3>
+          <div class="year-actions">
+            <button type="button" id="add-year-button">Add Year</button>
+            <button type="button" id="remove-year-button">Remove Active Year</button>
+          </div>
+        </div>
       </div>
       <div class="rate-source-grid">
         <section class="rate-source-card" aria-label="Live ORS defaults">
@@ -1858,26 +1895,6 @@
       <div class="worksheet-note">
         This worksheet shows the active NSF budget period and mirrors the standard budget structure closely,
         while keeping salary and fringe entry simple and tracking direct, indirect, and MTDC totals automatically.
-      </div>
-      <div class="year-tabs-heading">
-        <h3>Budget Period Tabs</h3>
-      </div>
-      <div class="year-card year-tabs-card">
-        <div class="sticky-year-card" aria-label="Sticky year navigation">
-          <div class="sticky-year-tabs year-tabs" id="year-tabs" role="tablist" aria-label="Budget period tabs"></div>
-        </div>
-      </div>
-      <div class="year-action-card">
-        <h3>Year Actions:</h3>
-        <div class="year-actions">
-          <button type="button" id="add-year-button">Add Year</button>
-          <button type="button" id="remove-year-button">Remove Active Year</button>
-        </div>
-      </div>
-      <div class="year-live-header">
-        <div>
-          <p id="active-year-note">Each tab keeps its own worksheet values, totals, and copied summary content.</p>
-        </div>
       </div>
 
       <section class="worksheet-section">
@@ -2330,6 +2347,8 @@
       defaultIndirectRate: document.getElementById("default-indirect-rate"),
       defaultIndirectRateStatic: document.getElementById("default-indirect-rate-static"),
       yearTabs: document.getElementById("year-tabs"),
+      yearTabsCard: document.querySelector(".year-tabs-card"),
+      yearTabsCardPlaceholder: document.getElementById("year-tabs-card-placeholder"),
       addYearButton: document.getElementById("add-year-button"),
       removeYearButton: document.getElementById("remove-year-button"),
       activeYearNote: document.getElementById("active-year-note"),
@@ -2416,6 +2435,7 @@
     let liveSummerRateOptions = [];
     let proposalState = null;
     let yearIdCounter = 0;
+    let floatingYearTabsFrame = 0;
     const builtInHelperRateDefaults = {
       defaultIndirectRate: elements.defaultIndirectRate.value,
       releaseFringeRate: "59.5",
@@ -3261,6 +3281,62 @@
         : "Each tab keeps its own worksheet values, totals, and copied summary content.";
     }
 
+    function clearFloatingYearTabsCard() {
+      if (!elements.yearTabsCard || !elements.yearTabsCardPlaceholder) {
+        return;
+      }
+
+      elements.yearTabsCard.classList.remove("floating");
+      elements.yearTabsCard.style.removeProperty("left");
+      elements.yearTabsCard.style.removeProperty("top");
+      elements.yearTabsCard.style.removeProperty("width");
+      elements.yearTabsCard.style.removeProperty("max-width");
+      elements.yearTabsCardPlaceholder.hidden = true;
+      elements.yearTabsCardPlaceholder.style.removeProperty("height");
+      elements.yearTabsCardPlaceholder.style.removeProperty("width");
+    }
+
+    function updateFloatingYearTabsCard() {
+      if (!elements.yearTabsCard || !elements.yearTabsCardPlaceholder) {
+        return;
+      }
+
+      const topOffset = 12;
+      const sourceRect = elements.yearTabsCard.classList.contains("floating")
+        ? elements.yearTabsCardPlaceholder.getBoundingClientRect()
+        : elements.yearTabsCard.getBoundingClientRect();
+      const shouldFloat = sourceRect.top <= topOffset;
+
+      if (!shouldFloat) {
+        clearFloatingYearTabsCard();
+        return;
+      }
+
+      const availableWidth = Math.max(window.innerWidth - 24, 240);
+      const measuredWidth = Math.min(Math.round(sourceRect.width || elements.yearTabsCard.offsetWidth), availableWidth);
+      const left = Math.max(12, Math.min(Math.round(sourceRect.left), window.innerWidth - measuredWidth - 12));
+
+      elements.yearTabsCardPlaceholder.hidden = false;
+      elements.yearTabsCardPlaceholder.style.height = `${elements.yearTabsCard.offsetHeight}px`;
+      elements.yearTabsCardPlaceholder.style.width = `${measuredWidth}px`;
+      elements.yearTabsCard.classList.add("floating");
+      elements.yearTabsCard.style.left = `${left}px`;
+      elements.yearTabsCard.style.top = `${topOffset}px`;
+      elements.yearTabsCard.style.width = `${measuredWidth}px`;
+      elements.yearTabsCard.style.maxWidth = `${measuredWidth}px`;
+    }
+
+    function queueFloatingYearTabsCardUpdate() {
+      if (floatingYearTabsFrame) {
+        window.cancelAnimationFrame(floatingYearTabsFrame);
+      }
+
+      floatingYearTabsFrame = window.requestAnimationFrame(() => {
+        floatingYearTabsFrame = 0;
+        updateFloatingYearTabsCard();
+      });
+    }
+
     function appendYearTabButton(container, label, yearId, isActive, options = {}) {
       const button = document.createElement("button");
       button.type = "button";
@@ -3292,6 +3368,7 @@
 
       elements.removeYearButton.disabled = proposalState.years.length <= 1 || isCumulativeActive();
       updateActiveYearHeader();
+      queueFloatingYearTabsCardUpdate();
     }
 
     function formatStaticControlValue(control) {
@@ -3437,7 +3514,8 @@
       applyGlobalSettings(proposalState.globalSettings);
       renderYearTabs();
       if (isCumulativeActive()) {
-        applyYearStateToForm(buildCumulativeView(proposalState).yearState, { readOnly: true, indirectRateStaticText: "Varies by year" });
+        const cumulativeView = buildCumulativeView(proposalState);
+        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: cumulativeView.indirectRateStaticText });
       } else {
         applyYearStateToForm(getActiveYearRecord(), { readOnly: false });
       }
@@ -3684,7 +3762,7 @@
         applyHelperOrsDefaults(forceApply);
         elements.orsRateUpdated.textContent = formatLiveUpdatedText(payload.fetchedAt);
         setOrsRateStatus(
-          "Live ORS default rates loaded. You can still overwrite any helper or indirect-cost rate manually.",
+          "Live ORS default rates loaded. You can still overwrite any rate manually.",
           "good"
         );
         calculate();
@@ -4898,6 +4976,11 @@
       const evaluations = years.map((year, index) => evaluateYearState(year, index, years, state.globalSettings || {}));
       const aggregate = buildProposalAggregate(years, evaluations);
       const sharedSeniorLabels = state.globalSettings?.seniorPersonnelLabels || {};
+      const indirectRates = evaluations.map((evaluation) => evaluation.defaults.indirectRate);
+      const firstIndirectRate = indirectRates[0];
+      const hasCommonIndirectRate = indirectRates.length > 0 && indirectRates.every((rate) => Math.abs(rate - firstIndirectRate) < 0.000001);
+      const indirectRateStaticText = hasCommonIndirectRate ? formatPercent(firstIndirectRate) : "Varies by year";
+      const indirectRateLineText = hasCommonIndirectRate ? `IDC Rate: ${formatPercent(firstIndirectRate)}` : "IDC Rate: varies by year";
 
       const seniorByKey = new Map(seniorPersonnelDefinitions.map((definition) => [definition.key, {
         key: definition.key,
@@ -4990,7 +5073,7 @@
       const cumulativeNonPersonnel = Array.from(nonPersonnelByKey.values());
       const cumulativeEvaluation = {
         defaults: {
-          indirectRateText: "Varies by year"
+          indirectRateText: indirectRateStaticText
         },
         personnel: {
           senior: evaluateStoredSeniorPersonnel(Array.from(seniorByKey.values())),
@@ -5018,7 +5101,7 @@
           participantCount: aggregate.participantCount
         },
         totals: {
-          indirectRateText: "Varies by year"
+          indirectRateText: indirectRateStaticText
         },
         displayTotals: {
           seniorCount: aggregate.seniorCount,
@@ -5064,7 +5147,9 @@
           nonPersonnel: cumulativeNonPersonnel
         },
         evaluation: cumulativeEvaluation,
-        aggregate
+        aggregate,
+        indirectRateStaticText,
+        indirectRateLineText
       };
     }
 
@@ -5211,7 +5296,7 @@
           cumulativeView.yearState,
           cumulativeView.evaluation,
           state.years.length,
-          { idcRateText: "IDC Rate: varies by year" }
+          { idcRateText: cumulativeView.indirectRateLineText }
         ));
       }
 
@@ -5268,13 +5353,13 @@
           <section class="print-year-block">
             <div class="print-year-header">
               <h3>Cumulative</h3>
-              <p>IDC Rate: varies by year</p>
+              <p>${escapeHtml(cumulativeView.indirectRateLineText)}</p>
             </div>
             <pre class="print-summary-block">${escapeHtml(buildYearSummaryText(
               cumulativeView.yearState,
               cumulativeView.evaluation,
               state.years.length,
-              { idcRateText: "IDC Rate: varies by year" }
+              { idcRateText: cumulativeView.indirectRateLineText }
             ))}</pre>
           </section>
         ` : ""}
@@ -5298,7 +5383,8 @@
 
       proposalState.activeYearId = yearId;
       if (isCumulativeActive()) {
-        applyYearStateToForm(buildCumulativeView(proposalState).yearState, { readOnly: true, indirectRateStaticText: "Varies by year" });
+        const cumulativeView = buildCumulativeView(proposalState);
+        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: cumulativeView.indirectRateStaticText });
       } else {
         applyYearStateToForm(getActiveYearRecord(), { readOnly: false });
       }
@@ -5312,7 +5398,8 @@
       proposalState.years.push(newYear);
       proposalState.activeYearId = isCumulativeActive() ? CUMULATIVE_YEAR_ID : newYear.id;
       if (isCumulativeActive()) {
-        applyYearStateToForm(buildCumulativeView(proposalState).yearState, { readOnly: true, indirectRateStaticText: "Varies by year" });
+        const cumulativeView = buildCumulativeView(proposalState);
+        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: cumulativeView.indirectRateStaticText });
       } else {
         applyYearStateToForm(newYear, { readOnly: false });
       }
@@ -5350,7 +5437,7 @@
       if (isCumulativeActive()) {
         proposalState.globalSettings = collectGlobalSettings();
         const cumulativeView = buildCumulativeView(proposalState);
-        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: "Varies by year" });
+        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: cumulativeView.indirectRateStaticText });
         updateActiveYearHeader();
         updateRollupFromSummary({
           seniorCount: cumulativeView.aggregate.seniorCount,
@@ -5372,7 +5459,7 @@
           indirect: cumulativeView.aggregate.indirect,
           totalBudget: cumulativeView.aggregate.totalBudget,
           amountRequested: cumulativeView.aggregate.amountRequested,
-          idcRateText: "Varies by year"
+          idcRateText: cumulativeView.indirectRateStaticText
         });
         renderYearTabs();
         renderPrintProposalSnapshot(collectPlannerState());
@@ -5543,12 +5630,16 @@
       }
     });
 
+    window.addEventListener("scroll", queueFloatingYearTabsCardUpdate, { passive: true });
+    window.addEventListener("resize", queueFloatingYearTabsCardUpdate);
+
     if (!loadStateFromUrl()) {
       applyPlannerState(createEmptyProposalState());
     }
 
     loadOrsRates();
     loadSummerRates();
+    queueFloatingYearTabsCardUpdate();
   </script>
 </body>
 </html>
