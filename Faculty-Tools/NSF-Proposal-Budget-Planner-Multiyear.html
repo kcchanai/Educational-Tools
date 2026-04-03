@@ -339,6 +339,7 @@
       width: fit-content;
       max-width: 100%;
       justify-self: start;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 14px 28px rgba(21, 40, 49, 0.16);
     }
 
     .year-toolbar-side {
@@ -496,6 +497,7 @@
       display: flex;
       gap: 10px;
       overflow-x: auto;
+      padding-top: 4px;
       padding-bottom: 2px;
       scrollbar-width: thin;
       width: max-content;
@@ -532,7 +534,12 @@
     }
 
     #worksheet-panel > .year-tabs-heading {
-      margin-bottom: -16px;
+      margin-top: -8px;
+      margin-bottom: -20px;
+    }
+
+    #worksheet-panel > .year-tabs-heading h3 {
+      margin: 0;
     }
 
     #worksheet-panel > .year-live-header,
@@ -1016,6 +1023,10 @@
       border-color: rgba(14, 93, 115, 0.24);
       background: linear-gradient(180deg, rgba(238, 247, 249, 0.98), rgba(226, 240, 243, 0.96));
       box-shadow: 0 14px 30px rgba(14, 93, 115, 0.18);
+    }
+
+    body.cumulative-view-active .year-tabs-card {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 16px 32px rgba(14, 93, 115, 0.2);
     }
 
     body.cumulative-view-active .worksheet-note {
