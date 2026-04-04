@@ -1,0 +1,3450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NSF Proposal Budget Planner</title>
+  <style>
+    :root {
+      --bg-top: #f4efe4;
+      --bg-bottom: #d9e8ef;
+      --panel: rgba(255, 255, 255, 0.9);
+      --panel-strong: rgba(255, 255, 255, 0.97);
+      --ink: #17222c;
+      --muted: #5a6976;
+      --line: rgba(23, 34, 44, 0.12);
+      --accent: #0e5d73;
+      --warn-soft: rgba(163, 83, 29, 0.14);
+      --good-soft: rgba(30, 106, 73, 0.14);
+      --bad-soft: rgba(142, 38, 56, 0.14);
+      --shadow: 0 24px 60px rgba(21, 40, 49, 0.14);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.65), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 210, 140, 0.28), transparent 24%),
+        linear-gradient(165deg, var(--bg-top), var(--bg-bottom));
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    main {
+      width: min(1240px, calc(100% - 32px));
+      margin: 32px auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.68);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 32px;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .hero-copy {
+      min-width: 0;
+      max-width: 80ch;
+    }
+
+    .hero-seal {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-seal img {
+      display: block;
+      width: min(195px, 24vw);
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 18px rgba(21, 40, 49, 0.14));
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -85px -95px auto;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14, 93, 115, 0.08), transparent 74%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 22ch;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.06;
+    }
+
+    .hero p {
+      margin: 14px 0 0;
+      max-width: none;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .panel {
+      padding: 24px;
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 1.16rem;
+      letter-spacing: 0.02em;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.94rem;
+      font-weight: 700;
+    }
+
+    input,
+    button,
+    select {
+      font: inherit;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      min-height: 46px;
+      padding: 11px 12px;
+      border: 1px solid rgba(23, 34, 44, 0.12);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    .help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .rate-source-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .rate-source-card {
+      padding: 14px 16px;
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      border-radius: var(--radius-md);
+      background: var(--panel-strong);
+    }
+
+    .rate-source-card h3 {
+      margin: 0;
+      font-size: 0.84rem;
+      letter-spacing: 0.03em;
+      color: var(--accent);
+    }
+
+    .rate-status {
+      font-weight: 700;
+    }
+
+    .rate-status.warn {
+      color: #8e2638;
+    }
+
+    .rate-status.good {
+      color: #1e6a49;
+    }
+
+    .rate-status.quiet {
+      color: var(--muted);
+    }
+
+    .live-update {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+    }
+
+    .rate-action-row {
+      margin-top: 10px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--panel-strong);
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 8px 18px rgba(21, 40, 49, 0.06);
+    }
+
+    .summary-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .summary-card .value {
+      font-size: clamp(1.3rem, 2.2vw, 1.95rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .summary-card .note {
+      margin-top: 6px;
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .worksheet-note {
+      margin: -4px 0 16px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .worksheet-section {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .worksheet-section:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-header h3 {
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(14, 93, 115, 0.1);
+      color: var(--accent);
+      font-size: 0.92rem;
+      letter-spacing: 0.03em;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.76);
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 10px 8px;
+      text-align: left;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: rgba(14, 93, 115, 0.06);
+      border-bottom: 1px solid var(--line);
+      vertical-align: bottom;
+    }
+
+    tbody td,
+    tfoot td,
+    tfoot th {
+      padding: 8px;
+      border-bottom: 1px solid rgba(23, 34, 44, 0.08);
+      vertical-align: middle;
+    }
+
+    tfoot th,
+    tfoot td {
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .budget-table input[type="text"],
+    .budget-table input[type="number"] {
+      min-height: 40px;
+      padding: 8px 10px;
+      font-size: 0.92rem;
+    }
+
+    .person-cell {
+      --person-prefix-width: 1.5em;
+      display: grid;
+      gap: 6px;
+      min-width: 240px;
+    }
+
+    .person-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .person-prefix {
+      flex: 0 0 var(--person-prefix-width);
+      width: var(--person-prefix-width);
+      font-weight: 700;
+      line-height: 1.4;
+      text-align: right;
+    }
+
+    .person-input-row .person-label {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .personnel-row td {
+      vertical-align: top;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .row-helper-toggle {
+      justify-self: start;
+      margin-left: calc(var(--person-prefix-width) + 8px);
+      min-height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--accent);
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+    }
+
+    .row-helper-toggle:hover {
+      transform: translateY(-1px);
+      border-color: rgba(14, 93, 115, 0.4);
+      background: rgba(14, 93, 115, 0.08);
+    }
+
+    .row-helper-toggle.active {
+      background: rgba(14, 93, 115, 0.12);
+      border-color: rgba(14, 93, 115, 0.3);
+    }
+
+    .budget-table .months-column {
+      width: 82px;
+    }
+
+    .budget-table .months-input {
+      width: 78px;
+      min-width: 0;
+      text-align: right;
+    }
+
+    .budget-table .base-salary,
+    .budget-table .fringe-amount {
+      width: 166px;
+      min-width: 0;
+    }
+
+    .personnel-table {
+      table-layout: fixed;
+    }
+
+    .senior-personnel-table {
+      table-layout: fixed;
+    }
+
+    .other-personnel-table {
+      table-layout: fixed;
+    }
+
+    .personnel-table > thead th:first-child,
+    .personnel-table > tbody > .personnel-row > td:first-child {
+      width: 31%;
+    }
+
+    .personnel-table > thead th:nth-child(2),
+    .personnel-table > thead th:nth-child(3),
+    .personnel-table > thead th:nth-child(4),
+    .personnel-table > tbody > .personnel-row > td:nth-child(2),
+    .personnel-table > tbody > .personnel-row > td:nth-child(3),
+    .personnel-table > tbody > .personnel-row > td:nth-child(4) {
+      width: 86px;
+    }
+
+    .personnel-table > thead th:nth-child(5),
+    .personnel-table > thead th:nth-child(6),
+    .personnel-table > tbody > .personnel-row > td:nth-child(5),
+    .personnel-table > tbody > .personnel-row > td:nth-child(6) {
+      width: 172px;
+    }
+
+    .personnel-table > thead th:last-child,
+    .personnel-table > tbody > .personnel-row > td:last-child {
+      width: 56px;
+    }
+
+    .senior-personnel-table > thead th:first-child,
+    .senior-personnel-table > tbody > .personnel-row > td:first-child {
+      width: 28%;
+    }
+
+    .senior-personnel-table > thead th:nth-child(2),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(2) {
+      width: 76px;
+    }
+
+    .senior-personnel-table > thead th:nth-child(3),
+    .senior-personnel-table > thead th:nth-child(4),
+    .senior-personnel-table > thead th:nth-child(5),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(3),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(4),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(5) {
+      width: 86px;
+    }
+
+    .senior-personnel-table > thead th:nth-child(6),
+    .senior-personnel-table > thead th:nth-child(7),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(6),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(7) {
+      width: 172px;
+    }
+
+    .fixed-person-label {
+      min-height: 40px;
+      display: grid;
+      grid-template-columns: 1.5em minmax(0, 1fr);
+      column-gap: 8px;
+      align-items: start;
+      padding: 8px 10px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .fixed-person-label .person-text {
+      min-width: 0;
+    }
+
+    .other-personnel-table > thead th:first-child,
+    .other-personnel-table > tbody > tr > th:first-child {
+      width: 34%;
+    }
+
+    .other-personnel-table > thead th:nth-child(2),
+    .other-personnel-table > tbody > tr > td:nth-child(2) {
+      width: 76px;
+    }
+
+    .other-personnel-table > thead th:nth-child(3),
+    .other-personnel-table > thead th:nth-child(4),
+    .other-personnel-table > thead th:nth-child(5),
+    .other-personnel-table > tbody > tr > td:nth-child(3),
+    .other-personnel-table > tbody > tr > td:nth-child(4),
+    .other-personnel-table > tbody > tr > td:nth-child(5) {
+      width: 86px;
+    }
+
+    .other-personnel-table > thead th:nth-child(6),
+    .other-personnel-table > thead th:nth-child(7),
+    .other-personnel-table > tbody > tr > td:nth-child(6),
+    .other-personnel-table > tbody > tr > td:nth-child(7) {
+      width: 172px;
+    }
+
+    .quantity-input {
+      width: 68px;
+      min-width: 0;
+      text-align: right;
+    }
+
+    .other-personnel-table tbody th {
+      text-align: left;
+      font-weight: 700;
+      padding-left: 16px;
+      vertical-align: middle;
+    }
+
+    .other-personnel-label {
+      display: grid;
+      grid-template-columns: 1.5em minmax(0, 1fr);
+      column-gap: 8px;
+      align-items: start;
+      line-height: 1.4;
+    }
+
+    .other-personnel-table .empty-months {
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .budget-table .checkbox-cell {
+      text-align: center;
+      width: 72px;
+    }
+
+    #non-personnel-table tbody th {
+      text-align: left;
+      font-weight: 700;
+      padding-left: 16px;
+    }
+
+    .computed-cell {
+      min-width: 110px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    .inline-note {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.76rem;
+      font-weight: 400;
+      letter-spacing: normal;
+      text-transform: none;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .remove-cell {
+      width: 56px;
+      text-align: center;
+    }
+
+    .personnel-helper-row[hidden] {
+      display: none !important;
+    }
+
+    .personnel-helper-row td {
+      padding: 0 8px 12px;
+      background: rgba(255, 255, 255, 0.46);
+    }
+
+    .personnel-helper-panel {
+      margin-top: -1px;
+      padding: 16px;
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .personnel-helper-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .personnel-helper-header h4 {
+      margin: 0;
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      color: var(--accent);
+    }
+
+    .personnel-helper-apply {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .personnel-helper-apply input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+    }
+
+    .personnel-helper-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .personnel-helper-summary {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .personnel-helper-summary-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    .personnel-helper-summary-row.primary {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .personnel-helper-summary-row.secondary {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .helper-card {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      background: rgba(255, 255, 255, 0.9);
+      min-width: 0;
+    }
+
+    .helper-card .label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .helper-card .value {
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+    }
+
+    .helper-status-note {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      min-height: 1.45em;
+    }
+
+    .helper-status-note.warn {
+      color: #8e2638;
+      font-weight: 700;
+    }
+
+    .helper-assumption-note {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .derived-field {
+      background: rgba(14, 93, 115, 0.08) !important;
+      border-color: rgba(14, 93, 115, 0.24) !important;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .row-remove,
+    .section-action,
+    .action-row button,
+    .action-subrow button,
+    .modal-close {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: var(--panel-strong);
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 140ms ease, background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    .row-remove {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .section-action {
+      min-height: 40px;
+      padding: 0 14px;
+    }
+
+    .row-remove:hover,
+    .section-action:hover,
+    .action-row button:hover:not(:disabled),
+    .action-subrow button:hover,
+    .modal-close:hover {
+      transform: translateY(-1px);
+      border-color: rgba(14, 93, 115, 0.4);
+      box-shadow: 0 8px 18px rgba(14, 93, 115, 0.08);
+    }
+
+    .section-help {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .rollup-grid {
+      display: grid;
+      gap: 0;
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.76);
+    }
+
+    .rollup-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 12px 14px;
+      border-top: 1px solid rgba(23, 34, 44, 0.08);
+      align-items: baseline;
+    }
+
+    .rollup-row:first-child {
+      border-top: 0;
+    }
+
+    .rollup-row.total {
+      background: rgba(14, 93, 115, 0.08);
+      font-weight: 800;
+    }
+
+    .rollup-row.grand-total {
+      background: rgba(14, 93, 115, 0.14);
+      font-weight: 800;
+      font-size: 1.02rem;
+    }
+
+    .rollup-row dd,
+    .rollup-row dt {
+      margin: 0;
+    }
+
+    .rollup-row dd {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .rollup-metric-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 14px;
+    }
+
+    .rollup-metric {
+      display: inline-flex;
+      gap: 6px;
+      align-items: baseline;
+    }
+
+    .rollup-metric-label {
+      color: var(--muted);
+      font-size: 0.82em;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .action-row button {
+      flex: 1;
+      min-height: 46px;
+    }
+
+    .action-subrow {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .action-subrow button {
+      min-height: 38px;
+      padding: 0 14px;
+      background: rgba(255, 255, 255, 0.76);
+    }
+
+    .action-help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      line-height: 1.5;
+      border: 1px solid rgba(23, 34, 44, 0.09);
+      background: rgba(23, 34, 44, 0.045);
+    }
+
+    .status.good {
+      background: var(--good-soft);
+      border-color: rgba(30, 106, 73, 0.18);
+    }
+
+    .status.warn {
+      background: var(--warn-soft);
+      border-color: rgba(163, 83, 29, 0.18);
+    }
+
+    .status.bad {
+      background: var(--bad-soft);
+      border-color: rgba(142, 38, 56, 0.18);
+    }
+
+    .status strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.98rem;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(21, 40, 49, 0.4);
+    }
+
+    .modal-backdrop[hidden] {
+      display: none !important;
+    }
+
+    .modal-panel {
+      width: min(760px, 100%);
+      max-height: min(84vh, 900px);
+      overflow: auto;
+      padding: 22px;
+      border-radius: var(--radius-lg);
+      background: #ffffff;
+      border: 1px solid rgba(23, 34, 44, 0.12);
+      box-shadow: 0 24px 50px rgba(21, 40, 49, 0.24);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.18rem;
+      color: var(--ink);
+    }
+
+    .modal-close {
+      min-height: 36px;
+      padding: 0 12px;
+    }
+
+    .modal-body {
+      display: grid;
+      gap: 14px;
+    }
+
+    .modal-section {
+      display: grid;
+      gap: 6px;
+    }
+
+    .modal-section h3 {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+    }
+
+    .modal-section p,
+    .modal-section ul {
+      margin: 0;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    .modal-section ul {
+      padding-left: 18px;
+    }
+
+    .modal-section li + li {
+      margin-top: 4px;
+    }
+
+    @media (max-width: 1080px) {
+      .settings-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      main {
+        width: min(100%, calc(100% - 20px));
+        margin: 20px auto;
+      }
+
+      .summary-grid,
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .action-row {
+        flex-direction: column;
+      }
+
+      .rate-source-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-content {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-seal {
+        justify-content: flex-start;
+      }
+
+      .hero-seal img {
+        width: min(140px, 38vw);
+      }
+
+      .action-subrow {
+        justify-content: stretch;
+      }
+
+      .action-subrow button {
+        width: 100%;
+      }
+
+      .personnel-helper-grid,
+      .personnel-helper-summary-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      @page {
+        margin: 0.8in 0.55in 0.7in;
+      }
+
+      body {
+        background: #ffffff;
+      }
+
+      main {
+        width: 100%;
+        margin: 0;
+        gap: 12px;
+      }
+
+      .hero,
+      .panel,
+      .summary-card {
+        background: #ffffff !important;
+        box-shadow: none !important;
+        border-color: rgba(23, 34, 44, 0.18) !important;
+      }
+
+      .hero::after,
+      .action-row,
+      .action-subrow,
+      .action-help,
+      .status,
+      .modal-backdrop,
+      .section-action,
+      .row-remove,
+      .row-helper-toggle,
+      .personnel-helper-row {
+        display: none !important;
+      }
+
+      .table-wrap,
+      .rollup-grid {
+        break-inside: avoid;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-copy">
+          <p class="eyebrow">NSF Budget Planning</p>
+          <h1>NSF Proposal Budget Planner</h1>
+          <p>
+            Plan one National Science Foundation (NSF) budget period before entering it into the official
+            proposal system. Personnel rows track person-months, salary-before-fringe, and fringe, with
+            Budget Helper support and live ORS and summer-rate defaults for faster setup.
+          </p>
+        </div>
+        <figure class="hero-seal">
+          <img src="Kapiolani seal.png" alt="Kapiolani seal">
+        </figure>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Budget Settings</h2>
+      <div class="settings-grid">
+        <div>
+          <label for="organization-label">Organization</label>
+          <input id="organization-label" type="text">
+        </div>
+        <div>
+          <label for="proposal-number">Proposal No.</label>
+          <input id="proposal-number" type="text">
+        </div>
+        <div>
+          <label for="pi-label">PI / PD Name</label>
+          <input id="pi-label" type="text">
+        </div>
+        <div>
+          <label for="budget-period-label">Budget Period Label</label>
+          <input id="budget-period-label" type="text">
+        </div>
+        <div>
+          <label for="default-indirect-rate">IDC Rate (%)</label>
+          <input id="default-indirect-rate" type="number" min="0" step="0.01" value="45.50">
+        </div>
+      </div>
+      <div class="help">
+        Enter salary-before-fringe and fringe directly for each person. For non-personnel lines, leave IDC
+        checked when the cost belongs in the indirect-cost base and clear it when it does not. If a category
+        has special indirect-cost treatment, enter only the allowable direct-cost base for that line. MTDC is
+        calculated from the direct-cost lines that remain IDC-eligible.
+      </div>
+      <div class="rate-source-grid">
+        <section class="rate-source-card" aria-label="Live ORS defaults">
+          <h3>Live ORS Defaults</h3>
+          <div class="help">
+            Current rates:
+            <a href="https://research.hawaii.edu/ors/resources/rates/" target="_blank" rel="noopener noreferrer">UH ORS rate page</a>
+          </div>
+          <div class="help rate-status warn" id="ors-rate-status">
+            Using built-in default rates until live ORS defaults load.
+          </div>
+          <div class="live-update" id="ors-rate-updated">Updated: unavailable.</div>
+          <div class="rate-action-row">
+            <button type="button" id="reload-ors-rates-button">Reload Live ORS Defaults</button>
+          </div>
+        </section>
+        <section class="rate-source-card" aria-label="Live summer instructional rates">
+          <h3>Live Summer Rates</h3>
+          <div class="help">
+            Current summer instructional pay rates:<br>
+            <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-faculty.asp" target="_blank" rel="noopener noreferrer">UH summer faculty pay-rate page</a><br>
+            <a href="https://www.oc.hawaii.edu/faculty_staff/summer/pay_rate-casual.asp" target="_blank" rel="noopener noreferrer">UH summer lecturer pay-rate page</a>
+          </div>
+          <div class="help rate-status warn" id="summer-rate-status">
+            Live summer rates are unavailable until a proxy URL is configured. Manual entry remains available in Budget Helper.
+          </div>
+          <div class="live-update" id="summer-rate-updated">Updated: unavailable.</div>
+        </section>
+      </div>
+
+      <div class="action-row">
+        <button type="button" id="reset-button">Reset</button>
+        <button type="button" id="copy-summary-button">Copy Text Summary</button>
+        <button type="button" id="copy-link-button">Copy Shareable Link</button>
+        <button type="button" id="print-button">Print / Save as PDF</button>
+      </div>
+      <div class="action-subrow">
+        <button type="button" id="help-button">Help</button>
+      </div>
+      <div class="action-help">
+        Reset clears the current worksheet. Copy Text Summary copies a plain-text budget summary to the
+        clipboard. Copy Shareable Link copies a URL with the current worksheet state. Print / Save as PDF
+        opens the browser print dialog. Help opens a quick reference for the worksheet structure and
+        calculations.
+      </div>
+      <div class="status" id="status-box" hidden></div>
+    </section>
+
+    <section class="panel">
+      <h2>NSF Budget Worksheet</h2>
+      <div class="worksheet-note">
+        This worksheet covers one NSF budget period and mirrors the standard budget structure closely,
+        while keeping salary and fringe entry simple and tracking direct, indirect, and MTDC totals automatically.
+      </div>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>A. Senior Personnel</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table senior-personnel-table">
+            <thead>
+              <tr>
+                <th>Name / Role</th>
+                <th>Qty</th>
+                <th class="months-column">CAL<br>Months</th>
+                <th class="months-column">ACAD<br>Months</th>
+                <th class="months-column">SUMR<br>Months</th>
+                <th>Salary Before<br>Fringe</th>
+                <th>Fringe</th>
+              </tr>
+            </thead>
+            <tbody id="senior-personnel-body"></tbody>
+          </table>
+        </div>
+        <div class="section-help">Section A uses five named senior-personnel rows plus a sixth fixed Others row with a quantity field. Budget Helper remains available on the five named rows.</div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>B. Other Personnel</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table other-personnel-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Qty</th>
+                <th class="months-column">CAL<br>Months</th>
+                <th class="months-column">ACAD<br>Months</th>
+                <th class="months-column">SUMR<br>Months</th>
+                <th>Salary Before<br>Fringe</th>
+                <th>Fringe</th>
+              </tr>
+            </thead>
+            <tbody id="otherPersonnel-personnel-body"></tbody>
+          </table>
+        </div>
+        <div class="section-help">Section B uses the six standard NSF other-personnel categories. Enter quantity for each category, plus salary before fringe and fringe. Only B1 and B2 track CAL, ACAD, and SUMR months.</div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>D, E, F, and G. Other Direct Cost Categories</h3>
+        </div>
+        <div class="table-wrap">
+          <table class="budget-table" id="non-personnel-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Funds Requested</th>
+                <th class="checkbox-cell">IDC?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-category-key="equipment" data-category-label="Equipment">
+                <th scope="row">D. Equipment</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+              </tr>
+              <tr data-category-key="travelDomestic" data-category-label="Domestic Travel">
+                <th scope="row">E1. Domestic Travel</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+              </tr>
+              <tr data-category-key="travelInternational" data-category-label="International Travel">
+                <th scope="row">E2. International Travel</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+              </tr>
+              <tr data-category-key="participantStipends" data-category-label="Participant Support - Stipends">
+                <th scope="row">F1. Participant Support - Stipends</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+              </tr>
+              <tr data-category-key="participantTravel" data-category-label="Participant Support - Travel">
+                <th scope="row">F2. Participant Support - Travel</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+              </tr>
+              <tr data-category-key="participantSubsistence" data-category-label="Participant Support - Subsistence">
+                <th scope="row">F3. Participant Support - Subsistence</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+              </tr>
+              <tr data-category-key="participantOther" data-category-label="Participant Support - Other">
+                <th scope="row">F4. Participant Support - Other</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+              </tr>
+              <tr class="participant-count-row">
+                <th scope="row">Total Number of Participants</th>
+                <td><input id="participant-count" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"></td>
+              </tr>
+              <tr data-category-key="materials" data-category-label="Materials and Supplies">
+                <th scope="row">G1. Materials and Supplies</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+              </tr>
+              <tr data-category-key="publication" data-category-label="Publication Costs / Documentation / Dissemination">
+                <th scope="row">G2. Publication Costs / Documentation / Dissemination</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+              </tr>
+              <tr data-category-key="consultant" data-category-label="Consultant Services">
+                <th scope="row">G3. Consultant Services</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+              </tr>
+              <tr data-category-key="computer" data-category-label="Computer Services">
+                <th scope="row">G4. Computer Services</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+              </tr>
+              <tr data-category-key="subawards" data-category-label="Subawards">
+                <th scope="row">G5. Subawards</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+              </tr>
+              <tr data-category-key="otherDirect" data-category-label="Other">
+                <th scope="row">G6. Other</th>
+                <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
+                <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="section-help">
+          Equipment and all participant-support rows are preloaded with IDC turned off. Use the IDC checkbox to control which direct-cost lines stay in the indirect-cost base.
+        </div>
+        <div class="section-help">Subawards stay on their own G5 line so you can include or exclude them from IDC as needed.</div>
+      </section>
+
+      <section class="worksheet-section">
+        <div class="section-header">
+          <h3>Budget Totals</h3>
+        </div>
+        <dl class="rollup-grid">
+          <div class="rollup-row">
+            <dt>A. Senior personnel salaries requested</dt>
+            <dd id="rollup-senior-salary">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>A. Senior personnel months totals</dt>
+            <dd class="rollup-metric-group">
+              <span class="rollup-metric"><span class="rollup-metric-label">CAL</span><span id="rollup-senior-cal">0.00</span></span>
+              <span class="rollup-metric"><span class="rollup-metric-label">ACAD</span><span id="rollup-senior-acad">0.00</span></span>
+              <span class="rollup-metric"><span class="rollup-metric-label">SUMR</span><span id="rollup-senior-sumr">0.00</span></span>
+            </dd>
+          </div>
+          <div class="rollup-row">
+            <dt>B. Other personnel salaries requested</dt>
+            <dd id="rollup-other-salary">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>B. Other personnel months totals</dt>
+            <dd class="rollup-metric-group">
+              <span class="rollup-metric"><span class="rollup-metric-label">CAL</span><span id="rollup-other-cal">0.00</span></span>
+              <span class="rollup-metric"><span class="rollup-metric-label">ACAD</span><span id="rollup-other-acad">0.00</span></span>
+              <span class="rollup-metric"><span class="rollup-metric-label">SUMR</span><span id="rollup-other-sumr">0.00</span></span>
+            </dd>
+          </div>
+          <div class="rollup-row">
+            <dt>Total salaries and wages (A + B)</dt>
+            <dd id="rollup-salaries-wages">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>C. Fringe benefits (if charged as direct costs)</dt>
+            <dd id="rollup-fringe">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>Total salaries, wages and fringe benefits (A + B + C)</dt>
+            <dd id="rollup-salaries-fringe">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>D. Total equipment</dt>
+            <dd id="rollup-equipment">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>E. Total travel</dt>
+            <dd id="rollup-travel">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt id="rollup-participant-label">F. Total participant support costs</dt>
+            <dd id="rollup-participant">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>G. Total other direct costs</dt>
+            <dd id="rollup-other-direct">$0</dd>
+          </div>
+          <div class="rollup-row total">
+            <dt>H. Total direct costs (A through G)</dt>
+            <dd id="rollup-total-direct">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>MTDC. Modified total direct costs <span class="inline-note">This is the indirect-cost base and excludes direct-cost lines not subject to IDC, such as participant support costs.</span></dt>
+            <dd id="rollup-mtdc">$0</dd>
+          </div>
+          <div class="rollup-row total">
+            <dt>I. Indirect costs (F&amp;A)</dt>
+            <dd id="rollup-total-indirect">$0</dd>
+          </div>
+          <div class="rollup-row grand-total">
+            <dt>J. Total direct and indirect costs (H + I)</dt>
+            <dd id="rollup-total-budget">$0</dd>
+          </div>
+        </dl>
+      </section>
+    </section>
+
+    <div class="modal-backdrop" id="help-modal" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+        <div class="modal-header">
+          <h2 id="help-modal-title">How This Planner Works</h2>
+          <button type="button" class="modal-close" id="help-close-button" aria-label="Close help">Close</button>
+        </div>
+        <div class="modal-body">
+          <section class="modal-section">
+            <h3>Purpose</h3>
+            <p>This tool helps a PI plan one NSF proposal budget period in a worksheet-style format before entering values into the official NSF budget system.</p>
+          </section>
+          <section class="modal-section">
+            <h3>Personnel Rows</h3>
+            <ul>
+              <li>Section A uses five named senior-person rows plus a sixth Others row with a quantity field.</li>
+              <li>Section B uses six fixed NSF categories with a quantity field and salary/fringe inputs.</li>
+              <li>Only B1 and B2 track CAL, ACAD, and SUMR person-months.</li>
+              <li>Use Budget Helper on the five named Section A rows to derive person-months, salary before fringe, and fringe from release time and overload inputs.</li>
+              <li>Each Section A Budget Helper row can use a Summer Rate Source selector to choose a live faculty rate, a live lecturer rate, or a custom instructional Summer TE value.</li>
+              <li>Budget Helper calculates ACAD months as release TE divided by 3, and SUMR months as summer instructional TE divided by 3 plus non-instructional overload days divided by 21.</li>
+              <li>Summer person-month calculations assume 63 work days across 3 months of summer.</li>
+            </ul>
+          </section>
+          <section class="modal-section">
+            <h3>Rates</h3>
+            <ul>
+              <li>The IDC rate is editable at the top of the page.</li>
+              <li>Use Reload Live ORS Defaults to refresh the planner's IDC rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
+              <li>Budget Helper can load live summer instructional pay rates from the UH summer faculty and lecturer pay-rate pages.</li>
+              <li>Checked direct-cost rows use the default indirect cost rate.</li>
+              <li>Clear a row's IDC checkbox when indirect cost should not apply.</li>
+            </ul>
+          </section>
+          <section class="modal-section">
+            <h3>Worksheet Structure</h3>
+            <ul>
+              <li>Section A is a fixed six-row senior-personnel table. Section B is a fixed six-row NSF other-personnel table.</li>
+              <li>Sections D, E, F, and G share one table, with participant support split into F1-F4 and other direct costs split into G1-G6.</li>
+              <li>Each D, E, F, and G budget line includes Funds Requested and an IDC checkbox. Section F also includes a Total Number of Participants input under F4.</li>
+            </ul>
+          </section>
+          <section class="modal-section">
+            <h3>Rounding and Totals</h3>
+            <ul>
+              <li>Money calculations are carried internally to the nearest cent.</li>
+              <li>Displayed dollar amounts are rounded up to the nearest whole dollar.</li>
+              <li>The Budget Totals section uses the rounded displayed line values, and indirect costs are calculated from the rounded-up MTDC value.</li>
+            </ul>
+          </section>
+          <section class="modal-section">
+            <h3>Outputs</h3>
+            <ul>
+              <li>The budget totals section rolls the worksheet into an NSF-style budget summary.</li>
+              <li>Copy Text Summary creates a plain-text worksheet summary for email or planning notes.</li>
+              <li>Copy Shareable Link copies a URL containing the current worksheet state.</li>
+              <li>Print / Save as PDF creates a print-friendly version of the worksheet.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const seniorPersonnelDefinitions = [
+      { key: "senior1", kind: "named", prefix: "1." },
+      { key: "senior2", kind: "named", prefix: "2." },
+      { key: "senior3", kind: "named", prefix: "3." },
+      { key: "senior4", kind: "named", prefix: "4." },
+      { key: "senior5", kind: "named", prefix: "5." },
+      { key: "others", kind: "others", prefix: "6.", label: "Others (List individually on budget justification page)" }
+    ];
+
+    const otherPersonnelDefinitions = [
+      { key: "postdoctoralScholars", prefix: "1.", label: "Post Doctoral Scholars", hasMonths: true },
+      { key: "otherProfessionals", prefix: "2.", label: "Other Professionals (Technician, Programmer, Etc.)", hasMonths: true },
+      { key: "graduateStudents", prefix: "3.", label: "Graduate Students", hasMonths: false },
+      { key: "undergraduateStudents", prefix: "4.", label: "Undergraduate Students", hasMonths: false },
+      { key: "secretarialClerical", prefix: "5.", label: "Secretarial - Clerical (If Charged Directly)", hasMonths: false },
+      { key: "other", prefix: "6.", label: "Other", hasMonths: false }
+    ];
+
+    const personnelSections = [
+      { key: "senior", label: "Senior Personnel", mode: "fixedSenior" },
+      { key: "otherPersonnel", label: "Other Personnel", mode: "fixed" }
+    ];
+
+    const elements = {
+      organizationLabel: document.getElementById("organization-label"),
+      proposalNumber: document.getElementById("proposal-number"),
+      piLabel: document.getElementById("pi-label"),
+      budgetPeriodLabel: document.getElementById("budget-period-label"),
+      defaultIndirectRate: document.getElementById("default-indirect-rate"),
+      orsRateStatus: document.getElementById("ors-rate-status"),
+      orsRateUpdated: document.getElementById("ors-rate-updated"),
+      reloadOrsRatesButton: document.getElementById("reload-ors-rates-button"),
+      summerRateStatus: document.getElementById("summer-rate-status"),
+      summerRateUpdated: document.getElementById("summer-rate-updated"),
+      resetButton: document.getElementById("reset-button"),
+      copySummaryButton: document.getElementById("copy-summary-button"),
+      copyLinkButton: document.getElementById("copy-link-button"),
+      printButton: document.getElementById("print-button"),
+      helpButton: document.getElementById("help-button"),
+      helpModal: document.getElementById("help-modal"),
+      helpCloseButton: document.getElementById("help-close-button"),
+      statusBox: document.getElementById("status-box"),
+      nonPersonnelTable: document.getElementById("non-personnel-table"),
+      participantCount: document.getElementById("participant-count"),
+      rollupSeniorSalary: document.getElementById("rollup-senior-salary"),
+      rollupSeniorCal: document.getElementById("rollup-senior-cal"),
+      rollupSeniorAcad: document.getElementById("rollup-senior-acad"),
+      rollupSeniorSumr: document.getElementById("rollup-senior-sumr"),
+      rollupOtherSalary: document.getElementById("rollup-other-salary"),
+      rollupOtherCal: document.getElementById("rollup-other-cal"),
+      rollupOtherAcad: document.getElementById("rollup-other-acad"),
+      rollupOtherSumr: document.getElementById("rollup-other-sumr"),
+      rollupSalariesWages: document.getElementById("rollup-salaries-wages"),
+      rollupFringe: document.getElementById("rollup-fringe"),
+      rollupSalariesFringe: document.getElementById("rollup-salaries-fringe"),
+      rollupEquipment: document.getElementById("rollup-equipment"),
+      rollupTravel: document.getElementById("rollup-travel"),
+      rollupParticipantLabel: document.getElementById("rollup-participant-label"),
+      rollupParticipant: document.getElementById("rollup-participant"),
+      rollupOtherDirect: document.getElementById("rollup-other-direct"),
+      rollupTotalDirect: document.getElementById("rollup-total-direct"),
+      rollupMTDC: document.getElementById("rollup-mtdc"),
+      rollupTotalIndirect: document.getElementById("rollup-total-indirect"),
+      rollupTotalBudget: document.getElementById("rollup-total-budget")
+    };
+
+    personnelSections.forEach((section) => {
+      section.body = document.getElementById(`${section.key}-personnel-body`);
+    });
+
+    const currencyFormatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+
+    const decimalFormatter = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+
+    const wholeNumberFormatter = new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: 0
+    });
+
+    const liveUpdatedFormatter = new Intl.DateTimeFormat("en-US", {
+      dateStyle: "long",
+      timeStyle: "short"
+    });
+
+    const RATE_PROXY_URL = "https://script.google.com/macros/s/AKfycby3BQh0o2lOd0B4iO1rrPVy75a9c6--Io7kgGPnDqkuXMfT8OJwcDjSGbiImPMnAWch6Q/exec";
+    const CUSTOM_RATE_OPTION = "__custom__";
+    let lastFocusedElement = null;
+    let suppressUrlSync = false;
+    let urlSyncDisabled = false;
+    let suppressRateFieldTracking = false;
+    let defaultIndirectRateTouched = false;
+    let liveSummerRateOptions = [];
+    const builtInHelperRateDefaults = {
+      defaultIndirectRate: elements.defaultIndirectRate.value,
+      releaseFringeRate: "59.5",
+      overloadFringeRate: "2.47"
+    };
+    const helperStateDefaults = {
+      defaultIndirectRate: elements.defaultIndirectRate.value,
+      facultyTerm: "9",
+      releaseFringeRate: "59.5",
+      overloadFringeRate: "2.47",
+      summerRateSource: CUSTOM_RATE_OPTION
+    };
+    const liveHelperRateDefaults = { ...builtInHelperRateDefaults };
+
+    function roundToCent(value) {
+      return Number.isFinite(value) ? Math.round(value * 100) / 100 : 0;
+    }
+
+    function roundUpDollar(value) {
+      if (!Number.isFinite(value)) {
+        return 0;
+      }
+
+      const roundedValue = Math.ceil(Math.max(value, 0) - 1e-9);
+      return roundedValue === 0 ? 0 : roundedValue;
+    }
+
+    function formatCurrency(value) {
+      return currencyFormatter.format(roundUpDollar(value));
+    }
+
+    function formatDecimal(value) {
+      return decimalFormatter.format(Number.isFinite(value) ? value : 0);
+    }
+
+    function formatPercent(value) {
+      return `${formatDecimal(value)}%`;
+    }
+
+    function formatLiveUpdatedText(timestamp) {
+      const date = new Date(timestamp);
+      if (Number.isNaN(date.getTime())) {
+        return "Updated: unavailable.";
+      }
+
+      return `Updated: ${liveUpdatedFormatter.format(date)}.`;
+    }
+
+    function normalizeCurrencyInputValue(value) {
+      return String(value ?? "").replace(/[$,\s]/g, "").trim();
+    }
+
+    function readNumber(input) {
+      const normalizedValue = normalizeCurrencyInputValue(input.value);
+      const value = Number.parseFloat(normalizedValue);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    function nonNegativeNumber(input) {
+      return Math.max(readNumber(input) ?? 0, 0);
+    }
+
+    function nonNegativeMoney(input) {
+      const isActiveField = document.activeElement === input;
+      const storedValue = Number.parseFloat(input.dataset.moneyValue ?? "");
+
+      if (!isActiveField && Number.isFinite(storedValue)) {
+        input.value = wholeNumberFormatter.format(roundUpDollar(storedValue));
+        return storedValue;
+      }
+
+      if (isActiveField && Number.isFinite(storedValue)) {
+        const storedDisplayValue = wholeNumberFormatter.format(roundUpDollar(storedValue));
+        if (input.value === storedDisplayValue) {
+          return storedValue;
+        }
+      }
+
+      const rawValue = readNumber(input);
+      if (rawValue === null) {
+        delete input.dataset.moneyValue;
+        if (!isActiveField && input.value.trim() !== "") {
+          input.value = "";
+        }
+        return 0;
+      }
+
+      const roundedValue = roundToCent(Math.max(rawValue, 0));
+      input.dataset.moneyValue = roundedValue.toFixed(2);
+
+      if (!isActiveField) {
+        input.value = wholeNumberFormatter.format(roundUpDollar(roundedValue));
+      }
+
+      return roundedValue;
+    }
+
+    function formatMoneyInputDisplay(input) {
+      const value = nonNegativeMoney(input);
+      if (!input.dataset.moneyValue) {
+        input.value = "";
+        return 0;
+      }
+
+      input.value = wholeNumberFormatter.format(roundUpDollar(value));
+      return value;
+    }
+
+    function formatInputDecimal(value) {
+      if (!Number.isFinite(value)) {
+        return "";
+      }
+
+      const roundedValue = Math.round(value * 100) / 100;
+      if (Math.abs(roundedValue) < 1e-9) {
+        return "0";
+      }
+
+      return roundedValue.toFixed(2).replace(/\.?0+$/, "");
+    }
+
+    function setMoneyInputValue(input, value) {
+      const roundedValue = roundToCent(Math.max(value, 0));
+      input.dataset.moneyValue = roundedValue.toFixed(2);
+      input.value = wholeNumberFormatter.format(roundUpDollar(roundedValue));
+    }
+
+    function clearMoneyInputValue(input) {
+      delete input.dataset.moneyValue;
+      input.value = "";
+    }
+
+    function storeCustomMoneyValueFromInput(input) {
+      const value = getMoneyStateValue(input);
+      if (value === "") {
+        delete input.dataset.customMoneyValue;
+        return;
+      }
+
+      const numericValue = Number.parseFloat(value);
+      input.dataset.customMoneyValue = Number.isFinite(numericValue)
+        ? roundToCent(Math.max(numericValue, 0)).toFixed(2)
+        : value;
+    }
+
+    function restoreCustomMoneyValueToInput(input) {
+      const storedValue = input.dataset.customMoneyValue ?? "";
+      if (storedValue === "") {
+        clearMoneyInputValue(input);
+        return;
+      }
+
+      const numericValue = Number.parseFloat(storedValue);
+      if (Number.isFinite(numericValue)) {
+        input.dataset.moneyValue = roundToCent(Math.max(numericValue, 0)).toFixed(2);
+        formatMoneyInputDisplay(input);
+      } else {
+        input.value = storedValue;
+      }
+    }
+
+    function setSummerRateStatus(message, tone) {
+      elements.summerRateStatus.className = `help rate-status ${tone}`;
+      elements.summerRateStatus.textContent = message;
+    }
+
+    function setOrsRateStatus(message, tone) {
+      elements.orsRateStatus.className = `help rate-status ${tone}`;
+      elements.orsRateStatus.textContent = message;
+    }
+
+    function setOrsReloadButtonState(isLoading) {
+      elements.reloadOrsRatesButton.disabled = isLoading;
+      elements.reloadOrsRatesButton.textContent = isLoading
+        ? "Reloading ORS Defaults..."
+        : "Reload Live ORS Defaults";
+    }
+
+    function wasRateFieldTouched(input) {
+      return input.dataset.rateTouched === "true";
+    }
+
+    function markRateFieldTouched(input) {
+      if (!suppressRateFieldTracking) {
+        input.dataset.rateTouched = "true";
+      }
+    }
+
+    function setTrackedRateFieldValue(input, value, forceApply = false) {
+      if (wasRateFieldTouched(input) && !forceApply) {
+        return;
+      }
+
+      suppressRateFieldTracking = true;
+      input.value = String(value);
+      suppressRateFieldTracking = false;
+    }
+
+    function setTrackedDefaultIndirectRate(value, forceApply = false) {
+      if (defaultIndirectRateTouched && !forceApply) {
+        return;
+      }
+
+      suppressRateFieldTracking = true;
+      elements.defaultIndirectRate.value = String(value);
+      suppressRateFieldTracking = false;
+    }
+
+    function getPersonnelValueInputs(row) {
+      return {
+        calMonths: row.querySelector(".cal-months"),
+        acadMonths: row.querySelector(".acad-months"),
+        sumrMonths: row.querySelector(".sumr-months"),
+        baseSalary: row.querySelector(".base-salary"),
+        fringeAmount: row.querySelector(".fringe-amount")
+      };
+    }
+
+    function getPersonnelHelperRow(row) {
+      const helperRow = row.nextElementSibling;
+      return helperRow && helperRow.classList.contains("personnel-helper-row") ? helperRow : null;
+    }
+
+    function getPersonnelHelperControls(row) {
+      const helperRow = getPersonnelHelperRow(row);
+      if (!helperRow) {
+        return null;
+      }
+
+      return {
+        row: helperRow,
+        desiredTE: helperRow.querySelector(".helper-desired-te"),
+        desiredInstructionalTE: helperRow.querySelector(".helper-desired-instructional-te"),
+        desiredNonInstructionalDays: helperRow.querySelector(".helper-desired-non-instructional-days"),
+        annualSalary: helperRow.querySelector(".helper-annual-salary"),
+        facultyTerm: helperRow.querySelector(".helper-faculty-term"),
+        monthsCharged: helperRow.querySelector(".helper-months-charged"),
+        releaseFringeRate: helperRow.querySelector(".helper-release-fringe-rate"),
+        overloadFringeRate: helperRow.querySelector(".helper-overload-fringe-rate"),
+        summerRateSource: helperRow.querySelector(".helper-summer-rate-source"),
+        instructionalCostPerTE: helperRow.querySelector(".helper-instructional-cost-per-te"),
+        applyToggle: helperRow.querySelector(".helper-apply-toggle"),
+        calOutput: helperRow.querySelector(".helper-output-cal"),
+        acadOutput: helperRow.querySelector(".helper-output-acad"),
+        sumrOutput: helperRow.querySelector(".helper-output-sumr"),
+        salaryOutput: helperRow.querySelector(".helper-output-salary"),
+        fringeOutput: helperRow.querySelector(".helper-output-fringe"),
+        releaseSalaryOutput: helperRow.querySelector(".helper-output-release-salary"),
+        instructionalSalaryOutput: helperRow.querySelector(".helper-output-instructional-salary"),
+        nonInstructionalSalaryOutput: helperRow.querySelector(".helper-output-non-instructional-salary"),
+        releaseFringeOutput: helperRow.querySelector(".helper-output-release-fringe"),
+        instructionalFringeOutput: helperRow.querySelector(".helper-output-instructional-fringe"),
+        nonInstructionalFringeOutput: helperRow.querySelector(".helper-output-non-instructional-fringe"),
+        statusNote: helperRow.querySelector(".helper-status-note")
+      };
+    }
+
+    function storeManualPersonnelValues(row) {
+      const valueInputs = getPersonnelValueInputs(row);
+      Object.values(valueInputs).forEach((input) => {
+        input.dataset.manualValue = input.value;
+        if (input.classList.contains("money-input")) {
+          input.dataset.manualMoneyValue = input.dataset.moneyValue ?? "";
+        }
+      });
+    }
+
+    function restoreManualPersonnelValues(row) {
+      const valueInputs = getPersonnelValueInputs(row);
+      Object.values(valueInputs).forEach((input) => {
+        const manualValue = input.dataset.manualValue ?? "";
+        input.value = manualValue;
+        if (input.classList.contains("money-input")) {
+          const manualMoneyValue = input.dataset.manualMoneyValue ?? "";
+          if (manualMoneyValue) {
+            input.dataset.moneyValue = manualMoneyValue;
+            formatMoneyInputDisplay(input);
+          } else {
+            clearMoneyInputValue(input);
+          }
+          delete input.dataset.manualMoneyValue;
+        }
+        delete input.dataset.manualValue;
+      });
+    }
+
+    function setPersonnelDerivedState(row, isDerived) {
+      const valueInputs = getPersonnelValueInputs(row);
+      Object.values(valueInputs).forEach((input) => {
+        input.readOnly = isDerived;
+        input.classList.toggle("derived-field", isDerived);
+      });
+    }
+
+    function applyBudgetHelperOutputs(row, results) {
+      const valueInputs = getPersonnelValueInputs(row);
+      valueInputs.calMonths.value = formatInputDecimal(results.calMonths);
+      valueInputs.acadMonths.value = formatInputDecimal(results.acadMonths);
+      valueInputs.sumrMonths.value = formatInputDecimal(results.sumrMonths);
+      setMoneyInputValue(valueInputs.baseSalary, results.salaryBeforeFringe);
+      setMoneyInputValue(valueInputs.fringeAmount, results.fringe);
+    }
+
+    function countPersonnelRows(body) {
+      return body.querySelectorAll(".personnel-row").length;
+    }
+
+    function getPersonnelRowForHelperControl(control) {
+      const helperRow = control.closest(".personnel-helper-row");
+      if (!helperRow) {
+        return null;
+      }
+
+      const row = helperRow.previousElementSibling;
+      return row && row.classList.contains("personnel-row") ? row : null;
+    }
+
+    function sumRoundedDisplay(values) {
+      return values.reduce((sum, value) => sum + roundUpDollar(value), 0);
+    }
+
+    function defaultIdcAppliesForCategory(key) {
+      return ![
+        "equipment",
+        "participantStipends",
+        "participantTravel",
+        "participantSubsistence",
+        "participantOther"
+      ].includes(key);
+    }
+
+    function getMoneyStateValue(input) {
+      return input.dataset.moneyValue || normalizeCurrencyInputValue(input.value);
+    }
+
+    function encodePlannerState(state) {
+      const json = JSON.stringify(state);
+      const utf8 = encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, hex) =>
+        String.fromCharCode(Number.parseInt(hex, 16))
+      );
+      return btoa(utf8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function decodePlannerState(encoded) {
+      const base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+      const padded = `${base64}${"=".repeat((4 - (base64.length % 4)) % 4)}`;
+      const binary = atob(padded);
+      const percentEncoded = Array.from(binary, (char) =>
+        `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`
+      ).join("");
+      return JSON.parse(decodeURIComponent(percentEncoded));
+    }
+
+    function buildSeniorPersonnelRowState(row) {
+      const isOthersRow = row.dataset.personnelKind === "others";
+      const helperControls = getPersonnelHelperControls(row);
+      const helperState = helperControls ? {
+        open: !helperControls.row.hidden,
+        apply: helperControls.applyToggle.checked,
+        desiredTE: helperControls.desiredTE.value.trim(),
+        desiredInstructionalTE: helperControls.desiredInstructionalTE.value.trim(),
+        desiredNonInstructionalDays: helperControls.desiredNonInstructionalDays.value.trim(),
+        annualSalary: getMoneyStateValue(helperControls.annualSalary),
+        facultyTerm: helperControls.facultyTerm.value,
+        monthsCharged: helperControls.monthsCharged.value.trim(),
+        releaseFringeRate: helperControls.releaseFringeRate.value.trim(),
+        overloadFringeRate: helperControls.overloadFringeRate.value.trim(),
+        summerRateSource: helperControls.summerRateSource.value,
+        instructionalCostPerTE: getMoneyStateValue(helperControls.instructionalCostPerTE)
+      } : null;
+      const hasHelperContent = Boolean(helperState) && (
+        helperState.open ||
+        helperState.apply ||
+        helperState.desiredTE !== "" ||
+        helperState.desiredInstructionalTE !== "" ||
+        helperState.desiredNonInstructionalDays !== "" ||
+        helperState.annualSalary !== "" ||
+        helperState.facultyTerm !== helperStateDefaults.facultyTerm ||
+        helperState.monthsCharged !== "" ||
+        helperState.releaseFringeRate !== helperStateDefaults.releaseFringeRate ||
+        helperState.overloadFringeRate !== helperStateDefaults.overloadFringeRate ||
+        helperState.summerRateSource !== helperStateDefaults.summerRateSource ||
+        helperState.instructionalCostPerTE !== ""
+      );
+
+      if (!rowHasSeniorPersonnelContent(row) && !hasHelperContent) {
+        return null;
+      }
+
+      return {
+        key: row.dataset.personnelKey,
+        label: isOthersRow ? row.dataset.personnelLabel : row.querySelector(".person-label").value.trim(),
+        quantity: row.querySelector(".person-quantity")?.value.trim() || "",
+        calMonths: row.querySelector(".cal-months").value.trim(),
+        acadMonths: row.querySelector(".acad-months").value.trim(),
+        sumrMonths: row.querySelector(".sumr-months").value.trim(),
+        baseSalary: getMoneyStateValue(row.querySelector(".base-salary")),
+        fringeAmount: getMoneyStateValue(row.querySelector(".fringe-amount")),
+        helper: isOthersRow ? null : helperState
+      };
+    }
+
+    function rowHasOtherPersonnelContent(row) {
+      return [
+        row.querySelector(".person-quantity")?.value ?? "",
+        row.querySelector(".cal-months")?.value ?? "",
+        row.querySelector(".acad-months")?.value ?? "",
+        row.querySelector(".sumr-months")?.value ?? "",
+        row.querySelector(".base-salary").value,
+        row.querySelector(".fringe-amount").value
+      ].some((value) => value !== "");
+    }
+
+    function buildOtherPersonnelRowState(row) {
+      if (!rowHasOtherPersonnelContent(row)) {
+        return null;
+      }
+
+      return {
+        key: row.dataset.personnelKey,
+        quantity: row.querySelector(".person-quantity")?.value.trim() || "",
+        calMonths: row.querySelector(".cal-months")?.value.trim() || "",
+        acadMonths: row.querySelector(".acad-months")?.value.trim() || "",
+        sumrMonths: row.querySelector(".sumr-months")?.value.trim() || "",
+        baseSalary: getMoneyStateValue(row.querySelector(".base-salary")),
+        fringeAmount: getMoneyStateValue(row.querySelector(".fringe-amount"))
+      };
+    }
+
+    function collectPlannerState() {
+      return {
+        version: 1,
+        settings: {
+          organizationLabel: elements.organizationLabel.value.trim(),
+          proposalNumber: elements.proposalNumber.value.trim(),
+          piLabel: elements.piLabel.value.trim(),
+          budgetPeriodLabel: elements.budgetPeriodLabel.value.trim(),
+          defaultIndirectRate: elements.defaultIndirectRate.value.trim()
+        },
+        participantSupport: {
+          participantCount: elements.participantCount.value.trim()
+        },
+        personnel: Object.fromEntries(personnelSections.map((section) => [
+          section.key,
+          Array.from(section.body.querySelectorAll(section.mode === "fixedSenior" ? ".personnel-row" : ".other-personnel-row"))
+            .map((row) => (section.mode === "fixedSenior" ? buildSeniorPersonnelRowState(row) : buildOtherPersonnelRowState(row)))
+            .filter(Boolean)
+        ])),
+        nonPersonnel: Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr[data-category-key]"))
+          .map((row) => {
+            const amount = getMoneyStateValue(row.querySelector(".direct-amount"));
+            const idcApplies = row.querySelector(".idc-applies").checked;
+            const key = row.dataset.categoryKey;
+            const hasContent = amount !== "" || idcApplies !== defaultIdcAppliesForCategory(key);
+
+            if (!hasContent) {
+              return null;
+            }
+
+            return {
+              key,
+              amount,
+              idcApplies
+            };
+          })
+          .filter(Boolean)
+      };
+    }
+
+    function buildShareableUrl(state = collectPlannerState()) {
+      const params = new URLSearchParams();
+      const hasMeaningfulContent =
+        Boolean(state.settings.organizationLabel) ||
+        Boolean(state.settings.proposalNumber) ||
+        Boolean(state.settings.piLabel) ||
+        Boolean(state.settings.budgetPeriodLabel) ||
+        (state.settings.defaultIndirectRate && state.settings.defaultIndirectRate !== helperStateDefaults.defaultIndirectRate) ||
+        Boolean(state.participantSupport?.participantCount) ||
+        Object.values(state.personnel).some((rows) => rows.length > 0) ||
+        state.nonPersonnel.length > 0;
+
+      if (hasMeaningfulContent) {
+        params.set("state", encodePlannerState(state));
+      }
+
+      return `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
+    }
+
+    function buildAbsoluteShareableUrl(state = collectPlannerState()) {
+      return new URL(buildShareableUrl(state), window.location.href).href;
+    }
+
+    function syncUrlState() {
+      if (suppressUrlSync || urlSyncDisabled) {
+        return;
+      }
+
+      try {
+        const nextUrl = buildShareableUrl();
+        window.history.replaceState({}, "", nextUrl);
+      } catch (error) {
+        urlSyncDisabled = true;
+        paintStatus(
+          "warn",
+          "Shareable URL updates are unavailable.",
+          "Worksheet calculations still work, but this browser did not allow live URL updates."
+        );
+      }
+    }
+
+    function applyPlannerState(state) {
+      suppressUrlSync = true;
+
+      resetPlanner();
+
+      defaultIndirectRateTouched = Boolean(state.settings && Object.prototype.hasOwnProperty.call(state.settings, "defaultIndirectRate"));
+      elements.organizationLabel.value = state.settings?.organizationLabel || "";
+      elements.proposalNumber.value = state.settings?.proposalNumber || "";
+      elements.piLabel.value = state.settings?.piLabel || "";
+      elements.budgetPeriodLabel.value = state.settings?.budgetPeriodLabel || "";
+      elements.defaultIndirectRate.value = state.settings?.defaultIndirectRate || helperStateDefaults.defaultIndirectRate;
+      elements.participantCount.value = state.participantSupport?.participantCount || "";
+
+      personnelSections.forEach((section) => {
+        populatePersonnelSection(section, state.personnel?.[section.key] || []);
+      });
+
+      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr[data-category-key]")).forEach((row) => {
+        const stateRow = (state.nonPersonnel || []).find((entry) => entry.key === row.dataset.categoryKey);
+        const amountInput = row.querySelector(".direct-amount");
+        const checkbox = row.querySelector(".idc-applies");
+
+        clearMoneyInputValue(amountInput);
+        checkbox.checked = defaultIdcAppliesForCategory(row.dataset.categoryKey);
+
+        if (stateRow) {
+          amountInput.value = stateRow.amount || "";
+          if (amountInput.value !== "") {
+            formatMoneyInputDisplay(amountInput);
+          }
+          checkbox.checked = Boolean(stateRow.idcApplies);
+        }
+      });
+
+      calculate();
+      suppressUrlSync = false;
+      syncUrlState();
+    }
+
+    function loadStateFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const encodedState = params.get("state");
+      if (!encodedState) {
+        return false;
+      }
+
+      try {
+        const state = decodePlannerState(encodedState);
+        applyPlannerState(state);
+        return true;
+      } catch (error) {
+        suppressUrlSync = false;
+        paintStatus("warn", "Shareable link could not be loaded.", "The URL state was invalid or incomplete.");
+        return false;
+      }
+    }
+
+    function appendHelperSummerRateOption(select, label, value) {
+      const option = document.createElement("option");
+      option.value = String(value);
+      option.textContent = `${label} (${formatCurrency(value)})`;
+      select.appendChild(option);
+    }
+
+    function populateHelperSummerRateSelect(select) {
+      const requestedSource = select.dataset.requestedSource || select.value || CUSTOM_RATE_OPTION;
+      select.innerHTML = "";
+
+      liveSummerRateOptions.forEach((rate) => {
+        appendHelperSummerRateOption(select, rate.label, rate.value);
+      });
+
+      const customOption = document.createElement("option");
+      customOption.value = CUSTOM_RATE_OPTION;
+      customOption.textContent = "Custom value";
+      select.appendChild(customOption);
+
+      const hasRequestedSource = Array.from(select.options).some((option) => option.value === requestedSource);
+      select.value = hasRequestedSource ? requestedSource : CUSTOM_RATE_OPTION;
+    }
+
+    function applyHelperSummerRateSourceSelection(row) {
+      const controls = getPersonnelHelperControls(row);
+      if (!controls) {
+        return;
+      }
+
+      const selectedSource = controls.summerRateSource.value || CUSTOM_RATE_OPTION;
+      const previousSource = controls.summerRateSource.dataset.previousValue || CUSTOM_RATE_OPTION;
+
+      if (selectedSource === CUSTOM_RATE_OPTION) {
+        controls.instructionalCostPerTE.readOnly = false;
+        restoreCustomMoneyValueToInput(controls.instructionalCostPerTE);
+      } else {
+        if (previousSource === CUSTOM_RATE_OPTION) {
+          storeCustomMoneyValueFromInput(controls.instructionalCostPerTE);
+        }
+        setMoneyInputValue(controls.instructionalCostPerTE, Number(selectedSource));
+        controls.instructionalCostPerTE.readOnly = true;
+      }
+
+      controls.summerRateSource.dataset.previousValue = selectedSource;
+    }
+
+    function populateAllHelperSummerRateSelects() {
+      document.querySelectorAll(".helper-summer-rate-source").forEach((select) => {
+        const row = getPersonnelRowForHelperControl(select);
+        if (row && select.value && select.value !== CUSTOM_RATE_OPTION && liveSummerRateOptions.length === 0) {
+          const controls = getPersonnelHelperControls(row);
+          if (controls) {
+            storeCustomMoneyValueFromInput(controls.instructionalCostPerTE);
+          }
+        }
+
+        populateHelperSummerRateSelect(select);
+        if (row) {
+          applyHelperSummerRateSourceSelection(row);
+        }
+      });
+    }
+
+    function applyHelperOrsDefaults(forceApply = false) {
+      if (forceApply) {
+        defaultIndirectRateTouched = false;
+        document.querySelectorAll(".helper-release-fringe-rate, .helper-overload-fringe-rate").forEach((input) => {
+          delete input.dataset.rateTouched;
+        });
+      }
+
+      setTrackedDefaultIndirectRate(helperStateDefaults.defaultIndirectRate, forceApply);
+
+      document.querySelectorAll(".personnel-row").forEach((row) => {
+        const controls = getPersonnelHelperControls(row);
+        if (!controls) {
+          return;
+        }
+
+        setTrackedRateFieldValue(controls.releaseFringeRate, helperStateDefaults.releaseFringeRate, forceApply);
+        setTrackedRateFieldValue(controls.overloadFringeRate, helperStateDefaults.overloadFringeRate, forceApply);
+      });
+    }
+
+    async function loadSummerRates() {
+      if (!RATE_PROXY_URL) {
+        liveSummerRateOptions = [];
+        populateAllHelperSummerRateSelects();
+        setSummerRateStatus(
+          "Live summer rates are unavailable until a proxy URL is configured. Manual entry remains available in Budget Helper.",
+          "warn"
+        );
+        elements.summerRateUpdated.textContent = "Updated: unavailable.";
+        calculate();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${RATE_PROXY_URL}?source=summer-pay-rates`, {
+          method: "GET"
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const rates = Array.isArray(payload.rates)
+          ? payload.rates.filter((rate) =>
+              rate &&
+              typeof rate.label === "string" &&
+              Number.isFinite(Number(rate.value))
+            ).map((rate) => ({
+              label: rate.label.trim(),
+              value: Number(rate.value)
+            }))
+          : [];
+
+        if (rates.length === 0) {
+          throw new Error("No usable rates returned.");
+        }
+
+        liveSummerRateOptions = rates;
+        populateAllHelperSummerRateSelects();
+        elements.summerRateUpdated.textContent = formatLiveUpdatedText(payload.fetchedAt);
+        setSummerRateStatus(
+          "Live summer rates loaded. Budget Helper can use faculty or lecturer rates, or a custom value.",
+          "good"
+        );
+        calculate();
+      } catch (error) {
+        liveSummerRateOptions = [];
+        populateAllHelperSummerRateSelects();
+        elements.summerRateUpdated.textContent = "Updated: unavailable.";
+        setSummerRateStatus(
+          "Live summer rates could not be loaded. Manual entry remains available in Budget Helper.",
+          "warn"
+        );
+        calculate();
+      }
+    }
+
+    async function loadOrsRates(options = {}) {
+      const forceApply = Boolean(options.forceApply);
+      setOrsReloadButtonState(true);
+
+      try {
+        if (!RATE_PROXY_URL) {
+          const defaults = forceApply ? liveHelperRateDefaults : builtInHelperRateDefaults;
+          helperStateDefaults.defaultIndirectRate = defaults.defaultIndirectRate;
+          helperStateDefaults.releaseFringeRate = defaults.releaseFringeRate;
+          helperStateDefaults.overloadFringeRate = defaults.overloadFringeRate;
+          applyHelperOrsDefaults(forceApply);
+          setOrsRateStatus(
+            forceApply
+              ? "Live ORS defaults are unavailable. Restored the last available default rates."
+              : "Using built-in default rates until live ORS defaults load.",
+            "warn"
+          );
+          elements.orsRateUpdated.textContent = "Updated: unavailable.";
+          calculate();
+          return;
+        }
+
+        const response = await fetch(`${RATE_PROXY_URL}?source=ors-rates`, {
+          method: "GET"
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+        const releaseFringeRate = Number(payload.releaseFringeRate);
+        const overloadFringeRate = Number(payload.overloadFringeRate);
+        const indirectRate = Number(payload.indirectRate);
+
+        if (
+          !Number.isFinite(releaseFringeRate) ||
+          !Number.isFinite(overloadFringeRate) ||
+          !Number.isFinite(indirectRate)
+        ) {
+          throw new Error("Malformed ORS rate payload.");
+        }
+
+        liveHelperRateDefaults.defaultIndirectRate = String(indirectRate);
+        liveHelperRateDefaults.releaseFringeRate = String(releaseFringeRate);
+        liveHelperRateDefaults.overloadFringeRate = String(overloadFringeRate);
+        helperStateDefaults.defaultIndirectRate = liveHelperRateDefaults.defaultIndirectRate;
+        helperStateDefaults.releaseFringeRate = liveHelperRateDefaults.releaseFringeRate;
+        helperStateDefaults.overloadFringeRate = liveHelperRateDefaults.overloadFringeRate;
+        applyHelperOrsDefaults(forceApply);
+        elements.orsRateUpdated.textContent = formatLiveUpdatedText(payload.fetchedAt);
+        setOrsRateStatus(
+          "Live ORS default rates loaded. You can still overwrite any helper or indirect-cost rate manually.",
+          "good"
+        );
+        calculate();
+      } catch (error) {
+        const defaults = forceApply ? liveHelperRateDefaults : builtInHelperRateDefaults;
+        helperStateDefaults.defaultIndirectRate = defaults.defaultIndirectRate;
+        helperStateDefaults.releaseFringeRate = defaults.releaseFringeRate;
+        helperStateDefaults.overloadFringeRate = defaults.overloadFringeRate;
+        applyHelperOrsDefaults(forceApply);
+        elements.orsRateUpdated.textContent = "Updated: unavailable.";
+        setOrsRateStatus(
+          forceApply
+            ? "Live ORS defaults could not be refreshed. Restored the last available default rates."
+            : "Live ORS defaults could not be loaded. Using built-in default rates.",
+          "warn"
+        );
+        calculate();
+      } finally {
+        setOrsReloadButtonState(false);
+      }
+    }
+
+    function getBudgetHelperResults(row) {
+      const controls = getPersonnelHelperControls(row);
+      if (!controls) {
+        return null;
+      }
+
+      const desiredTE = nonNegativeNumber(controls.desiredTE);
+      const desiredInstructionalTE = nonNegativeNumber(controls.desiredInstructionalTE);
+      const desiredNonInstructionalDays = nonNegativeNumber(controls.desiredNonInstructionalDays);
+      const annualSalary = nonNegativeMoney(controls.annualSalary);
+      const facultyMonths = Number.parseInt(controls.facultyTerm.value, 10) === 11 ? 11 : 9;
+      const monthsCharged = nonNegativeNumber(controls.monthsCharged);
+      const releaseFringeRatePercent = Math.max(readNumber(controls.releaseFringeRate) ?? 0, 0);
+      const overloadFringeRatePercent = Math.max(readNumber(controls.overloadFringeRate) ?? 0, 0);
+      const instructionalCostPerTE = nonNegativeMoney(controls.instructionalCostPerTE);
+      const hasWorkInput = [
+        desiredTE,
+        desiredInstructionalTE,
+        desiredNonInstructionalDays,
+        annualSalary,
+        monthsCharged,
+        releaseFringeRatePercent,
+        overloadFringeRatePercent,
+        instructionalCostPerTE
+      ].some((value) => value > 0);
+
+      let validationMessage = "";
+      if (hasWorkInput && annualSalary <= 0) {
+        validationMessage = "Annual salary must be greater than zero to use the budget helper.";
+      } else if (desiredTE > 0 && !(monthsCharged > 0)) {
+        validationMessage = "Months charged to the account must be greater than zero when release time is entered.";
+      } else if (desiredInstructionalTE > 0 && !(instructionalCostPerTE > 0)) {
+        validationMessage = "Instructional cost per Summer TE must be greater than zero when instructional TE is entered.";
+      }
+
+      const annualTeachingLoad = facultyMonths === 11 ? 36 : 27;
+      const nonInstructionalDayFactor = facultyMonths === 11 ? 260 : 195;
+      const salaryPerTE = validationMessage
+        ? 0
+        : roundUpDollar(annualSalary / annualTeachingLoad);
+      const releaseTimeCost = validationMessage
+        ? 0
+        : roundToCent(salaryPerTE * desiredTE);
+      const instructionalPay = validationMessage
+        ? 0
+        : roundToCent(desiredInstructionalTE * instructionalCostPerTE);
+      const nonInstructionalPay = validationMessage
+        ? 0
+        : roundToCent((desiredNonInstructionalDays * annualSalary) / nonInstructionalDayFactor);
+      const releaseFringe = validationMessage
+        ? 0
+        : roundToCent(releaseTimeCost * releaseFringeRatePercent / 100);
+      const instructionalFringe = validationMessage
+        ? 0
+        : roundToCent(instructionalPay * overloadFringeRatePercent / 100);
+      const nonInstructionalFringe = validationMessage
+        ? 0
+        : roundToCent(nonInstructionalPay * overloadFringeRatePercent / 100);
+
+      return {
+        hasWorkInput,
+        valid: !validationMessage,
+        validationMessage,
+        calMonths: 0,
+        acadMonths: roundToCent(desiredTE / 3),
+        sumrMonths: roundToCent((desiredInstructionalTE / 3) + (desiredNonInstructionalDays / 21)),
+        releaseSalary: releaseTimeCost,
+        instructionalSalary: instructionalPay,
+        nonInstructionalSalary: nonInstructionalPay,
+        releaseFringe,
+        instructionalFringe,
+        nonInstructionalFringe,
+        salaryBeforeFringe: roundToCent(releaseTimeCost + instructionalPay + nonInstructionalPay),
+        fringe: roundToCent(releaseFringe + instructionalFringe + nonInstructionalFringe)
+      };
+    }
+
+    function syncBudgetHelperRow(row) {
+      const controls = getPersonnelHelperControls(row);
+      if (!controls) {
+        return;
+      }
+
+      const results = getBudgetHelperResults(row);
+      if (!results) {
+        return;
+      }
+
+      controls.calOutput.textContent = formatDecimal(results.calMonths);
+      controls.acadOutput.textContent = formatDecimal(results.acadMonths);
+      controls.sumrOutput.textContent = formatDecimal(results.sumrMonths);
+      controls.salaryOutput.textContent = formatCurrency(results.salaryBeforeFringe);
+      controls.fringeOutput.textContent = formatCurrency(results.fringe);
+      controls.releaseSalaryOutput.textContent = formatCurrency(results.releaseSalary);
+      controls.instructionalSalaryOutput.textContent = formatCurrency(results.instructionalSalary);
+      controls.nonInstructionalSalaryOutput.textContent = formatCurrency(results.nonInstructionalSalary);
+      controls.releaseFringeOutput.textContent = formatCurrency(results.releaseFringe);
+      controls.instructionalFringeOutput.textContent = formatCurrency(results.instructionalFringe);
+      controls.nonInstructionalFringeOutput.textContent = formatCurrency(results.nonInstructionalFringe);
+
+      if (results.validationMessage) {
+        controls.statusNote.textContent = results.validationMessage;
+        controls.statusNote.className = "helper-status-note warn";
+      } else if (results.hasWorkInput && controls.applyToggle.checked) {
+        controls.statusNote.textContent = "Helper outputs are applied to this row.";
+        controls.statusNote.className = "helper-status-note";
+      } else if (results.hasWorkInput) {
+        controls.statusNote.textContent = "Preview only. Check Apply helper outputs to fill this row.";
+        controls.statusNote.className = "helper-status-note";
+      } else {
+        controls.statusNote.textContent = "Enter release and overload inputs to calculate person-months, salary before fringe, and fringe.";
+        controls.statusNote.className = "helper-status-note";
+      }
+
+      if (controls.applyToggle.checked && results.valid && results.hasWorkInput) {
+        if (row.dataset.helperApplied !== "true") {
+          storeManualPersonnelValues(row);
+        }
+        applyBudgetHelperOutputs(row, results);
+        setPersonnelDerivedState(row, true);
+        row.dataset.helperApplied = "true";
+      } else {
+        if (row.dataset.helperApplied === "true") {
+          restoreManualPersonnelValues(row);
+        }
+        setPersonnelDerivedState(row, false);
+        row.dataset.helperApplied = "false";
+      }
+    }
+
+    function toggleBudgetHelper(row) {
+      const helperRow = getPersonnelHelperRow(row);
+      const toggleButton = row.querySelector(".row-helper-toggle");
+      if (!helperRow || !toggleButton) {
+        return;
+      }
+
+      const isOpen = helperRow.hidden;
+      helperRow.hidden = !isOpen;
+      toggleButton.textContent = isOpen ? "Hide Budget Helper" : "Budget Helper";
+      toggleButton.classList.toggle("active", isOpen);
+      toggleButton.setAttribute("aria-expanded", String(isOpen));
+      syncUrlState();
+    }
+
+    function registerPlannerInput(input) {
+      if (input.classList.contains("helper-summer-rate-source")) {
+        return;
+      }
+
+      if (input.classList.contains("money-input")) {
+        input.addEventListener("input", () => {
+          nonNegativeMoney(input);
+          calculate();
+        });
+        input.addEventListener("change", () => {
+          formatMoneyInputDisplay(input);
+          calculate();
+        });
+        input.addEventListener("blur", () => {
+          formatMoneyInputDisplay(input);
+          calculate();
+        });
+        return;
+      }
+
+      if (input.classList.contains("cal-months") || input.classList.contains("acad-months") || input.classList.contains("sumr-months")) {
+        input.addEventListener("input", () => {
+          limitDecimalPlaces(input, 2);
+          calculate();
+        });
+        input.addEventListener("change", calculate);
+        return;
+      }
+
+      input.addEventListener("input", calculate);
+      input.addEventListener("change", calculate);
+    }
+
+    function limitDecimalPlaces(input, maxDecimals) {
+      const value = input.value;
+      if (!value || !value.includes(".")) {
+        return;
+      }
+
+      const [whole, decimals] = value.split(".");
+      if (decimals.length > maxDecimals) {
+        input.value = `${whole}.${decimals.slice(0, maxDecimals)}`;
+      }
+    }
+
+    function hideStatus() {
+      elements.statusBox.hidden = true;
+      elements.statusBox.style.display = "none";
+      elements.statusBox.className = "status";
+      elements.statusBox.innerHTML = "";
+    }
+
+    function paintStatus(tone, title, message) {
+      elements.statusBox.hidden = false;
+      elements.statusBox.style.display = "";
+      elements.statusBox.className = `status ${tone}`;
+      elements.statusBox.innerHTML = `<strong>${title}</strong>${message}`;
+    }
+
+    function openHelpModal() {
+      lastFocusedElement = document.activeElement;
+      elements.helpModal.hidden = false;
+      document.body.classList.add("modal-open");
+      elements.helpCloseButton.focus();
+    }
+
+    function closeHelpModal() {
+      elements.helpModal.hidden = true;
+      document.body.classList.remove("modal-open");
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
+    }
+
+    function createSeniorPersonnelRow(definition, data = {}) {
+      const fragment = document.createDocumentFragment();
+      const row = document.createElement("tr");
+      row.className = "personnel-row";
+      row.dataset.sectionKey = "senior";
+      row.dataset.personnelKey = definition.key;
+      row.dataset.personnelKind = definition.kind;
+      row.dataset.personnelLabel = definition.label || "";
+      row.innerHTML = definition.kind === "others"
+        ? `
+            <td><div class="fixed-person-label"><span class="person-prefix">${definition.prefix || ""}</span><span class="person-text">${definition.label}</span></div></td>
+            <td><input type="number" class="person-quantity quantity-input" min="0" step="1" placeholder="0"></td>
+            <td><input type="number" class="cal-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="acad-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
+            <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+          `
+        : `
+            <td>
+              <div class="person-cell">
+                <div class="person-input-row">
+                  <span class="person-prefix">${definition.prefix || ""}</span>
+                  <input type="text" class="person-label" placeholder="Name and title">
+                </div>
+                <button type="button" class="row-helper-toggle" aria-expanded="false">Budget Helper</button>
+              </div>
+            </td>
+            <td class="empty-months">--</td>
+            <td><input type="number" class="cal-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="acad-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
+            <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+          `;
+
+      let helperRow = null;
+      if (definition.kind !== "others") {
+        helperRow = document.createElement("tr");
+        helperRow.className = "personnel-helper-row";
+        helperRow.hidden = true;
+        helperRow.innerHTML = `
+          <td colspan="7">
+            <div class="personnel-helper-panel">
+              <div class="personnel-helper-header">
+                <h4>Budget Required Helper</h4>
+                <label class="personnel-helper-apply">
+                  <input type="checkbox" class="helper-apply-toggle">
+                  <span>Apply helper outputs to this row</span>
+                </label>
+              </div>
+              <div class="personnel-helper-grid">
+                <div>
+                  <label>Desired Release Time (TE)</label>
+                  <input type="number" class="helper-desired-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
+                </div>
+                <div>
+                  <label>Desired Instructional Summer TE</label>
+                  <input type="number" class="helper-desired-instructional-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
+                </div>
+                <div>
+                  <label>Desired Non-Instructional Overload Days</label>
+                  <input type="number" class="helper-desired-non-instructional-days" min="0" step="1" inputmode="numeric" placeholder="0">
+                </div>
+                <div>
+                  <label>Salary</label>
+                  <input type="text" inputmode="numeric" class="helper-annual-salary money-input" placeholder="0">
+                </div>
+                <div>
+                  <label>Faculty Term</label>
+                  <select class="helper-faculty-term">
+                    <option value="9">9-Month</option>
+                    <option value="11">11-Month</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Months Charged to the Account</label>
+                  <input type="number" class="helper-months-charged" min="0" step="0.5" inputmode="decimal" placeholder="0">
+                </div>
+                <div>
+                  <label>Release Fringe Rate (%)</label>
+                  <input type="number" class="helper-release-fringe-rate" min="0" step="0.01" inputmode="decimal" value="59.5">
+                </div>
+                <div>
+                  <label>Overload Fringe Rate (%)</label>
+                  <input type="number" class="helper-overload-fringe-rate" min="0" step="0.01" inputmode="decimal" value="2.47">
+                </div>
+                <div>
+                  <label>Summer Rate Source</label>
+                  <select class="helper-summer-rate-source"></select>
+                </div>
+                <div>
+                  <label>Instructional Cost per Summer TE</label>
+                  <input type="text" inputmode="numeric" class="helper-instructional-cost-per-te money-input" placeholder="0">
+                </div>
+              </div>
+              <div class="personnel-helper-summary">
+                <div class="personnel-helper-summary-row primary">
+                  <div class="helper-card">
+                    <span class="label">CAL Months</span>
+                    <span class="value helper-output-cal">0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">ACAD Months</span>
+                    <span class="value helper-output-acad">0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">SUMR Months</span>
+                    <span class="value helper-output-sumr">0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Total Salary Before Fringe</span>
+                    <span class="value helper-output-salary">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Total Fringe</span>
+                    <span class="value helper-output-fringe">$0</span>
+                  </div>
+                </div>
+                <div class="personnel-helper-summary-row secondary">
+                  <div class="helper-card">
+                    <span class="label">Release Time Salary</span>
+                    <span class="value helper-output-release-salary">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Instructional Overload Salary</span>
+                    <span class="value helper-output-instructional-salary">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Non-Instructional Overload Salary</span>
+                    <span class="value helper-output-non-instructional-salary">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Release Time Fringe</span>
+                    <span class="value helper-output-release-fringe">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Instructional Overload Fringe</span>
+                    <span class="value helper-output-instructional-fringe">$0</span>
+                  </div>
+                  <div class="helper-card">
+                    <span class="label">Non-Instructional Overload Fringe</span>
+                    <span class="value helper-output-non-instructional-fringe">$0</span>
+                  </div>
+                </div>
+              </div>
+              <p class="helper-assumption-note">Summer person-month calculations assume 63 work days across 3 months of summer.</p>
+              <p class="helper-status-note">Enter release and overload inputs to calculate person-months, salary before fringe, and fringe.</p>
+            </div>
+          </td>
+        `;
+      }
+
+      if (definition.kind !== "others") {
+        row.querySelector(".person-label").value = data.label || "";
+      } else {
+        row.querySelector(".person-quantity").value = data.quantity || "";
+      }
+      row.querySelector(".cal-months").value = data.calMonths || "";
+      row.querySelector(".acad-months").value = data.acadMonths || "";
+      row.querySelector(".sumr-months").value = data.sumrMonths || "";
+      row.querySelector(".base-salary").value = data.baseSalary || "";
+      row.querySelector(".fringe-amount").value = data.fringeAmount || "";
+
+      const helperState = data.helper || {};
+      if (helperRow) {
+        helperRow.querySelector(".helper-desired-te").value = helperState.desiredTE || "";
+        helperRow.querySelector(".helper-desired-instructional-te").value = helperState.desiredInstructionalTE || "";
+        helperRow.querySelector(".helper-desired-non-instructional-days").value = helperState.desiredNonInstructionalDays || "";
+        helperRow.querySelector(".helper-annual-salary").value = helperState.annualSalary || "";
+        helperRow.querySelector(".helper-faculty-term").value = helperState.facultyTerm || "9";
+        helperRow.querySelector(".helper-months-charged").value = helperState.monthsCharged || "";
+        helperRow.querySelector(".helper-release-fringe-rate").value = helperState.releaseFringeRate || helperStateDefaults.releaseFringeRate;
+        helperRow.querySelector(".helper-overload-fringe-rate").value = helperState.overloadFringeRate || helperStateDefaults.overloadFringeRate;
+        helperRow.querySelector(".helper-summer-rate-source").dataset.requestedSource = helperState.summerRateSource || helperStateDefaults.summerRateSource;
+        helperRow.querySelector(".helper-instructional-cost-per-te").value = helperState.instructionalCostPerTE || "";
+        helperRow.querySelector(".helper-apply-toggle").checked = Boolean(helperState.apply);
+      }
+
+      row.querySelectorAll("input").forEach((input) => {
+        registerPlannerInput(input);
+      });
+
+      if (helperRow) {
+        helperRow.querySelectorAll("input, select").forEach((input) => {
+          registerPlannerInput(input);
+        });
+      }
+
+      row.querySelectorAll(".money-input").forEach((input) => {
+        if (input.value !== "") {
+          formatMoneyInputDisplay(input);
+        }
+      });
+
+      if (helperRow) {
+        helperRow.querySelectorAll(".money-input").forEach((input) => {
+          if (input.value !== "") {
+            formatMoneyInputDisplay(input);
+          }
+        });
+
+        if (Object.prototype.hasOwnProperty.call(helperState, "releaseFringeRate")) {
+          helperRow.querySelector(".helper-release-fringe-rate").dataset.rateTouched = "true";
+        }
+
+        if (Object.prototype.hasOwnProperty.call(helperState, "overloadFringeRate")) {
+          helperRow.querySelector(".helper-overload-fringe-rate").dataset.rateTouched = "true";
+        }
+
+        if (helperState.instructionalCostPerTE) {
+          storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+        }
+      }
+
+      fragment.appendChild(row);
+      if (helperRow) {
+        fragment.appendChild(helperRow);
+
+        populateHelperSummerRateSelect(helperRow.querySelector(".helper-summer-rate-source"));
+        applyHelperSummerRateSourceSelection(row);
+
+        row.querySelector(".row-helper-toggle").addEventListener("click", () => {
+          toggleBudgetHelper(row);
+        });
+
+        helperRow.querySelector(".helper-release-fringe-rate").addEventListener("input", (event) => {
+          markRateFieldTouched(event.currentTarget);
+        });
+
+        helperRow.querySelector(".helper-overload-fringe-rate").addEventListener("input", (event) => {
+          markRateFieldTouched(event.currentTarget);
+        });
+
+        helperRow.querySelector(".helper-summer-rate-source").addEventListener("change", (event) => {
+          event.currentTarget.dataset.requestedSource = event.currentTarget.value;
+          applyHelperSummerRateSourceSelection(row);
+          calculate();
+        });
+
+        helperRow.querySelector(".helper-instructional-cost-per-te").addEventListener("input", () => {
+          if (helperRow.querySelector(".helper-summer-rate-source").value === CUSTOM_RATE_OPTION) {
+            storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+          }
+        });
+
+        helperRow.querySelector(".helper-instructional-cost-per-te").addEventListener("change", () => {
+          if (helperRow.querySelector(".helper-summer-rate-source").value === CUSTOM_RATE_OPTION) {
+            storeCustomMoneyValueFromInput(helperRow.querySelector(".helper-instructional-cost-per-te"));
+          }
+        });
+
+        if (helperState.open) {
+          toggleBudgetHelper(row);
+        }
+      }
+
+      return fragment;
+    }
+
+    function createOtherPersonnelRow(definition, data = {}) {
+      const row = document.createElement("tr");
+      row.className = "other-personnel-row";
+      row.dataset.personnelKey = definition.key;
+      row.dataset.personnelPrefix = definition.prefix || "";
+      row.dataset.personnelLabel = definition.label;
+      row.dataset.personnelDisplayLabel = `${definition.prefix || ""} ${definition.label}`.trim();
+      row.dataset.hasMonths = String(definition.hasMonths);
+
+      const monthCells = definition.hasMonths
+        ? `
+            <td><input type="number" class="cal-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="acad-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+            <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
+          `
+        : `
+            <td class="empty-months">--</td>
+            <td class="empty-months">--</td>
+            <td class="empty-months">--</td>
+          `;
+
+      row.innerHTML = `
+        <th scope="row"><div class="other-personnel-label"><span class="person-prefix">${row.dataset.personnelPrefix}</span><span class="person-text">${row.dataset.personnelLabel}</span></div></th>
+        <td><input type="number" class="person-quantity quantity-input" min="0" step="1" placeholder="0"></td>
+        ${monthCells}
+        <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
+        <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+      `;
+
+      row.querySelector(".person-quantity").value = data.quantity || "";
+      if (definition.hasMonths) {
+        row.querySelector(".cal-months").value = data.calMonths || "";
+        row.querySelector(".acad-months").value = data.acadMonths || "";
+        row.querySelector(".sumr-months").value = data.sumrMonths || "";
+      }
+      row.querySelector(".base-salary").value = data.baseSalary || "";
+      row.querySelector(".fringe-amount").value = data.fringeAmount || "";
+
+      row.querySelectorAll("input").forEach((input) => {
+        registerPlannerInput(input);
+      });
+
+      row.querySelectorAll(".money-input").forEach((input) => {
+        if (input.value !== "") {
+          formatMoneyInputDisplay(input);
+        }
+      });
+
+      return row;
+    }
+
+    function populatePersonnelSection(section, rows = []) {
+      section.body.innerHTML = "";
+
+      if (section.mode === "fixedSenior") {
+        const rowMap = new Map(
+          rows
+            .filter((row) => row && typeof row.key === "string")
+            .map((row) => [row.key, row])
+        );
+
+        seniorPersonnelDefinitions.forEach((definition) => {
+          section.body.appendChild(createSeniorPersonnelRow(definition, rowMap.get(definition.key) || {}));
+        });
+        return;
+      }
+
+      const rowMap = new Map(
+        rows
+          .filter((row) => row && typeof row.key === "string")
+          .map((row) => [row.key, row])
+      );
+
+      otherPersonnelDefinitions.forEach((definition) => {
+        section.body.appendChild(createOtherPersonnelRow(definition, rowMap.get(definition.key) || {}));
+      });
+    }
+
+    function addPersonnelRow(sectionKey, data = {}) {
+      const section = personnelSections.find((entry) => entry.key === sectionKey);
+      if (!section || section.mode !== "dynamic") {
+        return;
+      }
+      section.body.appendChild(createSeniorPersonnelRow({ key: section.key, kind: "named" }, data));
+      calculate();
+    }
+
+    function rowHasSeniorPersonnelContent(row) {
+      if (row.dataset.personnelKind === "others") {
+        return [
+          row.querySelector(".person-quantity")?.value ?? "",
+          row.querySelector(".cal-months").value,
+          row.querySelector(".acad-months").value,
+          row.querySelector(".sumr-months").value,
+          row.querySelector(".base-salary").value,
+          row.querySelector(".fringe-amount").value
+        ].some((value) => value !== "");
+      }
+
+      return [
+        row.querySelector(".person-label").value.trim(),
+        row.querySelector(".cal-months").value,
+        row.querySelector(".acad-months").value,
+        row.querySelector(".sumr-months").value,
+        row.querySelector(".base-salary").value,
+        row.querySelector(".fringe-amount").value
+      ].some((value) => value !== "");
+    }
+
+    function computePersonnelSection(section) {
+      if (section.mode === "fixedSenior") {
+        return computeSeniorPersonnelSection(section);
+      }
+
+      if (section.mode === "fixed") {
+        return computeOtherPersonnelSection(section);
+      }
+
+      const totals = {
+        rows: [],
+        calMonths: 0,
+        acadMonths: 0,
+        sumrMonths: 0,
+        salary: 0,
+        fringe: 0
+      };
+
+      Array.from(section.body.querySelectorAll(".personnel-row")).forEach((row) => {
+        syncBudgetHelperRow(row);
+        const label = row.querySelector(".person-label").value.trim();
+        const calMonths = nonNegativeNumber(row.querySelector(".cal-months"));
+        const acadMonths = nonNegativeNumber(row.querySelector(".acad-months"));
+        const sumrMonths = nonNegativeNumber(row.querySelector(".sumr-months"));
+        const baseSalary = nonNegativeMoney(row.querySelector(".base-salary"));
+        const fringeAmount = nonNegativeMoney(row.querySelector(".fringe-amount"));
+
+        totals.calMonths += calMonths;
+        totals.acadMonths += acadMonths;
+        totals.sumrMonths += sumrMonths;
+        totals.salary = roundToCent(totals.salary + baseSalary);
+        totals.fringe = roundToCent(totals.fringe + fringeAmount);
+
+        if (rowHasSeniorPersonnelContent(row)) {
+          totals.rows.push({
+            key: row.dataset.personnelKey,
+            kind: row.dataset.personnelKind,
+            label: label || `${section.label} row`,
+            quantity: 0,
+            calMonths,
+            acadMonths,
+            sumrMonths,
+            baseSalary,
+            fringeAmount
+          });
+        }
+      });
+
+      return totals;
+    }
+
+    function computeSeniorPersonnelSection(section) {
+      const totals = {
+        rows: [],
+        calMonths: 0,
+        acadMonths: 0,
+        sumrMonths: 0,
+        salary: 0,
+        fringe: 0
+      };
+
+      Array.from(section.body.querySelectorAll(".personnel-row")).forEach((row) => {
+        syncBudgetHelperRow(row);
+        const kind = row.dataset.personnelKind;
+        const label = kind === "others"
+          ? row.dataset.personnelLabel
+          : row.querySelector(".person-label").value.trim();
+        const quantity = kind === "others"
+          ? nonNegativeNumber(row.querySelector(".person-quantity"))
+          : 0;
+        const calMonths = nonNegativeNumber(row.querySelector(".cal-months"));
+        const acadMonths = nonNegativeNumber(row.querySelector(".acad-months"));
+        const sumrMonths = nonNegativeNumber(row.querySelector(".sumr-months"));
+        const baseSalary = nonNegativeMoney(row.querySelector(".base-salary"));
+        const fringeAmount = nonNegativeMoney(row.querySelector(".fringe-amount"));
+
+        totals.calMonths += calMonths;
+        totals.acadMonths += acadMonths;
+        totals.sumrMonths += sumrMonths;
+        totals.salary = roundToCent(totals.salary + baseSalary);
+        totals.fringe = roundToCent(totals.fringe + fringeAmount);
+
+        if (rowHasSeniorPersonnelContent(row)) {
+          totals.rows.push({
+            key: row.dataset.personnelKey,
+            kind,
+            label: kind === "others" ? label : (label || `${section.label} row`),
+            quantity,
+            calMonths,
+            acadMonths,
+            sumrMonths,
+            baseSalary,
+            fringeAmount
+          });
+        }
+      });
+
+      return totals;
+    }
+
+    function computeOtherPersonnelSection(section) {
+      const totals = {
+        rows: [],
+        calMonths: 0,
+        acadMonths: 0,
+        sumrMonths: 0,
+        salary: 0,
+        fringe: 0
+      };
+
+      Array.from(section.body.querySelectorAll(".other-personnel-row")).forEach((row) => {
+        const label = row.dataset.personnelDisplayLabel;
+        const hasMonths = row.dataset.hasMonths === "true";
+        const quantity = nonNegativeNumber(row.querySelector(".person-quantity"));
+        const calMonths = hasMonths ? nonNegativeNumber(row.querySelector(".cal-months")) : 0;
+        const acadMonths = hasMonths ? nonNegativeNumber(row.querySelector(".acad-months")) : 0;
+        const sumrMonths = hasMonths ? nonNegativeNumber(row.querySelector(".sumr-months")) : 0;
+        const baseSalary = nonNegativeMoney(row.querySelector(".base-salary"));
+        const fringeAmount = nonNegativeMoney(row.querySelector(".fringe-amount"));
+
+        totals.calMonths += calMonths;
+        totals.acadMonths += acadMonths;
+        totals.sumrMonths += sumrMonths;
+        totals.salary = roundToCent(totals.salary + baseSalary);
+        totals.fringe = roundToCent(totals.fringe + fringeAmount);
+
+        if (rowHasOtherPersonnelContent(row)) {
+          totals.rows.push({
+            key: row.dataset.personnelKey,
+            label,
+            quantity,
+            hasMonths,
+            calMonths,
+            acadMonths,
+            sumrMonths,
+            baseSalary,
+            fringeAmount
+          });
+        }
+      });
+
+      return totals;
+    }
+
+    function computeNonPersonnel(defaultIndirectRate) {
+      const totals = {
+        categories: {},
+        direct: 0,
+        includedDirect: 0,
+        excludedDirect: 0,
+        indirect: 0,
+        total: 0,
+        participantCount: Math.max(readNumber(elements.participantCount) ?? 0, 0)
+      };
+
+      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr[data-category-key]")).forEach((row) => {
+        const key = row.dataset.categoryKey;
+        const label = row.dataset.categoryLabel;
+        const amount = nonNegativeMoney(row.querySelector(".direct-amount"));
+        const idcApplies = row.querySelector(".idc-applies").checked;
+        const indirectCost = idcApplies ? roundToCent(amount * defaultIndirectRate / 100) : 0;
+        const totalCost = roundToCent(amount + indirectCost);
+
+        totals.direct = roundToCent(totals.direct + amount);
+        totals.includedDirect = roundToCent(totals.includedDirect + (idcApplies ? amount : 0));
+        totals.excludedDirect = roundToCent(totals.excludedDirect + (idcApplies ? 0 : amount));
+        totals.indirect = roundToCent(totals.indirect + indirectCost);
+        totals.total = roundToCent(totals.total + totalCost);
+        totals.categories[key] = {
+          key,
+          label,
+          amount,
+          idcApplies,
+          indirectCost,
+          totalCost
+        };
+      });
+
+      return totals;
+    }
+
+    function computeDisplayedBudgetTotals(personnelResults, nonPersonnelResults, totals) {
+      const seniorSalary = personnelResults.senior.salary;
+      const otherSalary = personnelResults.otherPersonnel.salary;
+      const fringeTotal = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].fringe, 0);
+      const indirectRateDecimal = totals.indirectRate / 100;
+
+      const equipmentAmount = nonPersonnelResults.categories.equipment?.amount ?? 0;
+      const travelAmounts = [
+        nonPersonnelResults.categories.travelDomestic?.amount ?? 0,
+        nonPersonnelResults.categories.travelInternational?.amount ?? 0
+      ];
+      const participantAmounts = [
+        nonPersonnelResults.categories.participantStipends?.amount ?? 0,
+        nonPersonnelResults.categories.participantTravel?.amount ?? 0,
+        nonPersonnelResults.categories.participantSubsistence?.amount ?? 0,
+        nonPersonnelResults.categories.participantOther?.amount ?? 0
+      ];
+      const otherDirectAmounts = [
+        nonPersonnelResults.categories.materials?.amount ?? 0,
+        nonPersonnelResults.categories.publication?.amount ?? 0,
+        nonPersonnelResults.categories.consultant?.amount ?? 0,
+        nonPersonnelResults.categories.computer?.amount ?? 0,
+        nonPersonnelResults.categories.subawards?.amount ?? 0,
+        nonPersonnelResults.categories.otherDirect?.amount ?? 0
+      ];
+
+      const seniorSalaryDisplay = roundUpDollar(seniorSalary);
+      const otherSalaryDisplay = roundUpDollar(otherSalary);
+      const salariesWagesDisplay = roundUpDollar(seniorSalaryDisplay + otherSalaryDisplay);
+      const fringeDisplay = roundUpDollar(fringeTotal);
+      const salariesFringeDisplay = roundUpDollar(salariesWagesDisplay + fringeDisplay);
+      const equipmentDisplay = roundUpDollar(equipmentAmount);
+      const travelDisplay = sumRoundedDisplay(travelAmounts);
+      const participantDisplay = sumRoundedDisplay(participantAmounts);
+      const otherDirectDisplay = sumRoundedDisplay(otherDirectAmounts);
+      const totalDirectDisplay = roundUpDollar(
+        seniorSalaryDisplay +
+        otherSalaryDisplay +
+        fringeDisplay +
+        equipmentDisplay +
+        travelDisplay +
+        participantDisplay +
+        otherDirectDisplay
+      );
+
+      const mtdcDisplay = roundUpDollar(
+        seniorSalaryDisplay +
+        otherSalaryDisplay +
+        fringeDisplay +
+        sumRoundedDisplay(
+          Object.values(nonPersonnelResults.categories)
+            .filter((category) => category.idcApplies)
+            .map((category) => category.amount)
+        )
+      );
+
+      const totalIndirectDisplay = roundUpDollar(mtdcDisplay * indirectRateDecimal);
+      const totalBudgetDisplay = roundUpDollar(totalDirectDisplay + totalIndirectDisplay);
+
+      return {
+        seniorSalary: seniorSalaryDisplay,
+        otherSalary: otherSalaryDisplay,
+        salariesWages: salariesWagesDisplay,
+        fringe: fringeDisplay,
+        salariesFringe: salariesFringeDisplay,
+        equipment: equipmentDisplay,
+        travel: travelDisplay,
+        participant: participantDisplay,
+        participantCount: nonPersonnelResults.participantCount,
+        otherDirect: otherDirectDisplay,
+        totalDirect: totalDirectDisplay,
+        mtdc: mtdcDisplay,
+        indirect: totalIndirectDisplay,
+        totalBudget: totalBudgetDisplay
+      };
+    }
+
+    function updateRollup(personnelResults, nonPersonnelResults, totals) {
+      const displayTotals = computeDisplayedBudgetTotals(personnelResults, nonPersonnelResults, totals);
+
+      elements.rollupSeniorSalary.textContent = formatCurrency(displayTotals.seniorSalary);
+      elements.rollupSeniorCal.textContent = formatDecimal(personnelResults.senior.calMonths);
+      elements.rollupSeniorAcad.textContent = formatDecimal(personnelResults.senior.acadMonths);
+      elements.rollupSeniorSumr.textContent = formatDecimal(personnelResults.senior.sumrMonths);
+      elements.rollupOtherSalary.textContent = formatCurrency(displayTotals.otherSalary);
+      elements.rollupOtherCal.textContent = formatDecimal(personnelResults.otherPersonnel.calMonths);
+      elements.rollupOtherAcad.textContent = formatDecimal(personnelResults.otherPersonnel.acadMonths);
+      elements.rollupOtherSumr.textContent = formatDecimal(personnelResults.otherPersonnel.sumrMonths);
+      elements.rollupSalariesWages.textContent = formatCurrency(displayTotals.salariesWages);
+      elements.rollupFringe.textContent = formatCurrency(displayTotals.fringe);
+      elements.rollupSalariesFringe.textContent = formatCurrency(displayTotals.salariesFringe);
+      elements.rollupEquipment.textContent = formatCurrency(displayTotals.equipment);
+      elements.rollupTravel.textContent = formatCurrency(displayTotals.travel);
+      elements.rollupParticipantLabel.textContent = displayTotals.participantCount > 0
+        ? `F. Total participant support costs (${formatDecimal(displayTotals.participantCount)} participants)`
+        : "F. Total participant support costs";
+      elements.rollupParticipant.textContent = formatCurrency(displayTotals.participant);
+      elements.rollupOtherDirect.textContent = formatCurrency(displayTotals.otherDirect);
+      elements.rollupTotalDirect.textContent = formatCurrency(displayTotals.totalDirect);
+      elements.rollupMTDC.textContent = formatCurrency(displayTotals.mtdc);
+      elements.rollupTotalIndirect.textContent = formatCurrency(displayTotals.indirect);
+      elements.rollupTotalBudget.textContent = formatCurrency(displayTotals.totalBudget);
+    }
+
+    function calculate() {
+      hideStatus();
+
+      const defaultIndirectRate = Math.max(readNumber(elements.defaultIndirectRate) ?? 0, 0);
+
+      const personnelResults = {};
+      personnelSections.forEach((section) => {
+        personnelResults[section.key] = computePersonnelSection(section);
+      });
+
+      const nonPersonnelResults = computeNonPersonnel(defaultIndirectRate);
+
+      const totalPersonnelDirect = roundToCent(personnelSections.reduce(
+        (sum, section) => sum + personnelResults[section.key].salary + personnelResults[section.key].fringe,
+        0
+      ));
+      const totalPersonnelIndirect = roundToCent(totalPersonnelDirect * defaultIndirectRate / 100);
+      const totals = {
+        direct: roundToCent(totalPersonnelDirect + nonPersonnelResults.direct),
+        personnelIndirect: totalPersonnelIndirect,
+        indirect: roundToCent(totalPersonnelIndirect + nonPersonnelResults.indirect),
+        mtdc: roundToCent(totalPersonnelDirect + nonPersonnelResults.includedDirect),
+        indirectRate: defaultIndirectRate,
+        total: 0
+      };
+      totals.total = roundToCent(totals.direct + totals.indirect);
+
+      updateRollup(personnelResults, nonPersonnelResults, totals);
+      syncUrlState();
+
+      return {
+        defaults: {
+          indirectRate: defaultIndirectRate
+        },
+        personnel: personnelResults,
+        nonPersonnel: nonPersonnelResults,
+        totals
+      };
+    }
+
+    function buildSummaryText(state) {
+      const lines = [
+        "NSF Proposal Budget Planner Summary",
+        "",
+        `Organization: ${elements.organizationLabel.value.trim() || "Not specified"}`,
+        `Proposal No.: ${elements.proposalNumber.value.trim() || "Not specified"}`,
+        `PI / PD Name: ${elements.piLabel.value.trim() || "Not specified"}`,
+        `Budget Period Label: ${elements.budgetPeriodLabel.value.trim() || "One budget period"}`,
+        `IDC Rate: ${formatPercent(state.defaults.indirectRate)}`,
+        ""
+      ];
+
+      personnelSections.forEach((section) => {
+        const sectionState = state.personnel[section.key];
+        lines.push(section.label);
+
+        if (!sectionState.rows.length) {
+          lines.push(section.mode === "fixedSenior" ? "No Section A amounts entered." : "No Section B amounts entered.");
+        } else {
+          sectionState.rows.forEach((row) => {
+            if (section.mode === "fixedSenior") {
+              const quantityText = row.kind === "others"
+                ? `, qty ${formatDecimal(row.quantity)}`
+                : "";
+              lines.push(
+                `${row.label}: ${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months, ` +
+                `salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}${quantityText}`
+              );
+            } else {
+              const monthsText = row.hasMonths
+                ? `, ${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months`
+                : "";
+              lines.push(
+                `${row.label}: qty ${formatDecimal(row.quantity)}${monthsText}, salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}`
+              );
+            }
+          });
+        }
+
+        lines.push(
+          `Subtotal: ${formatDecimal(sectionState.calMonths)} CAL, ${formatDecimal(sectionState.acadMonths)} ACAD, ${formatDecimal(sectionState.sumrMonths)} SUMR months, ` +
+          `salary before fringe ${formatCurrency(sectionState.salary)}, fringe ${formatCurrency(sectionState.fringe)}`
+        );
+        lines.push("");
+      });
+
+      lines.push("Non-Personnel Budget Categories");
+      Object.values(state.nonPersonnel.categories).forEach((category) => {
+        lines.push(
+          `${category.label}: direct ${formatCurrency(category.amount)}, ` +
+          `${category.idcApplies ? `indirect ${formatCurrency(category.indirectCost)} at the default IDC rate` : "no indirect cost"}, ` +
+          `total ${formatCurrency(category.totalCost)}`
+        );
+      });
+      lines.push(
+        `Subtotal: direct ${formatCurrency(state.nonPersonnel.direct)}, indirect ${formatCurrency(state.nonPersonnel.indirect)}, total ${formatCurrency(state.nonPersonnel.total)}`
+      );
+      if (state.nonPersonnel.participantCount > 0) {
+        lines.push(`Participant count: ${formatDecimal(state.nonPersonnel.participantCount)}`);
+      }
+      lines.push("");
+      lines.push("Budget Totals");
+      const displayTotals = computeDisplayedBudgetTotals(state.personnel, state.nonPersonnel, state.totals);
+      lines.push(`Total Direct Costs: ${formatCurrency(displayTotals.totalDirect)}`);
+      lines.push(`Modified Total Direct Costs: ${formatCurrency(displayTotals.mtdc)}`);
+      lines.push(`Total Indirect Costs: ${formatCurrency(displayTotals.indirect)}`);
+      lines.push(`Total Budget: ${formatCurrency(displayTotals.totalBudget)}`);
+      lines.push(`IDC Rate: ${formatPercent(state.totals.indirectRate)}`);
+
+      return lines.join("\n");
+    }
+
+    async function copySummaryToClipboard() {
+      const state = calculate();
+      const text = buildSummaryText(state);
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "absolute";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+
+        paintStatus("good", "Text summary copied.", "Clipboard summary is ready.");
+      } catch (error) {
+        paintStatus("warn", "Copy failed.", "Clipboard access was unavailable.");
+      }
+    }
+
+    async function copyShareableLink() {
+      calculate();
+      const shareUrl = buildAbsoluteShareableUrl();
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(shareUrl);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = shareUrl;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "absolute";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+        }
+
+        paintStatus("good", "Shareable link copied.", "Clipboard link includes the current worksheet state.");
+      } catch (error) {
+        paintStatus("warn", "Copy failed.", "Shareable link could not be copied.");
+      }
+    }
+
+    function resetPlanner() {
+      defaultIndirectRateTouched = false;
+      elements.organizationLabel.value = "";
+      elements.proposalNumber.value = "";
+      elements.piLabel.value = "";
+      elements.budgetPeriodLabel.value = "";
+      elements.defaultIndirectRate.value = helperStateDefaults.defaultIndirectRate;
+      elements.participantCount.value = "";
+
+      personnelSections.forEach((section) => {
+        populatePersonnelSection(section);
+      });
+
+      Array.from(elements.nonPersonnelTable.querySelectorAll("tbody tr[data-category-key]")).forEach((row) => {
+        row.querySelector(".direct-amount").value = "";
+        delete row.querySelector(".direct-amount").dataset.moneyValue;
+        row.querySelector(".idc-applies").checked =
+          row.dataset.categoryKey !== "equipment" &&
+          row.dataset.categoryKey !== "participantStipends" &&
+          row.dataset.categoryKey !== "participantTravel" &&
+          row.dataset.categoryKey !== "participantSubsistence" &&
+          row.dataset.categoryKey !== "participantOther";
+      });
+
+      hideStatus();
+      calculate();
+    }
+
+    document.querySelectorAll("[data-add-personnel]").forEach((button) => {
+      button.addEventListener("click", () => {
+        addPersonnelRow(button.dataset.addPersonnel);
+      });
+    });
+
+    document.querySelectorAll("input").forEach((input) => {
+      registerPlannerInput(input);
+    });
+
+    elements.defaultIndirectRate.addEventListener("input", () => {
+      if (!suppressRateFieldTracking) {
+        defaultIndirectRateTouched = true;
+      }
+    });
+
+    document.querySelectorAll(".money-input").forEach((input) => {
+      if (input.value !== "") {
+        formatMoneyInputDisplay(input);
+      }
+    });
+
+    elements.resetButton.addEventListener("click", resetPlanner);
+    elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);
+    elements.copyLinkButton.addEventListener("click", copyShareableLink);
+    elements.reloadOrsRatesButton.addEventListener("click", () => {
+      loadOrsRates({ forceApply: true });
+    });
+    elements.printButton.addEventListener("click", () => {
+      window.print();
+    });
+    elements.helpButton.addEventListener("click", openHelpModal);
+    elements.helpCloseButton.addEventListener("click", closeHelpModal);
+    elements.helpModal.addEventListener("click", (event) => {
+      if (event.target === elements.helpModal) {
+        closeHelpModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !elements.helpModal.hidden) {
+        closeHelpModal();
+      }
+    });
+
+    if (!loadStateFromUrl()) {
+      resetPlanner();
+    }
+
+    loadOrsRates();
+    loadSummerRates();
+  </script>
+</body>
+</html>
