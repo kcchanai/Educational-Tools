@@ -22,6 +22,7 @@
       --radius-md: 16px;
       --radius-sm: 12px;
       --funds-column-width: 172px;
+      --personnel-label-column-width: 34%;
     }
 
     * {
@@ -149,6 +150,10 @@
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
+    }
+
+    .settings-input-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     label {
@@ -769,10 +774,40 @@
       text-align: right;
     }
 
+    .money-input-wrap {
+      position: relative;
+      display: block;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .money-input-wrap::before {
+      content: "$";
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .money-input-wrap > .money-input {
+      width: 100%;
+      min-width: 0;
+      padding-left: 28px;
+    }
+
     .summary-money-input {
       width: min(100%, var(--funds-column-width));
       text-align: right;
       justify-self: end;
+    }
+
+    .summary-money-input-wrap {
+      width: min(100%, var(--funds-column-width));
     }
 
     .person-cell {
@@ -923,7 +958,7 @@
     .senior-personnel-table > thead th:first-child,
     .senior-personnel-table > tbody > .personnel-row > td:first-child,
     .senior-personnel-table > tbody > .senior-total-row > td:first-child {
-      width: 28%;
+      width: var(--personnel-label-column-width);
     }
 
     .senior-personnel-table > thead th:nth-child(2),
@@ -1060,7 +1095,7 @@
 
     .other-personnel-table > thead th:first-child,
     .other-personnel-table > tbody > tr > th:first-child {
-      width: 34%;
+      width: var(--personnel-label-column-width);
     }
 
     .other-personnel-table > thead th:nth-child(2),
@@ -1434,6 +1469,7 @@
     }
 
     .rollup-row .summary-money-input,
+    .rollup-row .summary-money-input-wrap,
     .rollup-row .summary-text-input,
     .rollup-row .cumulative-static-value {
       justify-self: end;
@@ -1812,7 +1848,7 @@
       <h2>Budget Settings</h2>
       <div class="settings-section">
         <h3>Shared Proposal Settings</h3>
-        <div class="settings-grid">
+        <div class="settings-grid settings-input-grid">
           <div>
             <label for="organization-label">Organization</label>
             <input id="organization-label" type="text">
@@ -1833,14 +1869,14 @@
       </div>
       <div class="settings-section" id="active-budget-settings">
         <h3>Active Budget Period Settings</h3>
-        <div class="settings-grid">
+        <div class="settings-grid settings-input-grid">
           <div>
-            <label for="budget-period-label">Budget Period Label<br><span>(defaults to year #)</span></label>
+            <label for="budget-period-label">Custom budget period label<br><span>(defaults to year #)</span></label>
             <input id="budget-period-label" type="text">
             <div class="cumulative-static-value" id="budget-period-label-static"></div>
           </div>
           <div>
-            <label for="default-indirect-rate">IDC Rate (%)<br><span>for current period</span></label>
+            <label for="default-indirect-rate">Indirect cost rate (%)<br><span>for current period</span></label>
             <input id="default-indirect-rate" type="number" min="0" step="0.01" value="45.50">
             <div class="cumulative-static-value" id="default-indirect-rate-static"></div>
           </div>
@@ -1864,7 +1900,8 @@
         <div class="year-action-card">
           <h3>Year Actions:</h3>
           <div class="year-actions">
-            <button type="button" id="add-year-button">Add Year</button>
+            <button type="button" id="add-year-button">Add Blank Year</button>
+            <button type="button" id="duplicate-year-one-button">Duplicate Year 1</button>
             <button type="button" id="remove-year-button">Remove Active Year</button>
           </div>
         </div>
@@ -2003,7 +2040,7 @@
             <table class="budget-table compact-budget-table">
               <thead>
                 <tr>
-                  <th>Equipment (List item and dollar amount for each item exceeding $5,000.)</th>
+                  <th>Equipment (List item and dollar amount for each item exceeding $10,000.)</th>
                   <th>Funds Requested</th>
                   <th class="checkbox-cell">IDC?</th>
                 </tr>
@@ -2267,17 +2304,21 @@
             <h3>Shared Settings and Rates</h3>
             <ul>
               <li>Organization, proposal number, PI / PD name, and Org. Rep. Name are shared across the whole proposal.</li>
-              <li>The budget period label and IDC rate belong to the active year tab and are edited in Active Budget Period Settings.</li>
-              <li>Use Reload Live ORS Defaults to refresh the planner's IDC rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
-              <li>Budget Helper can load live summer instructional pay rates from the UH summer faculty and lecturer pay-rate pages.</li>
-              <li>Checked direct-cost rows use the default indirect cost rate.</li>
-              <li>Clear a row's IDC checkbox when indirect cost should not apply.</li>
+              <li>The Custom budget period label and Indirect cost rate belong to the active year tab and are edited in Active Budget Period Settings.</li>
+              <li>Money-entry fields show a non-editable dollar sign; type numbers only.</li>
+              <li>Use Reload Live ORS Defaults to refresh the planner's indirect cost rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
+              <li>Live summer instructional pay rates require a configured proxy URL. When unavailable, Budget Helper still supports manual entry and custom summer values.</li>
+              <li>Checked direct-cost rows use the active year's indirect cost rate.</li>
+              <li>Clear a row's IDC checkbox when indirect cost should not apply to that line.</li>
             </ul>
           </section>
           <section class="modal-section">
             <h3>Multi-Year Workflow</h3>
             <ul>
-              <li>Use Add Year to create another proposal budget period and Remove Active Year to delete the selected tab.</li>
+              <li>A new proposal starts with three editable budget periods by default.</li>
+              <li>Use Add Blank Year to create another empty budget period.</li>
+              <li>Use Duplicate Year 1 to add a new budget period prefilled with Year 1 values.</li>
+              <li>Remove Active Year deletes the selected editable tab.</li>
               <li>At least one budget period always remains.</li>
               <li>Switching tabs preserves the active year's worksheet values, Budget Helper values, and totals.</li>
               <li>Reset clears only the active year and keeps shared proposal info plus the other year tabs intact.</li>
@@ -2290,10 +2331,10 @@
             <ul>
               <li>Section A is a fixed six-row senior-personnel table. Section B is a fixed six-row NSF other-personnel table.</li>
               <li>Sections D through M follow the NSF worksheet order, with separate sections for equipment, travel, participant support, other direct costs, indirect costs, fee, amount requested, and cost sharing.</li>
-              <li>Section D includes a multiline equipment description field so you can list multiple equipment items.</li>
+              <li>Section D includes a multiline equipment description field so you can list multiple equipment items exceeding $10,000.</li>
               <li>Each D, E, F, and G budget line includes Funds Requested and an IDC checkbox.</li>
               <li>Section F includes participant-support line items, a Total Number of Participants input, and a Total Participant Costs summary row.</li>
-              <li>Section I shows the Modified Total Direct Costs (MTDC) Base, IDC rate used, and indirect costs.</li>
+              <li>Section I shows the Modified Total Direct Costs (MTDC) base, indirect cost rate used, and indirect costs.</li>
               <li>Section M includes both Cost Sharing Proposed Level and Agreed Level if Different.</li>
             </ul>
           </section>
@@ -2376,6 +2417,7 @@
       yearTabsCard: document.querySelector(".year-tabs-card"),
       yearTabsCardPlaceholder: document.getElementById("year-tabs-card-placeholder"),
       addYearButton: document.getElementById("add-year-button"),
+      duplicateYearOneButton: document.getElementById("duplicate-year-one-button"),
       removeYearButton: document.getElementById("remove-year-button"),
       activeYearNote: document.getElementById("active-year-note"),
       orsRateStatus: document.getElementById("ors-rate-status"),
@@ -2987,8 +3029,11 @@
       };
     }
 
+    const DEFAULT_PROPOSAL_YEAR_COUNT = 3;
+
     function createEmptyProposalState() {
-      const initialYear = createEmptyYearState();
+      const years = Array.from({ length: DEFAULT_PROPOSAL_YEAR_COUNT }, () => createEmptyYearState());
+      const initialYear = years[0];
       return {
         version: 2,
         globalSettings: {
@@ -2998,7 +3043,7 @@
           orgRepName: "",
           seniorPersonnelLabels: createEmptySharedSeniorLabels()
         },
-        years: [initialYear],
+        years,
         activeYearId: initialYear.id
       };
     }
@@ -3951,12 +3996,34 @@
       syncUrlState();
     }
 
+    function ensureMoneyInputPrefix(input) {
+      if (!input || !input.classList.contains("money-input")) {
+        return null;
+      }
+
+      const wrapper = input.parentElement;
+      if (wrapper && wrapper.classList.contains("money-input-wrap")) {
+        return wrapper;
+      }
+
+      const prefixWrapper = document.createElement("span");
+      prefixWrapper.className = "money-input-wrap";
+      if (input.classList.contains("summary-money-input")) {
+        prefixWrapper.classList.add("summary-money-input-wrap");
+      }
+
+      input.parentNode.insertBefore(prefixWrapper, input);
+      prefixWrapper.appendChild(input);
+      return prefixWrapper;
+    }
+
     function registerPlannerInput(input) {
       if (input.classList.contains("helper-summer-rate-source")) {
         return;
       }
 
       if (input.classList.contains("money-input")) {
+        ensureMoneyInputPrefix(input);
         input.addEventListener("input", () => {
           nonNegativeMoney(input);
           calculate();
@@ -5426,6 +5493,30 @@
       renderYearTabs();
     }
 
+    function duplicateYearOne() {
+      syncProposalStateFromDom();
+
+      const sourceYear = proposalState?.years?.[0];
+      if (!sourceYear) {
+        addYear();
+        return;
+      }
+
+      const duplicatedYear = cloneState(sourceYear);
+      duplicatedYear.id = createYearId();
+      duplicatedYear.settings = {
+        ...duplicatedYear.settings,
+        budgetPeriodLabel: ""
+      };
+
+      proposalState.years.push(duplicatedYear);
+      proposalState.activeYearId = duplicatedYear.id;
+      applyYearStateToForm(duplicatedYear, { readOnly: false });
+      calculate();
+      renderYearTabs();
+      paintStatus("good", "Budget period duplicated.", "A new year was created from Year 1.");
+    }
+
     function removeActiveYear() {
       syncProposalStateFromDom();
 
@@ -5621,6 +5712,7 @@
     });
 
     elements.addYearButton.addEventListener("click", addYear);
+    elements.duplicateYearOneButton.addEventListener("click", duplicateYearOne);
     elements.removeYearButton.addEventListener("click", removeActiveYear);
     elements.resetButton.addEventListener("click", resetPlanner);
     elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);

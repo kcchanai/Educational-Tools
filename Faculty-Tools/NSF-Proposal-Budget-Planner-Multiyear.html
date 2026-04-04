@@ -1277,11 +1277,16 @@
 
     .personnel-helper-grid.three-across {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      margin-bottom: 14px;
+      margin-bottom: 20px;
     }
 
     .personnel-helper-grid.four-across {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 20px;
+    }
+
+    .personnel-helper-grid.two-across {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .personnel-helper-grid input,
@@ -1289,6 +1294,10 @@
       height: 46px;
       min-height: 46px;
       box-sizing: border-box;
+    }
+
+    .personnel-helper-spacer {
+      min-height: 0;
     }
 
     .personnel-helper-summary {
@@ -1757,6 +1766,10 @@
       .personnel-helper-grid,
       .personnel-helper-summary-row {
         grid-template-columns: 1fr;
+      }
+
+      .personnel-helper-spacer {
+        display: none;
       }
 
       .print-meta-grid {
@@ -2295,8 +2308,10 @@
               <li>Section B uses six fixed NSF categories with a quantity field and Funds Requested (Before Fringe).</li>
               <li>Only B1 and B2 track CAL, ACAD, and SUMR person-months.</li>
               <li>Use Budget Helper on the five named Section A rows to derive person-months, salary before fringe, and fringe from release time and overload inputs.</li>
-              <li>Each Section A Budget Helper row can use a Summer Rate Source selector to choose a live faculty rate, a live lecturer rate, or a custom instructional Summer TE value.</li>
-              <li>Budget Helper calculates ACAD months as release TE divided by 3, and SUMR months as summer instructional TE divided by 3 plus non-instructional overload days divided by 21.</li>
+              <li>Each Section A Budget Helper row can use a Summer Rate Source selector to choose a live faculty rate, a live lecturer rate, or a custom rate entered in the adjacent Cost per Instructional Overload TE/Credit cell.</li>
+              <li>Budget Helper calculates ACAD months as desired release time or buyout credit divided by 3, and SUMR months as desired instructional summer overload divided by 3 plus non-instructional summer overload days divided by 21.</li>
+              <li>Release or buyout salary uses annual salary divided by Required Annual Credit Load. UHCC faculty terms lock that value to 27 or 36, while both UH Manoa term options leave it blank and editable.</li>
+              <li>For non-instructional summer overload days, 9-month (UH Manoa) uses the same calculation basis as 9-Month (UHCCs), and 11-month (UH Manoa) uses the same calculation basis as 11-Month (UHCCs).</li>
               <li>Summer person-month calculations assume 63 work days across 3 months of summer.</li>
             </ul>
           </section>
@@ -2307,7 +2322,7 @@
               <li>The Custom budget period label and Indirect cost rate belong to the active year tab and are edited in Active Budget Period Settings.</li>
               <li>Money-entry fields show a non-editable dollar sign; type numbers only.</li>
               <li>Use Reload Live ORS Defaults to refresh the planner's indirect cost rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
-              <li>Live summer instructional pay rates require a configured proxy URL. When unavailable, Budget Helper still supports manual entry and custom summer values.</li>
+              <li>Live summer instructional pay rates require a configured proxy URL. When unavailable, Budget Helper still supports manual entry in the adjacent instructional-overload cost cell.</li>
               <li>Checked direct-cost rows use the active year's indirect cost rate.</li>
               <li>Clear a row's IDC checkbox when indirect cost should not apply to that line.</li>
             </ul>
@@ -2511,7 +2526,7 @@
     };
     const helperStateDefaults = {
       defaultIndirectRate: elements.defaultIndirectRate.value,
-      facultyTerm: "9",
+      facultyTerm: "uhcc9",
       releaseFringeRate: "59.5",
       overloadFringeRate: "2.47",
       summerRateSource: CUSTOM_RATE_OPTION
@@ -2529,6 +2544,82 @@
 
       const roundedValue = Math.ceil(Math.max(value, 0) - 1e-9);
       return roundedValue === 0 ? 0 : roundedValue;
+    }
+
+    function normalizeHelperFacultyTerm(termValue) {
+      if (termValue === "uhcc11" || termValue === "11") {
+        return "uhcc11";
+      }
+
+      if (termValue === "manoa11") {
+        return "manoa11";
+      }
+
+      if (termValue === "manoa9" || termValue === "manoa") {
+        return "manoa9";
+      }
+
+      return "uhcc9";
+    }
+
+    function getFixedAnnualCreditLoadForFacultyTerm(termValue) {
+      const normalizedTerm = normalizeHelperFacultyTerm(termValue);
+      if (normalizedTerm === "uhcc11") {
+        return 36;
+      }
+
+      if (normalizedTerm === "uhcc9") {
+        return 27;
+      }
+
+      return null;
+    }
+
+    function getDefaultAnnualCreditLoadForFacultyTerm(termValue) {
+      const fixedCreditLoad = getFixedAnnualCreditLoadForFacultyTerm(termValue);
+      if (fixedCreditLoad !== null) {
+        return fixedCreditLoad;
+      }
+
+      return "";
+    }
+
+    function getNonInstructionalDayFactorForFacultyTerm(termValue) {
+      const normalizedTerm = normalizeHelperFacultyTerm(termValue);
+      return normalizedTerm === "uhcc11" || normalizedTerm === "manoa11" ? 260 : 195;
+    }
+
+    function syncAnnualCreditLoadControl(input, termValue, customValue = null) {
+      const normalizedTerm = normalizeHelperFacultyTerm(termValue);
+      const previousTerm = input.dataset.termMode || "";
+      const previousWasManoa = previousTerm === "manoa9" || previousTerm === "manoa11";
+      const fixedCreditLoad = getFixedAnnualCreditLoadForFacultyTerm(normalizedTerm);
+      input.placeholder = fixedCreditLoad !== null ? String(fixedCreditLoad) : "";
+
+      if (fixedCreditLoad !== null) {
+        if (previousWasManoa && !input.readOnly) {
+          input.dataset.customValue = input.value.trim();
+        }
+        input.value = String(fixedCreditLoad);
+        input.readOnly = true;
+        input.classList.add("derived-field");
+        input.dataset.termMode = normalizedTerm;
+        return;
+      }
+
+      if (customValue !== null) {
+        input.dataset.customValue = customValue;
+      } else if (!previousWasManoa) {
+        delete input.dataset.customValue;
+      }
+
+      const defaultCreditLoad = String(getDefaultAnnualCreditLoadForFacultyTerm(normalizedTerm));
+      input.readOnly = false;
+      input.classList.remove("derived-field");
+      input.value = customValue !== null && customValue !== ""
+        ? customValue
+        : (input.dataset.customValue || defaultCreditLoad);
+      input.dataset.termMode = normalizedTerm;
     }
 
     function formatCurrency(value) {
@@ -2740,6 +2831,7 @@
         desiredNonInstructionalDays: helperRow.querySelector(".helper-desired-non-instructional-days"),
         annualSalary: helperRow.querySelector(".helper-annual-salary"),
         facultyTerm: helperRow.querySelector(".helper-faculty-term"),
+        annualCreditLoad: helperRow.querySelector(".helper-annual-credit-load"),
         releaseFringeRate: helperRow.querySelector(".helper-release-fringe-rate"),
         overloadFringeRate: helperRow.querySelector(".helper-overload-fringe-rate"),
         summerRateSource: helperRow.querySelector(".helper-summer-rate-source"),
@@ -2867,11 +2959,15 @@
         desiredNonInstructionalDays: helperControls.desiredNonInstructionalDays.value.trim(),
         annualSalary: getMoneyStateValue(helperControls.annualSalary),
         facultyTerm: helperControls.facultyTerm.value,
+        annualCreditLoad: helperControls.annualCreditLoad.value.trim(),
         releaseFringeRate: helperControls.releaseFringeRate.value.trim(),
         overloadFringeRate: helperControls.overloadFringeRate.value.trim(),
         summerRateSource: helperControls.summerRateSource.value,
         instructionalCostPerTE: getMoneyStateValue(helperControls.instructionalCostPerTE)
       } : null;
+      const defaultAnnualCreditLoad = helperState
+        ? String(getDefaultAnnualCreditLoadForFacultyTerm(helperState.facultyTerm))
+        : "";
       const hasHelperContent = Boolean(helperState) && (
         helperState.open ||
         helperState.apply ||
@@ -2880,6 +2976,7 @@
         helperState.desiredNonInstructionalDays !== "" ||
         helperState.annualSalary !== "" ||
         helperState.facultyTerm !== helperStateDefaults.facultyTerm ||
+        helperState.annualCreditLoad !== defaultAnnualCreditLoad ||
         helperState.releaseFringeRate !== helperStateDefaults.releaseFringeRate ||
         helperState.overloadFringeRate !== helperStateDefaults.overloadFringeRate ||
         helperState.summerRateSource !== helperStateDefaults.summerRateSource ||
@@ -3628,7 +3725,7 @@
 
       const customOption = document.createElement("option");
       customOption.value = CUSTOM_RATE_OPTION;
-      customOption.textContent = "Custom (enter in cell below)";
+      customOption.textContent = "Custom (enter in adjacent cell)";
       select.appendChild(customOption);
 
       const hasRequestedSource = Array.from(select.options).some((option) => option.value === requestedSource);
@@ -3865,7 +3962,9 @@
       const desiredInstructionalTE = nonNegativeNumber(controls.desiredInstructionalTE);
       const desiredNonInstructionalDays = nonNegativeNumber(controls.desiredNonInstructionalDays);
       const annualSalary = nonNegativeMoney(controls.annualSalary);
-      const facultyMonths = Number.parseInt(controls.facultyTerm.value, 10) === 11 ? 11 : 9;
+      const annualCreditLoad = controls.annualCreditLoad.value.trim() === ""
+        ? getDefaultAnnualCreditLoadForFacultyTerm(controls.facultyTerm.value)
+        : nonNegativeNumber(controls.annualCreditLoad);
       const releaseFringeRatePercent = Math.max(readNumber(controls.releaseFringeRate) ?? 0, 0);
       const overloadFringeRatePercent = Math.max(readNumber(controls.overloadFringeRate) ?? 0, 0);
       const instructionalCostPerTE = nonNegativeMoney(controls.instructionalCostPerTE);
@@ -3882,15 +3981,16 @@
       let validationMessage = "";
       if (hasWorkInput && annualSalary <= 0) {
         validationMessage = "Annual salary must be greater than zero to use the budget helper.";
+      } else if (desiredTE > 0 && !(annualCreditLoad > 0)) {
+        validationMessage = "Annual credit load must be greater than zero when release time or buyout is entered.";
       } else if (desiredInstructionalTE > 0 && !(instructionalCostPerTE > 0)) {
-        validationMessage = "Instructional cost per Summer TE must be greater than zero when instructional TE is entered.";
+        validationMessage = "Cost per Summer TE/Cr must be greater than zero when instructional overload is entered.";
       }
 
-      const annualTeachingLoad = facultyMonths === 11 ? 36 : 27;
-      const nonInstructionalDayFactor = facultyMonths === 11 ? 260 : 195;
+      const nonInstructionalDayFactor = getNonInstructionalDayFactorForFacultyTerm(controls.facultyTerm.value);
       const salaryPerTE = validationMessage
         ? 0
-        : roundUpDollar(annualSalary / annualTeachingLoad);
+        : roundUpDollar(annualSalary / annualCreditLoad);
       const releaseTimeCost = validationMessage
         ? 0
         : roundToCent(salaryPerTE * desiredTE);
@@ -4152,21 +4252,25 @@
                   <span>Apply helper outputs to this row</span>
                 </label>
               </div>
-              <div class="personnel-helper-grid three-across">
+              <div class="personnel-helper-grid four-across">
                 <div>
-                  <label>Desired Release Time (TE)</label>
+                  <label>Desired Release Time (TE)<br>or Buyout (Credit)</label>
                   <input type="number" class="helper-desired-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
                 </div>
                 <div>
-                  <label>Desired Instructional Summer TE</label>
+                  <label>Desired Instructional Summer<br>Overload (TE or Credit)</label>
                   <input type="number" class="helper-desired-instructional-te" min="0" step="0.5" inputmode="decimal" placeholder="0">
                 </div>
                 <div>
-                  <label>Desired Non-Instructional Overload Days</label>
+                  <label>Desired Non-Instructional Summer<br>Overload Days</label>
                   <input type="number" class="helper-desired-non-instructional-days" min="0" step="1" inputmode="numeric" placeholder="0">
                 </div>
+                <div>
+                  <label>Release/Buyout Fringe<br>Rate (%)</label>
+                  <input type="number" class="helper-release-fringe-rate" min="0" step="0.01" inputmode="decimal" value="59.5">
+                </div>
               </div>
-              <div class="personnel-helper-grid three-across">
+              <div class="personnel-helper-grid four-across">
                 <div>
                   <label>Salary</label>
                   <input type="text" inputmode="numeric" class="helper-annual-salary money-input" placeholder="0">
@@ -4174,28 +4278,31 @@
                 <div>
                   <label>Faculty Term</label>
                   <select class="helper-faculty-term">
-                    <option value="9">9-Month</option>
-                    <option value="11">11-Month</option>
+                    <option value="uhcc9">9-Month (UHCCs)</option>
+                    <option value="uhcc11">11-Month (UHCCs)</option>
+                    <option value="manoa9">9-month (UH Manoa)</option>
+                    <option value="manoa11">11-month (UH Manoa)</option>
                   </select>
                 </div>
                 <div>
-                  <label>Summer Rate Source</label>
-                  <select class="helper-summer-rate-source"></select>
-                </div>
-              </div>
-              <div class="personnel-helper-grid three-across">
-                <div>
-                  <label>Release Fringe Rate (%)</label>
-                  <input type="number" class="helper-release-fringe-rate" min="0" step="0.01" inputmode="decimal" value="59.5">
+                  <label>Required Annual Credit Load</label>
+                  <input type="number" class="helper-annual-credit-load" min="0" step="0.5" inputmode="decimal" placeholder="">
                 </div>
                 <div>
                   <label>Overload Fringe Rate (%)</label>
                   <input type="number" class="helper-overload-fringe-rate" min="0" step="0.01" inputmode="decimal" value="2.47">
                 </div>
+              </div>
+              <div class="personnel-helper-grid three-across">
                 <div>
-                  <label>Instructional Cost per Summer TE</label>
+                  <label>Summer Rate Source</label>
+                  <select class="helper-summer-rate-source"></select>
+                </div>
+                <div>
+                  <label>Cost per Instructional Overload TE/Credit</label>
                   <input type="text" inputmode="numeric" class="helper-instructional-cost-per-te money-input" placeholder="0">
                 </div>
+                <div class="personnel-helper-spacer" aria-hidden="true"></div>
               </div>
                 <div class="personnel-helper-summary">
                 <div class="personnel-helper-summary-row primary">
@@ -4270,12 +4377,19 @@
         helperRow.querySelector(".helper-desired-instructional-te").value = helperState.desiredInstructionalTE || "";
         helperRow.querySelector(".helper-desired-non-instructional-days").value = helperState.desiredNonInstructionalDays || "";
         helperRow.querySelector(".helper-annual-salary").value = helperState.annualSalary || "";
-        helperRow.querySelector(".helper-faculty-term").value = helperState.facultyTerm || "9";
+        const normalizedFacultyTerm = normalizeHelperFacultyTerm(helperState.facultyTerm || helperStateDefaults.facultyTerm);
+        helperRow.querySelector(".helper-faculty-term").value = normalizedFacultyTerm;
+        helperRow.querySelector(".helper-annual-credit-load").value = helperState.annualCreditLoad || String(getDefaultAnnualCreditLoadForFacultyTerm(normalizedFacultyTerm));
         helperRow.querySelector(".helper-release-fringe-rate").value = helperState.releaseFringeRate || helperStateDefaults.releaseFringeRate;
         helperRow.querySelector(".helper-overload-fringe-rate").value = helperState.overloadFringeRate || helperStateDefaults.overloadFringeRate;
         helperRow.querySelector(".helper-summer-rate-source").dataset.requestedSource = helperState.summerRateSource || helperStateDefaults.summerRateSource;
         helperRow.querySelector(".helper-instructional-cost-per-te").value = helperState.instructionalCostPerTE || "";
         helperRow.querySelector(".helper-apply-toggle").checked = Boolean(helperState.apply);
+        syncAnnualCreditLoadControl(
+          helperRow.querySelector(".helper-annual-credit-load"),
+          normalizedFacultyTerm,
+          helperState.annualCreditLoad || ""
+        );
       }
 
       row.querySelectorAll("input").forEach((input) => {
@@ -4331,6 +4445,14 @@
 
         helperRow.querySelector(".helper-overload-fringe-rate").addEventListener("input", (event) => {
           markRateFieldTouched(event.currentTarget);
+        });
+
+        helperRow.querySelector(".helper-faculty-term").addEventListener("change", (event) => {
+          syncAnnualCreditLoadControl(
+            helperRow.querySelector(".helper-annual-credit-load"),
+            event.currentTarget.value
+          );
+          calculate();
         });
 
         helperRow.querySelector(".helper-summer-rate-source").addEventListener("change", (event) => {
