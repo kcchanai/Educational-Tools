@@ -2304,17 +2304,21 @@
             <h3>Shared Settings and Rates</h3>
             <ul>
               <li>Organization, proposal number, PI / PD name, and Org. Rep. Name are shared across the whole proposal.</li>
-              <li>The budget period label and IDC rate belong to the active year tab and are edited in Active Budget Period Settings.</li>
-              <li>Use Reload Live ORS Defaults to refresh the planner's IDC rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
-              <li>Budget Helper can load live summer instructional pay rates from the UH summer faculty and lecturer pay-rate pages.</li>
-              <li>Checked direct-cost rows use the default indirect cost rate.</li>
-              <li>Clear a row's IDC checkbox when indirect cost should not apply.</li>
+              <li>The Custom budget period label and Indirect cost rate belong to the active year tab and are edited in Active Budget Period Settings.</li>
+              <li>Money-entry fields show a non-editable dollar sign; type numbers only.</li>
+              <li>Use Reload Live ORS Defaults to refresh the planner's indirect cost rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
+              <li>Live summer instructional pay rates require a configured proxy URL. When unavailable, Budget Helper still supports manual entry and custom summer values.</li>
+              <li>Checked direct-cost rows use the active year's indirect cost rate.</li>
+              <li>Clear a row's IDC checkbox when indirect cost should not apply to that line.</li>
             </ul>
           </section>
           <section class="modal-section">
             <h3>Multi-Year Workflow</h3>
             <ul>
-              <li>Use Add Year to create another proposal budget period and Remove Active Year to delete the selected tab.</li>
+              <li>A new proposal starts with three editable budget periods by default.</li>
+              <li>Use Add Blank Year to create another empty budget period.</li>
+              <li>Use Duplicate Year 1 to add a new budget period prefilled with Year 1 values.</li>
+              <li>Remove Active Year deletes the selected editable tab.</li>
               <li>At least one budget period always remains.</li>
               <li>Switching tabs preserves the active year's worksheet values, Budget Helper values, and totals.</li>
               <li>Reset clears only the active year and keeps shared proposal info plus the other year tabs intact.</li>
@@ -2327,10 +2331,10 @@
             <ul>
               <li>Section A is a fixed six-row senior-personnel table. Section B is a fixed six-row NSF other-personnel table.</li>
               <li>Sections D through M follow the NSF worksheet order, with separate sections for equipment, travel, participant support, other direct costs, indirect costs, fee, amount requested, and cost sharing.</li>
-              <li>Section D includes a multiline equipment description field so you can list multiple equipment items.</li>
+              <li>Section D includes a multiline equipment description field so you can list multiple equipment items exceeding $10,000.</li>
               <li>Each D, E, F, and G budget line includes Funds Requested and an IDC checkbox.</li>
               <li>Section F includes participant-support line items, a Total Number of Participants input, and a Total Participant Costs summary row.</li>
-              <li>Section I shows the Modified Total Direct Costs (MTDC) Base, IDC rate used, and indirect costs.</li>
+              <li>Section I shows the Modified Total Direct Costs (MTDC) base, indirect cost rate used, and indirect costs.</li>
               <li>Section M includes both Cost Sharing Proposed Level and Agreed Level if Different.</li>
             </ul>
           </section>
