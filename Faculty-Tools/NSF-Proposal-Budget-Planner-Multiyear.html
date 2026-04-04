@@ -22,6 +22,7 @@
       --radius-md: 16px;
       --radius-sm: 12px;
       --funds-column-width: 172px;
+      --personnel-label-column-width: 34%;
     }
 
     * {
@@ -923,7 +924,7 @@
     .senior-personnel-table > thead th:first-child,
     .senior-personnel-table > tbody > .personnel-row > td:first-child,
     .senior-personnel-table > tbody > .senior-total-row > td:first-child {
-      width: 28%;
+      width: var(--personnel-label-column-width);
     }
 
     .senior-personnel-table > thead th:nth-child(2),
@@ -1060,7 +1061,7 @@
 
     .other-personnel-table > thead th:first-child,
     .other-personnel-table > tbody > tr > th:first-child {
-      width: 34%;
+      width: var(--personnel-label-column-width);
     }
 
     .other-personnel-table > thead th:nth-child(2),
@@ -2987,8 +2988,11 @@
       };
     }
 
+    const DEFAULT_PROPOSAL_YEAR_COUNT = 3;
+
     function createEmptyProposalState() {
-      const initialYear = createEmptyYearState();
+      const years = Array.from({ length: DEFAULT_PROPOSAL_YEAR_COUNT }, () => createEmptyYearState());
+      const initialYear = years[0];
       return {
         version: 2,
         globalSettings: {
@@ -2998,7 +3002,7 @@
           orgRepName: "",
           seniorPersonnelLabels: createEmptySharedSeniorLabels()
         },
-        years: [initialYear],
+        years,
         activeYearId: initialYear.id
       };
     }
