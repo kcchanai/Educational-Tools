@@ -152,6 +152,10 @@
       gap: 12px;
     }
 
+    .settings-input-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
     label {
       display: block;
       margin-bottom: 8px;
@@ -770,10 +774,40 @@
       text-align: right;
     }
 
+    .money-input-wrap {
+      position: relative;
+      display: block;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .money-input-wrap::before {
+      content: "$";
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .money-input-wrap > .money-input {
+      width: 100%;
+      min-width: 0;
+      padding-left: 28px;
+    }
+
     .summary-money-input {
       width: min(100%, var(--funds-column-width));
       text-align: right;
       justify-self: end;
+    }
+
+    .summary-money-input-wrap {
+      width: min(100%, var(--funds-column-width));
     }
 
     .person-cell {
@@ -1435,6 +1469,7 @@
     }
 
     .rollup-row .summary-money-input,
+    .rollup-row .summary-money-input-wrap,
     .rollup-row .summary-text-input,
     .rollup-row .cumulative-static-value {
       justify-self: end;
@@ -1813,7 +1848,7 @@
       <h2>Budget Settings</h2>
       <div class="settings-section">
         <h3>Shared Proposal Settings</h3>
-        <div class="settings-grid">
+        <div class="settings-grid settings-input-grid">
           <div>
             <label for="organization-label">Organization</label>
             <input id="organization-label" type="text">
@@ -1834,14 +1869,14 @@
       </div>
       <div class="settings-section" id="active-budget-settings">
         <h3>Active Budget Period Settings</h3>
-        <div class="settings-grid">
+        <div class="settings-grid settings-input-grid">
           <div>
-            <label for="budget-period-label">Budget Period Label<br><span>(defaults to year #)</span></label>
+            <label for="budget-period-label">Custom budget period label<br><span>(defaults to year #)</span></label>
             <input id="budget-period-label" type="text">
             <div class="cumulative-static-value" id="budget-period-label-static"></div>
           </div>
           <div>
-            <label for="default-indirect-rate">IDC Rate (%)<br><span>for current period</span></label>
+            <label for="default-indirect-rate">Indirect cost rate (%)<br><span>for current period</span></label>
             <input id="default-indirect-rate" type="number" min="0" step="0.01" value="45.50">
             <div class="cumulative-static-value" id="default-indirect-rate-static"></div>
           </div>
@@ -1865,7 +1900,8 @@
         <div class="year-action-card">
           <h3>Year Actions:</h3>
           <div class="year-actions">
-            <button type="button" id="add-year-button">Add Year</button>
+            <button type="button" id="add-year-button">Add Blank Year</button>
+            <button type="button" id="duplicate-year-one-button">Duplicate Year 1</button>
             <button type="button" id="remove-year-button">Remove Active Year</button>
           </div>
         </div>
@@ -2004,7 +2040,7 @@
             <table class="budget-table compact-budget-table">
               <thead>
                 <tr>
-                  <th>Equipment (List item and dollar amount for each item exceeding $5,000.)</th>
+                  <th>Equipment (List item and dollar amount for each item exceeding $10,000.)</th>
                   <th>Funds Requested</th>
                   <th class="checkbox-cell">IDC?</th>
                 </tr>
@@ -2377,6 +2413,7 @@
       yearTabsCard: document.querySelector(".year-tabs-card"),
       yearTabsCardPlaceholder: document.getElementById("year-tabs-card-placeholder"),
       addYearButton: document.getElementById("add-year-button"),
+      duplicateYearOneButton: document.getElementById("duplicate-year-one-button"),
       removeYearButton: document.getElementById("remove-year-button"),
       activeYearNote: document.getElementById("active-year-note"),
       orsRateStatus: document.getElementById("ors-rate-status"),
@@ -3955,12 +3992,34 @@
       syncUrlState();
     }
 
+    function ensureMoneyInputPrefix(input) {
+      if (!input || !input.classList.contains("money-input")) {
+        return null;
+      }
+
+      const wrapper = input.parentElement;
+      if (wrapper && wrapper.classList.contains("money-input-wrap")) {
+        return wrapper;
+      }
+
+      const prefixWrapper = document.createElement("span");
+      prefixWrapper.className = "money-input-wrap";
+      if (input.classList.contains("summary-money-input")) {
+        prefixWrapper.classList.add("summary-money-input-wrap");
+      }
+
+      input.parentNode.insertBefore(prefixWrapper, input);
+      prefixWrapper.appendChild(input);
+      return prefixWrapper;
+    }
+
     function registerPlannerInput(input) {
       if (input.classList.contains("helper-summer-rate-source")) {
         return;
       }
 
       if (input.classList.contains("money-input")) {
+        ensureMoneyInputPrefix(input);
         input.addEventListener("input", () => {
           nonNegativeMoney(input);
           calculate();
@@ -5430,6 +5489,30 @@
       renderYearTabs();
     }
 
+    function duplicateYearOne() {
+      syncProposalStateFromDom();
+
+      const sourceYear = proposalState?.years?.[0];
+      if (!sourceYear) {
+        addYear();
+        return;
+      }
+
+      const duplicatedYear = cloneState(sourceYear);
+      duplicatedYear.id = createYearId();
+      duplicatedYear.settings = {
+        ...duplicatedYear.settings,
+        budgetPeriodLabel: ""
+      };
+
+      proposalState.years.push(duplicatedYear);
+      proposalState.activeYearId = duplicatedYear.id;
+      applyYearStateToForm(duplicatedYear, { readOnly: false });
+      calculate();
+      renderYearTabs();
+      paintStatus("good", "Budget period duplicated.", "A new year was created from Year 1.");
+    }
+
     function removeActiveYear() {
       syncProposalStateFromDom();
 
@@ -5625,6 +5708,7 @@
     });
 
     elements.addYearButton.addEventListener("click", addYear);
+    elements.duplicateYearOneButton.addEventListener("click", duplicateYearOne);
     elements.removeYearButton.addEventListener("click", removeActiveYear);
     elements.resetButton.addEventListener("click", resetPlanner);
     elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);
