@@ -1198,6 +1198,7 @@
     }
 
     .senior-total-money-cell {
+      padding-right: 20px;
       text-align: right;
     }
 
@@ -1205,6 +1206,11 @@
     .summary-money-input + .cumulative-static-value {
       text-align: right;
       font-variant-numeric: tabular-nums;
+    }
+
+    .money-input-wrap > .cumulative-static-value {
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .inline-note {
@@ -1473,14 +1479,55 @@
       align-items: center;
     }
 
+    .rollup-row.input-row:not(.dual-input-row) {
+      grid-template-columns: minmax(0, 1fr) var(--funds-column-width);
+    }
+
     .rollup-row.input-row dd {
       white-space: normal;
     }
 
+    .rollup-row.dual-input-row {
+      grid-template-columns: auto var(--funds-column-width) auto var(--funds-column-width);
+      justify-content: space-between;
+    }
+
+    .rollup-row.dual-input-row dd {
+      width: var(--funds-column-width);
+      max-width: 100%;
+    }
+
+    .rollup-row.dual-input-row dt,
+    .rollup-row.dual-input-row dd:nth-of-type(1) {
+      justify-self: start;
+      text-align: left;
+    }
+
+    .rollup-row.dual-input-row .summary-money-input,
+    .rollup-row.dual-input-row .summary-money-input-wrap {
+      justify-self: start;
+    }
+
+    .rollup-row.dual-input-row .dual-input-row-right-label,
+    .rollup-row.dual-input-row dd:nth-of-type(2) {
+      justify-self: end;
+      text-align: right;
+    }
+
+    .rollup-row.dual-input-row dd:nth-of-type(2) .summary-money-input,
+    .rollup-row.dual-input-row dd:nth-of-type(2) .summary-money-input-wrap {
+      justify-self: end;
+    }
+
     .rollup-row .summary-money-input,
-    .rollup-row .summary-money-input-wrap,
     .rollup-row .summary-text-input,
     .rollup-row .cumulative-static-value {
+      min-height: 46px;
+      padding: 11px 12px;
+      justify-self: end;
+    }
+
+    .rollup-row .summary-money-input-wrap {
       justify-self: end;
     }
 
@@ -1770,6 +1817,21 @@
 
       .personnel-helper-spacer {
         display: none;
+      }
+
+      .rollup-row.dual-input-row {
+        grid-template-columns: 1fr;
+        justify-content: normal;
+      }
+
+      .rollup-row.dual-input-row dd {
+        width: 100%;
+        max-width: none;
+      }
+
+      .rollup-row.dual-input-row .dual-input-row-right-label {
+        justify-self: start;
+        text-align: left;
       }
 
       .print-meta-grid {
@@ -2265,17 +2327,12 @@
         </dl>
       </section>
 
-      <section class="worksheet-section">
-        <div class="section-header">
-          <h3>M. Cost Sharing</h3>
-        </div>
+      <section class="worksheet-section no-heading-section">
         <dl class="rollup-grid">
-          <div class="rollup-row input-row">
+          <div class="rollup-row input-row dual-input-row">
             <dt>M. Cost sharing proposed level</dt>
             <dd><input id="cost-sharing-amount" class="money-input summary-money-input" type="text" inputmode="numeric" placeholder="0"></dd>
-          </div>
-          <div class="rollup-row input-row">
-            <dt>Agreed Level if Different</dt>
+            <dt class="dual-input-row-right-label">Agreed Level if Different</dt>
             <dd><input id="cost-sharing-agreed-amount" class="money-input summary-money-input" type="text" inputmode="numeric" placeholder="0"></dd>
           </div>
         </dl>
@@ -2624,6 +2681,10 @@
 
     function formatCurrency(value) {
       return currencyFormatter.format(roundUpDollar(value));
+    }
+
+    function formatWholeDollarNumber(value) {
+      return wholeNumberFormatter.format(roundUpDollar(value));
     }
 
     function formatDecimal(value) {
@@ -3547,7 +3608,7 @@
 
       if (control.classList.contains("money-input")) {
         const value = readStoredNumberValue(getMoneyStateValue(control));
-        return value > 0 ? formatCurrency(value) : "$0";
+        return formatWholeDollarNumber(value);
       }
 
       if (control.value === "") {
