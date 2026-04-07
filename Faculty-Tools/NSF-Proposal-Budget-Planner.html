@@ -1302,6 +1302,24 @@
       box-sizing: border-box;
     }
 
+    .personnel-helper-grid > div.helper-field-error {
+      padding: 10px;
+      margin: -10px;
+      border-radius: var(--radius-sm);
+      background: rgba(142, 38, 56, 0.08);
+    }
+
+    .personnel-helper-grid > div.helper-field-error label {
+      color: #8e2638;
+    }
+
+    .personnel-helper-grid input.helper-input-error,
+    .personnel-helper-grid select.helper-input-error {
+      border-color: rgba(142, 38, 56, 0.5) !important;
+      background: rgba(255, 244, 246, 0.98) !important;
+      box-shadow: 0 0 0 3px rgba(142, 38, 56, 0.12) !important;
+    }
+
     .personnel-helper-spacer {
       min-height: 0;
     }
@@ -2367,7 +2385,7 @@
               <li>Section B uses six fixed NSF categories with a quantity field and Funds Requested (Before Fringe).</li>
               <li>Only B1 and B2 track CAL, ACAD, and SUMR person-months.</li>
               <li>Use Budget Helper on the five named Section A rows to derive person-months, salary before fringe, and fringe from Desired Release Time, Desired Instructional Summer Overload, and Desired Non-Instructional Summer Overload Days.</li>
-              <li>Each Section A Budget Helper row can use Summer Rate Source to choose a live faculty rate, a live lecturer rate, or a custom rate entered in the adjacent Cost per Instructional Overload TE/Credit cell.</li>
+              <li>Each Section A Budget Helper row can use Summer Instructional Rate Source (by rank) to choose a live faculty rate, a live lecturer rate, or a custom rate entered in the adjacent Cost per Instructional Overload TE/Credit cell.</li>
               <li>Budget Helper calculates ACAD months as Desired Release Time (TE) or Buyout (Credit) divided by 3, and SUMR months as Desired Instructional Summer Overload (TE or Credit) divided by 3 plus Desired Non-Instructional Summer Overload Days divided by 21.</li>
               <li>Release or buyout salary uses annual salary divided by Required Annual Credit Load. 9-Month (UHCCs) and 11-Month (UHCCs) lock that value to 27 or 36, while 9-month (UH Manoa) and 11-month (UH Manoa) leave it blank and editable.</li>
               <li>For non-instructional summer overload days, 9-month (UH Manoa) uses the same calculation basis as 9-Month (UHCCs), and 11-month (UH Manoa) uses the same calculation basis as 11-Month (UHCCs).</li>
@@ -2913,6 +2931,32 @@
         nonInstructionalFringeOutput: helperRow.querySelector(".helper-output-non-instructional-fringe"),
         statusNote: helperRow.querySelector(".helper-status-note")
       };
+    }
+
+    function setHelperFieldError(input, hasError) {
+      if (!input) {
+        return;
+      }
+
+      input.classList.toggle("helper-input-error", hasError);
+      input.setAttribute("aria-invalid", hasError ? "true" : "false");
+      input.parentElement?.classList.toggle("helper-field-error", hasError);
+    }
+
+    function updateBudgetHelperValidationHighlight(controls, validationTarget) {
+      if (!controls) {
+        return;
+      }
+
+      const targetMap = {
+        annualSalary: controls.annualSalary,
+        annualCreditLoad: controls.annualCreditLoad,
+        instructionalCostPerTE: controls.instructionalCostPerTE
+      };
+
+      Object.entries(targetMap).forEach(([key, input]) => {
+        setHelperFieldError(input, key === validationTarget);
+      });
     }
 
     function storeManualPersonnelValues(row) {
@@ -4042,12 +4086,16 @@
       ].some((value) => value > 0);
 
       let validationMessage = "";
+      let validationTarget = "";
       if (hasWorkInput && annualSalary <= 0) {
         validationMessage = "Annual salary must be greater than zero to use the budget helper.";
+        validationTarget = "annualSalary";
       } else if (desiredTE > 0 && !(annualCreditLoad > 0)) {
         validationMessage = "Annual credit load must be greater than zero when release time or buyout is entered.";
+        validationTarget = "annualCreditLoad";
       } else if (desiredInstructionalTE > 0 && !(instructionalCostPerTE > 0)) {
         validationMessage = "Cost per Summer TE/Cr must be greater than zero when instructional overload is entered.";
+        validationTarget = "instructionalCostPerTE";
       }
 
       const nonInstructionalDayFactor = getNonInstructionalDayFactorForFacultyTerm(controls.facultyTerm.value);
@@ -4077,6 +4125,7 @@
         hasWorkInput,
         valid: !validationMessage,
         validationMessage,
+        validationTarget,
         calMonths: 0,
         acadMonths: roundToCent(desiredTE / 3),
         sumrMonths: roundToCent((desiredInstructionalTE / 3) + (desiredNonInstructionalDays / 21)),
@@ -4113,6 +4162,7 @@
       controls.releaseFringeOutput.textContent = formatCurrency(results.releaseFringe);
       controls.instructionalFringeOutput.textContent = formatCurrency(results.instructionalFringe);
       controls.nonInstructionalFringeOutput.textContent = formatCurrency(results.nonInstructionalFringe);
+      updateBudgetHelperValidationHighlight(controls, results.validationTarget);
 
       if (results.validationMessage) {
         controls.statusNote.textContent = results.validationMessage;
@@ -4358,7 +4408,7 @@
               </div>
               <div class="personnel-helper-grid three-across">
                 <div>
-                  <label>Summer Rate Source</label>
+                  <label>Summer Instructional Rate Source (by rank)</label>
                   <select class="helper-summer-rate-source"></select>
                 </div>
                 <div>
