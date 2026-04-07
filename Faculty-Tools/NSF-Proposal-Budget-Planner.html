@@ -1336,7 +1336,7 @@
     }
 
     .personnel-helper-summary-row.primary {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 
     .personnel-helper-summary-row.secondary {
@@ -1363,7 +1363,13 @@
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+      line-height: 1.25;
       color: var(--muted);
+    }
+
+    .helper-card .label-line {
+      display: block;
+      white-space: nowrap;
     }
 
     .helper-card.output-card .label {
@@ -1708,6 +1714,27 @@
 
     .modal-section li + li {
       margin-top: 4px;
+    }
+
+    .formula-card {
+      padding: 12px 14px;
+      border: 1px solid rgba(23, 34, 44, 0.08);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .formula-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+
+    .formula-block {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font: 0.82rem/1.55 "Consolas", "SFMono-Regular", "Courier New", monospace;
+      color: var(--ink);
     }
 
     .print-proposal-panel[hidden] {
@@ -2413,6 +2440,20 @@
             </ul>
           </section>
           <section class="modal-section">
+            <h3>Non-Instructional Overload Formulas</h3>
+            <p>The helper's non-instructional overload day calculations correspond to these formulas:</p>
+            <div class="formula-card">
+              <strong>9-Month Faculty</strong>
+              <p class="formula-block">($ overload) / ($ salary / year) x (9 months / year) / (12 months / year) x (52 weeks / year) x (40 hours / week) / (8 hours / day)
+= ((52 x 40) / (12 x 8)) x ((9 x overload) / salary)</p>
+            </div>
+            <div class="formula-card">
+              <strong>11-Month Faculty</strong>
+              <p class="formula-block">($ overload) / ($ salary / year) x (52 weeks / year) x (40 hours / week) / (8 hours / day)
+= ((52 x 40) / 8) x (overload / salary)</p>
+            </div>
+          </section>
+          <section class="modal-section">
             <h3>Multi-Year Workflow</h3>
             <ul>
               <li>A new proposal starts with three editable budget periods by default.</li>
@@ -2931,6 +2972,7 @@
         sumrOutput: helperRow.querySelector(".helper-output-sumr"),
         salaryOutput: helperRow.querySelector(".helper-output-salary"),
         fringeOutput: helperRow.querySelector(".helper-output-fringe"),
+        salaryPerTEOutput: helperRow.querySelector(".helper-output-salary-per-te"),
         releaseSalaryOutput: helperRow.querySelector(".helper-output-release-salary"),
         instructionalSalaryOutput: helperRow.querySelector(".helper-output-instructional-salary"),
         nonInstructionalSalaryOutput: helperRow.querySelector(".helper-output-non-instructional-salary"),
@@ -4137,6 +4179,7 @@
         calMonths: 0,
         acadMonths: roundToCent(desiredTE / 3),
         sumrMonths: roundToCent((desiredInstructionalTE / 3) + (desiredNonInstructionalDays / 21)),
+        salaryPerTE,
         releaseSalary: releaseTimeCost,
         instructionalSalary: instructionalPay,
         nonInstructionalSalary: nonInstructionalPay,
@@ -4162,6 +4205,7 @@
       controls.calOutput.textContent = formatDecimal(results.calMonths);
       controls.acadOutput.textContent = formatDecimal(results.acadMonths);
       controls.sumrOutput.textContent = formatDecimal(results.sumrMonths);
+      controls.salaryPerTEOutput.textContent = formatCurrency(results.salaryPerTE);
       controls.salaryOutput.textContent = formatCurrency(results.salaryBeforeFringe);
       controls.fringeOutput.textContent = formatCurrency(results.fringe);
       controls.releaseSalaryOutput.textContent = formatCurrency(results.releaseSalary);
@@ -4428,49 +4472,53 @@
                 <div class="personnel-helper-summary">
                 <div class="personnel-helper-summary-row primary">
                   <div class="helper-card output-card">
-                    <span class="label">CAL Months</span>
+                    <span class="label">Calendar<br>Months</span>
                     <span class="value helper-output-cal">0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">ACAD Months</span>
+                    <span class="label">Academic<br>Months</span>
                     <span class="value helper-output-acad">0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">SUMR Months</span>
+                    <span class="label">Summer<br>Months</span>
                     <span class="value helper-output-sumr">0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">Total Salary Before Fringe</span>
+                    <span class="label">Salary per<br>TE or Credit</span>
+                    <span class="value helper-output-salary-per-te">$0</span>
+                  </div>
+                  <div class="helper-card output-card">
+                    <span class="label">Total Salary<br>Before Fringe</span>
                     <span class="value helper-output-salary">$0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">Total Fringe</span>
+                    <span class="label">Total<br>Fringe</span>
                     <span class="value helper-output-fringe">$0</span>
                   </div>
                 </div>
                 <div class="personnel-helper-summary-row secondary">
                   <div class="helper-card output-card">
-                    <span class="label">Release Time Salary</span>
+                    <span class="label"><span class="label-line">Release Time</span><span class="label-line">Salary</span></span>
                     <span class="value helper-output-release-salary">$0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">Instructional Overload Salary</span>
+                    <span class="label"><span class="label-line">Instructional</span><span class="label-line">Overload Salary</span></span>
                     <span class="value helper-output-instructional-salary">$0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">Non-Instructional Overload Salary</span>
+                    <span class="label"><span class="label-line">Non-Instructional</span><span class="label-line">Overload Salary</span></span>
                     <span class="value helper-output-non-instructional-salary">$0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">Release Time Fringe</span>
+                    <span class="label"><span class="label-line">Release Time</span><span class="label-line">Fringe</span></span>
                     <span class="value helper-output-release-fringe">$0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">Instructional Overload Fringe</span>
+                    <span class="label"><span class="label-line">Instructional</span><span class="label-line">Overload Fringe</span></span>
                     <span class="value helper-output-instructional-fringe">$0</span>
                   </div>
                   <div class="helper-card output-card">
-                    <span class="label">Non-Instructional Overload Fringe</span>
+                    <span class="label"><span class="label-line">Non-Instructional</span><span class="label-line">Overload Fringe</span></span>
                     <span class="value helper-output-non-instructional-fringe">$0</span>
                   </div>
                 </div>
