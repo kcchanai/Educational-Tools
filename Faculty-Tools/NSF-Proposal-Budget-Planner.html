@@ -1652,10 +1652,18 @@
     }
 
     .modal-header {
+      position: sticky;
+      top: -22px;
+      z-index: 2;
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
+      padding: 22px 22px 14px;
+      margin: -22px -22px 14px;
+      background: rgba(255, 255, 255, 0.98);
+      border-bottom: 1px solid rgba(23, 34, 44, 0.08);
+      box-shadow: 0 6px 16px rgba(21, 40, 49, 0.06);
       margin-bottom: 14px;
     }
 
@@ -2387,8 +2395,8 @@
               <li>Use Budget Helper on the five named Section A rows to derive person-months, salary before fringe, and fringe from Desired Release Time, Desired Instructional Summer Overload, and Desired Non-Instructional Summer Overload Days.</li>
               <li>Each Section A Budget Helper row can use Summer Instructional Rate Source (by rank) to choose a live faculty rate, a live lecturer rate, or a custom rate entered in the adjacent Cost per Instructional Overload TE/Credit cell.</li>
               <li>Budget Helper calculates ACAD months as Desired Release Time (TE) or Buyout (Credit) divided by 3, and SUMR months as Desired Instructional Summer Overload (TE or Credit) divided by 3 plus Desired Non-Instructional Summer Overload Days divided by 21.</li>
-              <li>Release or buyout salary uses annual salary divided by Required Annual Credit Load. 9-Month (UHCCs) and 11-Month (UHCCs) lock that value to 27 or 36, while 9-month (UH Manoa) and 11-month (UH Manoa) leave it blank and editable.</li>
-              <li>For non-instructional summer overload days, 9-month (UH Manoa) uses the same calculation basis as 9-Month (UHCCs), and 11-month (UH Manoa) uses the same calculation basis as 11-Month (UHCCs).</li>
+              <li>Release or buyout salary uses annual salary divided by Required Annual Credit Load. 9-Month (UHCCs) and 11-Month (UHCCs) lock that value to 27 or 36, while 9-Month (UH 4-Year) and 11-Month (UH 4-Year) leave it blank and editable.</li>
+              <li>For non-instructional summer overload days, 9-Month (UH 4-Year) uses the same calculation basis as 9-Month (UHCCs), and 11-Month (UH 4-Year) uses the same calculation basis as 11-Month (UHCCs).</li>
               <li>Summer person-month calculations assume 63 work days across 3 months of summer.</li>
             </ul>
           </section>
@@ -4393,8 +4401,8 @@
                   <select class="helper-faculty-term">
                     <option value="uhcc9">9-Month (UHCCs)</option>
                     <option value="uhcc11">11-Month (UHCCs)</option>
-                    <option value="manoa9">9-month (UH Manoa)</option>
-                    <option value="manoa11">11-month (UH Manoa)</option>
+                    <option value="manoa9">9-Month (UH 4-Year)</option>
+                    <option value="manoa11">11-Month (UH 4-Year)</option>
                   </select>
                 </div>
                 <div>
