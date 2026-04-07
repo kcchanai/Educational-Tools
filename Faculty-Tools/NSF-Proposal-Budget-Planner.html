@@ -2846,6 +2846,27 @@
       return roundedValue.toFixed(2).replace(/\.?0+$/, "");
     }
 
+    function formatFixedDecimal(value, digits = 2) {
+      if (!Number.isFinite(value)) {
+        return "";
+      }
+
+      return Math.max(value, 0).toFixed(digits);
+    }
+
+    function formatCumulativeMonthValue(value) {
+      if (!Number.isFinite(value)) {
+        return "";
+      }
+
+      const roundedValue = Math.round(Math.max(value, 0) * 100) / 100;
+      if (Math.abs(roundedValue) < 1e-9) {
+        return "";
+      }
+
+      return roundedValue.toFixed(2).replace(/\.?0+$/, "");
+    }
+
     function setMoneyInputValue(input, value) {
       const roundedValue = roundToCent(Math.max(value, 0));
       input.dataset.moneyValue = roundedValue.toFixed(2);
@@ -3071,6 +3092,34 @@
 
     function sumRoundedDisplay(values) {
       return values.reduce((sum, value) => sum + roundUpDollar(value), 0);
+    }
+
+    function addDisplayMoneyToFormattedTotal(currentValue, sourceValue) {
+      return formatInputDecimal(
+        readStoredNumberValue(currentValue) + roundUpDollar(readStoredNumberValue(sourceValue))
+      );
+    }
+
+    function getPreciseCumulativeMonths(row, options = {}) {
+      const includeHelperPrecision = Boolean(options.includeHelperPrecision);
+      const helperState = row?.helper || null;
+
+      if (includeHelperPrecision && helperState?.apply) {
+        const desiredTE = readStoredNumberValue(helperState.desiredTE);
+        const desiredInstructionalTE = readStoredNumberValue(helperState.desiredInstructionalTE);
+        const desiredNonInstructionalDays = readStoredNumberValue(helperState.desiredNonInstructionalDays);
+        return {
+          calMonths: 0,
+          acadMonths: desiredTE / 3,
+          sumrMonths: (desiredInstructionalTE / 3) + (desiredNonInstructionalDays / 21)
+        };
+      }
+
+      return {
+        calMonths: readStoredNumberValue(row?.calMonths),
+        acadMonths: readStoredNumberValue(row?.acadMonths),
+        sumrMonths: readStoredNumberValue(row?.sumrMonths)
+      };
     }
 
     function defaultIdcAppliesForCategory(key) {
@@ -5363,21 +5412,21 @@
         key: definition.key,
         kind: definition.kind,
         label: definition.kind === "others" ? (definition.label || "") : (sharedSeniorLabels[definition.key] || ""),
-        quantity: "",
-        calMonths: "",
-        acadMonths: "",
-        sumrMonths: "",
-        baseSalary: "",
-        fringeAmount: ""
+        quantityTotal: 0,
+        calMonthsTotal: 0,
+        acadMonthsTotal: 0,
+        sumrMonthsTotal: 0,
+        baseSalaryTotal: 0,
+        fringeAmountTotal: 0
       }]));
       const otherByKey = new Map(otherPersonnelDefinitions.map((definition) => [definition.key, {
         key: definition.key,
-        quantity: "",
-        calMonths: "",
-        acadMonths: "",
-        sumrMonths: "",
-        baseSalary: "",
-        fringeAmount: ""
+        quantityTotal: 0,
+        calMonthsTotal: 0,
+        acadMonthsTotal: 0,
+        sumrMonthsTotal: 0,
+        baseSalaryTotal: 0,
+        fringeAmountTotal: 0
       }]));
       const nonPersonnelByKey = new Map(nonPersonnelDefinitions.map((definition) => [definition.key, {
         key: definition.key,
@@ -5396,12 +5445,13 @@
             return;
           }
 
-          target.quantity = formatInputDecimal(readStoredNumberValue(target.quantity) + readStoredNumberValue(source.quantity));
-          target.calMonths = formatInputDecimal(readStoredNumberValue(target.calMonths) + readStoredNumberValue(source.calMonths));
-          target.acadMonths = formatInputDecimal(readStoredNumberValue(target.acadMonths) + readStoredNumberValue(source.acadMonths));
-          target.sumrMonths = formatInputDecimal(readStoredNumberValue(target.sumrMonths) + readStoredNumberValue(source.sumrMonths));
-          target.baseSalary = formatInputDecimal(readStoredNumberValue(target.baseSalary) + readStoredNumberValue(source.baseSalary));
-          target.fringeAmount = formatInputDecimal(readStoredNumberValue(target.fringeAmount) + readStoredNumberValue(source.fringeAmount));
+          const sourceMonths = getPreciseCumulativeMonths(source, { includeHelperPrecision: definition.kind !== "others" });
+          target.quantityTotal += readStoredNumberValue(source.quantity);
+          target.calMonthsTotal += sourceMonths.calMonths;
+          target.acadMonthsTotal += sourceMonths.acadMonths;
+          target.sumrMonthsTotal += sourceMonths.sumrMonths;
+          target.baseSalaryTotal += roundUpDollar(readStoredNumberValue(source.baseSalary));
+          target.fringeAmountTotal += roundUpDollar(readStoredNumberValue(source.fringeAmount));
         });
 
         otherPersonnelDefinitions.forEach((definition) => {
@@ -5411,12 +5461,13 @@
             return;
           }
 
-          target.quantity = formatInputDecimal(readStoredNumberValue(target.quantity) + readStoredNumberValue(source.quantity));
-          target.calMonths = formatInputDecimal(readStoredNumberValue(target.calMonths) + readStoredNumberValue(source.calMonths));
-          target.acadMonths = formatInputDecimal(readStoredNumberValue(target.acadMonths) + readStoredNumberValue(source.acadMonths));
-          target.sumrMonths = formatInputDecimal(readStoredNumberValue(target.sumrMonths) + readStoredNumberValue(source.sumrMonths));
-          target.baseSalary = formatInputDecimal(readStoredNumberValue(target.baseSalary) + readStoredNumberValue(source.baseSalary));
-          target.fringeAmount = formatInputDecimal(readStoredNumberValue(target.fringeAmount) + readStoredNumberValue(source.fringeAmount));
+          const sourceMonths = getPreciseCumulativeMonths(source);
+          target.quantityTotal += readStoredNumberValue(source.quantity);
+          target.calMonthsTotal += sourceMonths.calMonths;
+          target.acadMonthsTotal += sourceMonths.acadMonths;
+          target.sumrMonthsTotal += sourceMonths.sumrMonths;
+          target.baseSalaryTotal += roundUpDollar(readStoredNumberValue(source.baseSalary));
+          target.fringeAmountTotal += roundUpDollar(readStoredNumberValue(source.fringeAmount));
         });
 
         nonPersonnelDefinitions.forEach((definition) => {
@@ -5428,7 +5479,7 @@
           const idcStateKey = `year${yearIndex}`;
           const sourceDetail = typeof sourceEntry?.detail === "string" ? sourceEntry.detail.trim() : "";
 
-          target.amount = formatInputDecimal(readStoredNumberValue(target.amount) + readStoredNumberValue(sourceEntry?.amount));
+          target.amount = addDisplayMoneyToFormattedTotal(target.amount, sourceEntry?.amount);
           if (sourceDetail) {
             target.detailParts.push(`${getYearDisplayLabel(year, yearIndex)}: ${sourceDetail}`);
             target.detail = target.detailParts.join(" | ");
@@ -5447,14 +5498,34 @@
         });
       });
 
+      const cumulativeSeniorRows = Array.from(seniorByKey.values()).map((entry) => ({
+        key: entry.key,
+        kind: entry.kind,
+        label: entry.label,
+        quantity: formatInputDecimal(entry.quantityTotal),
+        calMonths: formatCumulativeMonthValue(entry.calMonthsTotal),
+        acadMonths: formatCumulativeMonthValue(entry.acadMonthsTotal),
+        sumrMonths: formatCumulativeMonthValue(entry.sumrMonthsTotal),
+        baseSalary: formatInputDecimal(entry.baseSalaryTotal),
+        fringeAmount: formatInputDecimal(entry.fringeAmountTotal)
+      }));
+      const cumulativeOtherRows = Array.from(otherByKey.values()).map((entry) => ({
+        key: entry.key,
+        quantity: formatInputDecimal(entry.quantityTotal),
+        calMonths: formatCumulativeMonthValue(entry.calMonthsTotal),
+        acadMonths: formatCumulativeMonthValue(entry.acadMonthsTotal),
+        sumrMonths: formatCumulativeMonthValue(entry.sumrMonthsTotal),
+        baseSalary: formatInputDecimal(entry.baseSalaryTotal),
+        fringeAmount: formatInputDecimal(entry.fringeAmountTotal)
+      }));
       const cumulativeNonPersonnel = Array.from(nonPersonnelByKey.values());
       const cumulativeEvaluation = {
         defaults: {
           indirectRateText: indirectRateStaticText
         },
         personnel: {
-          senior: evaluateStoredSeniorPersonnel(Array.from(seniorByKey.values())),
-          otherPersonnel: evaluateStoredOtherPersonnel(Array.from(otherByKey.values()))
+          senior: evaluateStoredSeniorPersonnel(cumulativeSeniorRows),
+          otherPersonnel: evaluateStoredOtherPersonnel(cumulativeOtherRows)
         },
         nonPersonnel: {
           categories: Object.fromEntries(cumulativeNonPersonnel.map((entry) => {
@@ -5504,6 +5575,13 @@
         }
       };
 
+      aggregate.seniorCal = cumulativeEvaluation.personnel.senior.calMonths;
+      aggregate.seniorAcad = cumulativeEvaluation.personnel.senior.acadMonths;
+      aggregate.seniorSumr = cumulativeEvaluation.personnel.senior.sumrMonths;
+      aggregate.otherCal = cumulativeEvaluation.personnel.otherPersonnel.calMonths;
+      aggregate.otherAcad = cumulativeEvaluation.personnel.otherPersonnel.acadMonths;
+      aggregate.otherSumr = cumulativeEvaluation.personnel.otherPersonnel.sumrMonths;
+
       return {
         yearState: {
           id: CUMULATIVE_YEAR_ID,
@@ -5518,8 +5596,8 @@
             participantCount: formatInputDecimal(aggregate.participantCount)
           },
           personnel: {
-            senior: Array.from(seniorByKey.values()),
-            otherPersonnel: Array.from(otherByKey.values())
+            senior: cumulativeSeniorRows,
+            otherPersonnel: cumulativeOtherRows
           },
           nonPersonnel: cumulativeNonPersonnel
         },
@@ -5534,9 +5612,9 @@
       elements.rollupSeniorQuantity.textContent = formatDecimal(summary.seniorCount);
       elements.rollupSeniorSalary.textContent = formatCurrency(summary.seniorSalary);
       elements.rollupSeniorFringe.textContent = formatCurrency(summary.seniorFringe);
-      elements.rollupSeniorCal.textContent = formatDecimal(summary.seniorCal);
-      elements.rollupSeniorAcad.textContent = formatDecimal(summary.seniorAcad);
-      elements.rollupSeniorSumr.textContent = formatDecimal(summary.seniorSumr);
+      elements.rollupSeniorCal.textContent = formatCumulativeMonthValue(summary.seniorCal) || "\u2014";
+      elements.rollupSeniorAcad.textContent = formatCumulativeMonthValue(summary.seniorAcad) || "\u2014";
+      elements.rollupSeniorSumr.textContent = formatCumulativeMonthValue(summary.seniorSumr) || "\u2014";
       elements.rollupSalariesWages.textContent = formatCurrency(summary.salariesWages);
       elements.rollupFringe.textContent = formatCurrency(summary.fringe);
       elements.rollupSalariesFringe.textContent = formatCurrency(summary.salariesFringe);
