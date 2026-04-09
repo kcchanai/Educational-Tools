@@ -2066,6 +2066,7 @@
       <div class="action-row">
         <button type="button" id="reset-button">Reset</button>
         <button type="button" id="copy-summary-button">Copy Text Summary</button>
+        <button type="button" id="download-spreadsheet-button">Download Spreadsheet</button>
         <button type="button" id="copy-link-button">Copy Shareable Link</button>
         <button type="button" id="print-button">Print / Save as PDF</button>
         <button type="button" id="help-button">Help</button>
@@ -2073,8 +2074,9 @@
       <div class="action-subrow">
         <div class="action-help">
           Reset clears only the active budget period. Copy Text Summary copies a plain-text multi-year budget
-          summary to the clipboard. Copy Shareable Link copies a URL with the current proposal state. Print /
-          Save as PDF opens the browser print dialog for all years. Help opens a quick reference for the worksheet structure and
+          summary to the clipboard. Download Spreadsheet saves an XLSX workbook of the current proposal
+          values. Copy Shareable Link copies a URL with the current proposal state. Print / Save as PDF opens
+          the browser print dialog for all years. Help opens a quick reference for the worksheet structure and
           calculations.
         </div>
       </div>
@@ -2493,6 +2495,7 @@
               <li>The active worksheet displays NSF-style totals inline as you work through Sections A through M.</li>
               <li>When available, the Cumulative tab shows a summed multi-year view across all editable year tabs.</li>
               <li>Copy Text Summary creates a plain-text multi-year proposal summary for email or planning notes.</li>
+              <li>Download Spreadsheet creates an XLSX workbook with proposal metadata, yearly inputs, and calculated totals.</li>
               <li>Copy Shareable Link copies a URL containing the current proposal state.</li>
               <li>Print / Save as PDF creates a print-friendly multi-year proposal summary, including the cumulative view when available.</li>
             </ul>
@@ -2568,6 +2571,7 @@
       summerRateUpdated: document.getElementById("summer-rate-updated"),
       resetButton: document.getElementById("reset-button"),
       copySummaryButton: document.getElementById("copy-summary-button"),
+      downloadSpreadsheetButton: document.getElementById("download-spreadsheet-button"),
       copyLinkButton: document.getElementById("copy-link-button"),
       printButton: document.getElementById("print-button"),
       helpButton: document.getElementById("help-button"),
@@ -5766,6 +5770,813 @@
         .replace(/\"/g, "&quot;");
     }
 
+    function escapeSpreadsheetXml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function escapeSpreadsheetAttribute(value) {
+      return escapeSpreadsheetXml(value).replace(/\"/g, "&quot;");
+    }
+
+    function stripInvalidSpreadsheetXmlChars(value) {
+      return String(value).replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD]/g, "");
+    }
+
+    function createSpreadsheetCell(value, options = {}) {
+      const { styleId = "", type = typeof value === "number" ? "Number" : "String", formula = "" } = options;
+      return { value, styleId, type, formula };
+    }
+
+    function textSpreadsheetCell(value, styleId = "") {
+      return createSpreadsheetCell(value ?? "", { styleId, type: "String" });
+    }
+
+    function numberSpreadsheetCell(value, styleId = "Number") {
+      return createSpreadsheetCell(Number.isFinite(value) ? value : 0, { styleId, type: "Number" });
+    }
+
+    function optionalNumberSpreadsheetCell(value, styleId = "Number") {
+      if (value === null || value === undefined || value === "") {
+        return textSpreadsheetCell("");
+      }
+
+      const normalized = normalizeCurrencyInputValue(value);
+      if (normalized === "") {
+        return textSpreadsheetCell("");
+      }
+
+      const parsedValue = Number.parseFloat(normalized);
+      return Number.isFinite(parsedValue)
+        ? numberSpreadsheetCell(parsedValue, styleId)
+        : textSpreadsheetCell(String(value));
+    }
+
+    function getSpreadsheetStyleIndex(styleId = "") {
+      switch (styleId) {
+        case "Header":
+          return 1;
+        case "Section":
+          return 2;
+        case "Currency":
+          return 3;
+        case "Number":
+          return 4;
+        case "Integer":
+          return 5;
+        default:
+          return 0;
+      }
+    }
+
+    function encodeSpreadsheetText(value) {
+      return escapeSpreadsheetXml(stripInvalidSpreadsheetXmlChars(value));
+    }
+
+    function getSpreadsheetColumnName(columnIndex) {
+      let index = columnIndex + 1;
+      let name = "";
+
+      while (index > 0) {
+        const remainder = (index - 1) % 26;
+        name = String.fromCharCode(65 + remainder) + name;
+        index = Math.floor((index - 1) / 26);
+      }
+
+      return name;
+    }
+
+    function buildSpreadsheetCellReference(rowIndex, columnIndex) {
+      return `${getSpreadsheetColumnName(columnIndex)}${rowIndex}`;
+    }
+
+    function serializeSpreadsheetCellForXlsx(cell, rowIndex, columnIndex) {
+      const resolvedCell = cell || textSpreadsheetCell("");
+      const cellRef = buildSpreadsheetCellReference(rowIndex, columnIndex);
+      const styleIndex = getSpreadsheetStyleIndex(resolvedCell.styleId);
+      const styleAttribute = styleIndex > 0 ? ` s="${styleIndex}"` : "";
+      const hasFormula = Boolean(resolvedCell.formula);
+      const formulaText = hasFormula
+        ? `<f>${encodeSpreadsheetText(String(resolvedCell.formula).replace(/^=/, ""))}</f>`
+        : "";
+
+      if (resolvedCell.type === "Number") {
+        const numericValue = Number.isFinite(resolvedCell.value) ? resolvedCell.value : 0;
+        return `<c r="${cellRef}"${styleAttribute}>${formulaText}<v>${numericValue}</v></c>`;
+      }
+
+      const stringValue = resolvedCell.value === null || resolvedCell.value === undefined
+        ? ""
+        : String(resolvedCell.value);
+      if (!hasFormula && stringValue === "") {
+        return `<c r="${cellRef}"${styleAttribute}/>`;
+      }
+
+      if (hasFormula) {
+        return `<c r="${cellRef}"${styleAttribute} t="str">${formulaText}<v>${encodeSpreadsheetText(stringValue)}</v></c>`;
+      }
+
+      return `<c r="${cellRef}"${styleAttribute} t="inlineStr"><is><t xml:space="preserve">${encodeSpreadsheetText(stringValue)}</t></is></c>`;
+    }
+
+    function serializeSpreadsheetWorksheetForXlsx(worksheet) {
+      const rowXml = worksheet.rows.map((row, rowIndex) => {
+        const rowNumber = rowIndex + 1;
+        const cellsXml = (row || []).map((cell, columnIndex) =>
+          serializeSpreadsheetCellForXlsx(cell, rowNumber, columnIndex)
+        ).join("");
+        return `<row r="${rowNumber}">${cellsXml}</row>`;
+      }).join("");
+      const rowCount = Math.max(worksheet.rows.length, 1);
+      const maxColumns = Math.max(1, ...worksheet.rows.map((row) => Array.isArray(row) ? row.length : 0));
+      const dimensionRef = `A1:${buildSpreadsheetCellReference(rowCount, maxColumns - 1)}`;
+
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <dimension ref="${dimensionRef}"/>
+  <sheetViews>
+    <sheetView workbookViewId="0"/>
+  </sheetViews>
+  <sheetFormatPr defaultRowHeight="15"/>
+  <sheetData>${rowXml}</sheetData>
+</worksheet>`;
+    }
+
+    function buildSpreadsheetStylesXml() {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <numFmts count="1">
+    <numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0.00"/>
+  </numFmts>
+  <fonts count="2">
+    <font>
+      <sz val="11"/>
+      <name val="Calibri"/>
+      <family val="2"/>
+    </font>
+    <font>
+      <b/>
+      <sz val="11"/>
+      <name val="Calibri"/>
+      <family val="2"/>
+    </font>
+  </fonts>
+  <fills count="4">
+    <fill><patternFill patternType="none"/></fill>
+    <fill><patternFill patternType="gray125"/></fill>
+    <fill>
+      <patternFill patternType="solid">
+        <fgColor rgb="FFDCE6F1"/>
+        <bgColor indexed="64"/>
+      </patternFill>
+    </fill>
+    <fill>
+      <patternFill patternType="solid">
+        <fgColor rgb="FFEAF2D3"/>
+        <bgColor indexed="64"/>
+      </patternFill>
+    </fill>
+  </fills>
+  <borders count="1">
+    <border>
+      <left/>
+      <right/>
+      <top/>
+      <bottom/>
+      <diagonal/>
+    </border>
+  </borders>
+  <cellStyleXfs count="1">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
+  </cellStyleXfs>
+  <cellXfs count="6">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+    <xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+    <xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
+    <xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
+    <xf numFmtId="1" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
+  </cellXfs>
+  <cellStyles count="1">
+    <cellStyle name="Normal" xfId="0" builtinId="0"/>
+  </cellStyles>
+</styleSheet>`;
+    }
+
+    function buildSpreadsheetWorkbookXml(workbook) {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+ xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <bookViews>
+    <workbookView xWindow="0" yWindow="0" windowWidth="18195" windowHeight="8505"/>
+  </bookViews>
+  <sheets>
+    ${workbook.worksheets.map((worksheet, index) => `
+      <sheet name="${escapeSpreadsheetAttribute(worksheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>
+    `).join("")}
+  </sheets>
+</workbook>`;
+    }
+
+    function buildSpreadsheetWorkbookRelsXml(workbook) {
+      const worksheetRelationships = workbook.worksheets.map((worksheet, index) => `
+    <Relationship Id="rId${index + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${index + 1}.xml"/>
+      `).join("");
+      const stylesRelationshipId = workbook.worksheets.length + 1;
+
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${worksheetRelationships}
+  <Relationship Id="rId${stylesRelationshipId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`;
+    }
+
+    function buildSpreadsheetContentTypesXml(workbook) {
+      const worksheetOverrides = workbook.worksheets.map((worksheet, index) => `
+  <Override PartName="/xl/worksheets/sheet${index + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`
+      ).join("");
+
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
+  <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${worksheetOverrides}
+</Types>`;
+    }
+
+    function buildSpreadsheetRootRelsXml() {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>
+</Relationships>`;
+    }
+
+    function buildSpreadsheetAppPropsXml(workbook) {
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"
+ xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">
+  <Application>NSF Budget Planner</Application>
+  <DocSecurity>0</DocSecurity>
+  <ScaleCrop>false</ScaleCrop>
+  <HeadingPairs>
+    <vt:vector size="2" baseType="variant">
+      <vt:variant><vt:lpstr>Worksheets</vt:lpstr></vt:variant>
+      <vt:variant><vt:i4>${workbook.worksheets.length}</vt:i4></vt:variant>
+    </vt:vector>
+  </HeadingPairs>
+  <TitlesOfParts>
+    <vt:vector size="${workbook.worksheets.length}" baseType="lpstr">
+      ${workbook.worksheets.map((worksheet) => `<vt:lpstr>${encodeSpreadsheetText(worksheet.name)}</vt:lpstr>`).join("")}
+    </vt:vector>
+  </TitlesOfParts>
+  <Company></Company>
+  <LinksUpToDate>false</LinksUpToDate>
+  <SharedDoc>false</SharedDoc>
+  <HyperlinksChanged>false</HyperlinksChanged>
+  <AppVersion>16.0300</AppVersion>
+</Properties>`;
+    }
+
+    function buildSpreadsheetCorePropsXml() {
+      const timestamp = new Date().toISOString();
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:dcterms="http://purl.org/dc/terms/"
+ xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <dc:creator>OpenAI Codex</dc:creator>
+  <cp:lastModifiedBy>OpenAI Codex</cp:lastModifiedBy>
+  <dcterms:created xsi:type="dcterms:W3CDTF">${timestamp}</dcterms:created>
+  <dcterms:modified xsi:type="dcterms:W3CDTF">${timestamp}</dcterms:modified>
+</cp:coreProperties>`;
+    }
+
+    function getSpreadsheetZipTextEncoder() {
+      if (!getSpreadsheetZipTextEncoder.encoder) {
+        getSpreadsheetZipTextEncoder.encoder = new TextEncoder();
+      }
+      return getSpreadsheetZipTextEncoder.encoder;
+    }
+
+    function encodeSpreadsheetZipText(value) {
+      return getSpreadsheetZipTextEncoder().encode(value);
+    }
+
+    function createSpreadsheetCrc32Table() {
+      const table = new Uint32Array(256);
+      for (let index = 0; index < 256; index += 1) {
+        let current = index;
+        for (let bit = 0; bit < 8; bit += 1) {
+          current = (current & 1) ? (0xEDB88320 ^ (current >>> 1)) : (current >>> 1);
+        }
+        table[index] = current >>> 0;
+      }
+      return table;
+    }
+
+    function calculateSpreadsheetCrc32(bytes) {
+      if (!calculateSpreadsheetCrc32.table) {
+        calculateSpreadsheetCrc32.table = createSpreadsheetCrc32Table();
+      }
+
+      let crc = 0xFFFFFFFF;
+      for (let index = 0; index < bytes.length; index += 1) {
+        crc = calculateSpreadsheetCrc32.table[(crc ^ bytes[index]) & 0xFF] ^ (crc >>> 8);
+      }
+      return (crc ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    function createSpreadsheetZipUint16(value) {
+      const bytes = new Uint8Array(2);
+      const view = new DataView(bytes.buffer);
+      view.setUint16(0, value, true);
+      return bytes;
+    }
+
+    function createSpreadsheetZipUint32(value) {
+      const bytes = new Uint8Array(4);
+      const view = new DataView(bytes.buffer);
+      view.setUint32(0, value >>> 0, true);
+      return bytes;
+    }
+
+    function getSpreadsheetZipDosDateTime(date = new Date()) {
+      const year = Math.max(date.getFullYear(), 1980);
+      return {
+        time: ((date.getHours() & 0x1F) << 11) | ((date.getMinutes() & 0x3F) << 5) | Math.floor(date.getSeconds() / 2),
+        date: (((year - 1980) & 0x7F) << 9) | (((date.getMonth() + 1) & 0x0F) << 5) | (date.getDate() & 0x1F)
+      };
+    }
+
+    function concatenateSpreadsheetZipParts(parts) {
+      const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
+      const combined = new Uint8Array(totalLength);
+      let offset = 0;
+
+      parts.forEach((part) => {
+        combined.set(part, offset);
+        offset += part.length;
+      });
+
+      return combined;
+    }
+
+    function createSpreadsheetZipArchive(files) {
+      const localParts = [];
+      const centralParts = [];
+      let offset = 0;
+
+      files.forEach((file) => {
+        const nameBytes = encodeSpreadsheetZipText(file.name);
+        const dataBytes = file.data instanceof Uint8Array ? file.data : encodeSpreadsheetZipText(file.data);
+        const crc32 = calculateSpreadsheetCrc32(dataBytes);
+        const dateTime = getSpreadsheetZipDosDateTime(file.modifiedAt || new Date());
+        const utf8Flag = 0x0800;
+        const localHeader = concatenateSpreadsheetZipParts([
+          createSpreadsheetZipUint32(0x04034B50),
+          createSpreadsheetZipUint16(20),
+          createSpreadsheetZipUint16(utf8Flag),
+          createSpreadsheetZipUint16(0),
+          createSpreadsheetZipUint16(dateTime.time),
+          createSpreadsheetZipUint16(dateTime.date),
+          createSpreadsheetZipUint32(crc32),
+          createSpreadsheetZipUint32(dataBytes.length),
+          createSpreadsheetZipUint32(dataBytes.length),
+          createSpreadsheetZipUint16(nameBytes.length),
+          createSpreadsheetZipUint16(0),
+          nameBytes,
+          dataBytes
+        ]);
+
+        localParts.push(localHeader);
+
+        const centralHeader = concatenateSpreadsheetZipParts([
+          createSpreadsheetZipUint32(0x02014B50),
+          createSpreadsheetZipUint16(20),
+          createSpreadsheetZipUint16(20),
+          createSpreadsheetZipUint16(utf8Flag),
+          createSpreadsheetZipUint16(0),
+          createSpreadsheetZipUint16(dateTime.time),
+          createSpreadsheetZipUint16(dateTime.date),
+          createSpreadsheetZipUint32(crc32),
+          createSpreadsheetZipUint32(dataBytes.length),
+          createSpreadsheetZipUint32(dataBytes.length),
+          createSpreadsheetZipUint16(nameBytes.length),
+          createSpreadsheetZipUint16(0),
+          createSpreadsheetZipUint16(0),
+          createSpreadsheetZipUint16(0),
+          createSpreadsheetZipUint16(0),
+          createSpreadsheetZipUint32(0),
+          createSpreadsheetZipUint32(offset),
+          nameBytes
+        ]);
+
+        centralParts.push(centralHeader);
+        offset += localHeader.length;
+      });
+
+      const centralDirectory = concatenateSpreadsheetZipParts(centralParts);
+      const endOfCentralDirectory = concatenateSpreadsheetZipParts([
+        createSpreadsheetZipUint32(0x06054B50),
+        createSpreadsheetZipUint16(0),
+        createSpreadsheetZipUint16(0),
+        createSpreadsheetZipUint16(files.length),
+        createSpreadsheetZipUint16(files.length),
+        createSpreadsheetZipUint32(centralDirectory.length),
+        createSpreadsheetZipUint32(offset),
+        createSpreadsheetZipUint16(0)
+      ]);
+
+      return concatenateSpreadsheetZipParts([
+        ...localParts,
+        centralDirectory,
+        endOfCentralDirectory
+      ]);
+    }
+
+    function serializeSpreadsheetWorkbook(workbook) {
+      const files = [
+        { name: "[Content_Types].xml", data: buildSpreadsheetContentTypesXml(workbook) },
+        { name: "_rels/.rels", data: buildSpreadsheetRootRelsXml() },
+        { name: "docProps/app.xml", data: buildSpreadsheetAppPropsXml(workbook) },
+        { name: "docProps/core.xml", data: buildSpreadsheetCorePropsXml() },
+        { name: "xl/workbook.xml", data: buildSpreadsheetWorkbookXml(workbook) },
+        { name: "xl/_rels/workbook.xml.rels", data: buildSpreadsheetWorkbookRelsXml(workbook) },
+        { name: "xl/styles.xml", data: buildSpreadsheetStylesXml() }
+      ];
+
+      workbook.worksheets.forEach((worksheet, index) => {
+        files.push({
+          name: `xl/worksheets/sheet${index + 1}.xml`,
+          data: serializeSpreadsheetWorksheetForXlsx(worksheet)
+        });
+      });
+
+      return createSpreadsheetZipArchive(files);
+    }
+
+    function sanitizeWorksheetName(name, usedNames) {
+      const cleaned = String(name || "Sheet")
+        .replace(/[\\\/\?\*\[\]\:]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim() || "Sheet";
+      const truncated = cleaned.slice(0, 31) || "Sheet";
+      let candidate = truncated;
+      let counter = 2;
+
+      while (usedNames.has(candidate)) {
+        const suffix = ` (${counter})`;
+        candidate = `${truncated.slice(0, Math.max(0, 31 - suffix.length))}${suffix}`;
+        counter += 1;
+      }
+
+      usedNames.add(candidate);
+      return candidate;
+    }
+
+    function sanitizeSpreadsheetFilePart(value) {
+      return String(value || "")
+        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, " ")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    }
+
+    function downloadSpreadsheetFile(content, filename) {
+      const blob = new Blob([content], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function buildSpreadsheetFilename(state) {
+      const proposalNumber = sanitizeSpreadsheetFilePart(state.globalSettings?.proposalNumber || "");
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      return proposalNumber
+        ? `nsf-budget-planner-${proposalNumber}-${dateStamp}.xlsx`
+        : `nsf-budget-planner-${dateStamp}.xlsx`;
+    }
+
+    function formatSpreadsheetSummerRateSource(value) {
+      if (!value) {
+        return "";
+      }
+
+      if (value === CUSTOM_RATE_OPTION) {
+        return "Custom";
+      }
+
+      const matchingOption = liveSummerRateOptions.find((option) => option && option.value === value);
+      return matchingOption?.label || value;
+    }
+
+    function findStoredRowByKey(rows = [], key) {
+      return rows.find((row) => row && row.key === key) || null;
+    }
+
+    function buildSpreadsheetTotalsRows(evaluation, options = {}) {
+      const indirectRateText = options.indirectRateText || formatPercent(evaluation.defaults.indirectRate);
+      return [
+        [textSpreadsheetCell("Metric", "Header"), textSpreadsheetCell("Value", "Header")],
+        [textSpreadsheetCell("A7. Total Senior Personnel Count"), numberSpreadsheetCell(evaluation.displayTotals.seniorCount)],
+        [textSpreadsheetCell("A7. Senior CAL Months"), numberSpreadsheetCell(evaluation.personnel.senior.calMonths)],
+        [textSpreadsheetCell("A7. Senior ACAD Months"), numberSpreadsheetCell(evaluation.personnel.senior.acadMonths)],
+        [textSpreadsheetCell("A7. Senior SUMR Months"), numberSpreadsheetCell(evaluation.personnel.senior.sumrMonths)],
+        [textSpreadsheetCell("A7. Senior Salary Before Fringe"), numberSpreadsheetCell(evaluation.displayTotals.seniorSalary, "Currency")],
+        [textSpreadsheetCell("A7. Senior Fringe"), numberSpreadsheetCell(evaluation.displayTotals.seniorFringe, "Currency")],
+        [textSpreadsheetCell("Total Salaries and Wages (A + B)"), numberSpreadsheetCell(evaluation.displayTotals.salariesWages, "Currency")],
+        [textSpreadsheetCell("C. Fringe Benefits"), numberSpreadsheetCell(evaluation.displayTotals.fringe, "Currency")],
+        [textSpreadsheetCell("Total Salaries, Wages and Fringe (A + B + C)"), numberSpreadsheetCell(evaluation.displayTotals.salariesFringe, "Currency")],
+        [textSpreadsheetCell("D. Equipment"), numberSpreadsheetCell(evaluation.displayTotals.equipment, "Currency")],
+        [textSpreadsheetCell("E. Travel"), numberSpreadsheetCell(evaluation.displayTotals.travel, "Currency")],
+        [textSpreadsheetCell("F. Participant Support"), numberSpreadsheetCell(evaluation.displayTotals.participant, "Currency")],
+        [textSpreadsheetCell("Participant Count"), numberSpreadsheetCell(evaluation.displayTotals.participantCount)],
+        [textSpreadsheetCell("G. Other Direct Costs"), numberSpreadsheetCell(evaluation.displayTotals.otherDirect, "Currency")],
+        [textSpreadsheetCell("H. Total Direct Costs"), numberSpreadsheetCell(evaluation.displayTotals.totalDirect, "Currency")],
+        [textSpreadsheetCell("I. MTDC"), numberSpreadsheetCell(evaluation.displayTotals.mtdc, "Currency")],
+        [textSpreadsheetCell("I. IDC Rate"), textSpreadsheetCell(indirectRateText)],
+        [textSpreadsheetCell("I. Total Indirect Costs"), numberSpreadsheetCell(evaluation.displayTotals.indirect, "Currency")],
+        [textSpreadsheetCell("J. Total Direct and Indirect Costs"), numberSpreadsheetCell(evaluation.displayTotals.totalBudget, "Currency")],
+        [textSpreadsheetCell("K. Fee"), numberSpreadsheetCell(evaluation.displayTotals.fee, "Currency")],
+        [textSpreadsheetCell("L. Amount Requested"), numberSpreadsheetCell(evaluation.displayTotals.amountRequested, "Currency")],
+        [textSpreadsheetCell("M. Cost Sharing Proposed Level"), numberSpreadsheetCell(evaluation.displayTotals.costSharing, "Currency")],
+        [textSpreadsheetCell("Agreed Level if Different"), numberSpreadsheetCell(evaluation.displayTotals.costSharingAgreed, "Currency")]
+      ];
+    }
+
+    function buildSpreadsheetSummaryWorksheet(state, evaluations, cumulativeView) {
+      const rows = [
+        [textSpreadsheetCell("Proposal Summary", "Section")],
+        [textSpreadsheetCell("Field", "Header"), textSpreadsheetCell("Value", "Header")],
+        [textSpreadsheetCell("Organization"), textSpreadsheetCell(state.globalSettings.organizationLabel || "")],
+        [textSpreadsheetCell("Proposal No."), textSpreadsheetCell(state.globalSettings.proposalNumber || "")],
+        [textSpreadsheetCell("PI / PD Name"), textSpreadsheetCell(state.globalSettings.piLabel || "")],
+        [textSpreadsheetCell("Org. Rep. Name"), textSpreadsheetCell(state.globalSettings.orgRepName || "")],
+        [textSpreadsheetCell("Budget Period Count"), numberSpreadsheetCell(state.years.length, "Integer")],
+        [],
+        [textSpreadsheetCell("Budget Period Totals", "Section")],
+        [
+          textSpreadsheetCell("Budget Period", "Header"),
+          textSpreadsheetCell("IDC Rate", "Header"),
+          textSpreadsheetCell("Senior Count", "Header"),
+          textSpreadsheetCell("Salaries and Wages", "Header"),
+          textSpreadsheetCell("Fringe", "Header"),
+          textSpreadsheetCell("Equipment", "Header"),
+          textSpreadsheetCell("Travel", "Header"),
+          textSpreadsheetCell("Participant Support", "Header"),
+          textSpreadsheetCell("Other Direct", "Header"),
+          textSpreadsheetCell("Total Direct", "Header"),
+          textSpreadsheetCell("MTDC", "Header"),
+          textSpreadsheetCell("Indirect", "Header"),
+          textSpreadsheetCell("Total Budget", "Header"),
+          textSpreadsheetCell("Fee", "Header"),
+          textSpreadsheetCell("Amount Requested", "Header"),
+          textSpreadsheetCell("Cost Sharing", "Header"),
+          textSpreadsheetCell("Agreed Cost Sharing", "Header")
+        ]
+      ];
+
+      state.years.forEach((year, index) => {
+        const evaluation = evaluations[index];
+        rows.push([
+          textSpreadsheetCell(getYearDisplayLabel(year, index)),
+          textSpreadsheetCell(formatPercent(evaluation.defaults.indirectRate)),
+          numberSpreadsheetCell(evaluation.displayTotals.seniorCount),
+          numberSpreadsheetCell(evaluation.displayTotals.salariesWages, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.fringe, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.equipment, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.travel, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.participant, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.otherDirect, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.totalDirect, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.mtdc, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.indirect, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.totalBudget, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.fee, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.amountRequested, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.costSharing, "Currency"),
+          numberSpreadsheetCell(evaluation.displayTotals.costSharingAgreed, "Currency")
+        ]);
+      });
+
+      if (cumulativeView) {
+        rows.push([
+          textSpreadsheetCell("Cumulative"),
+          textSpreadsheetCell(cumulativeView.indirectRateStaticText),
+          numberSpreadsheetCell(cumulativeView.aggregate.seniorCount),
+          numberSpreadsheetCell(cumulativeView.aggregate.salariesWages, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.fringe, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.equipment, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.travel, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.participant, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.otherDirect, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.totalDirect, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.mtdc, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.indirect, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.totalBudget, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.fee, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.amountRequested, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.costSharing, "Currency"),
+          numberSpreadsheetCell(cumulativeView.aggregate.costSharingAgreed, "Currency")
+        ]);
+      }
+
+      return { name: "Proposal Summary", rows };
+    }
+
+    function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options = {}) {
+      const yearLabel = options.sheetLabel || getYearDisplayLabel(year, index);
+      const indirectRateText = options.indirectRateText || formatPercent(evaluation.defaults.indirectRate);
+      const rows = [
+        [textSpreadsheetCell(yearLabel, "Section")],
+        [textSpreadsheetCell("Budget Period Settings", "Section")],
+        [textSpreadsheetCell("Field", "Header"), textSpreadsheetCell("Value", "Header")],
+        [textSpreadsheetCell("Budget Period Label"), textSpreadsheetCell(year.settings?.budgetPeriodLabel || getYearFallbackLabel(index))],
+        [textSpreadsheetCell("Default IDC Rate"), textSpreadsheetCell(indirectRateText)],
+        [textSpreadsheetCell("Participant Count"), optionalNumberSpreadsheetCell(year.participantSupport?.participantCount)],
+        [textSpreadsheetCell("Fee"), optionalNumberSpreadsheetCell(year.settings?.feeAmount, "Currency")],
+        [textSpreadsheetCell("Cost Sharing Proposed Level"), optionalNumberSpreadsheetCell(year.settings?.costSharingAmount, "Currency")],
+        [textSpreadsheetCell("Cost Sharing Agreed Level"), optionalNumberSpreadsheetCell(year.settings?.costSharingAgreedAmount, "Currency")],
+        []
+      ];
+
+      rows.push(
+        [textSpreadsheetCell("Senior Personnel Inputs", "Section")],
+        [
+          textSpreadsheetCell("Row", "Header"),
+          textSpreadsheetCell("Label", "Header"),
+          textSpreadsheetCell("Qty", "Header"),
+          textSpreadsheetCell("CAL Months", "Header"),
+          textSpreadsheetCell("ACAD Months", "Header"),
+          textSpreadsheetCell("SUMR Months", "Header"),
+          textSpreadsheetCell("Base Salary", "Header"),
+          textSpreadsheetCell("Fringe", "Header")
+        ]
+      );
+
+      seniorPersonnelDefinitions.forEach((definition) => {
+        const row = findStoredRowByKey(year.personnel?.senior || [], definition.key);
+        const label = definition.kind === "others"
+          ? definition.label
+          : (state.globalSettings?.seniorPersonnelLabels?.[definition.key] || row?.label || "");
+        rows.push([
+          textSpreadsheetCell(definition.prefix || ""),
+          textSpreadsheetCell(label),
+          definition.kind === "others" ? optionalNumberSpreadsheetCell(row?.quantity, "Integer") : textSpreadsheetCell(""),
+          optionalNumberSpreadsheetCell(row?.calMonths),
+          optionalNumberSpreadsheetCell(row?.acadMonths),
+          optionalNumberSpreadsheetCell(row?.sumrMonths),
+          optionalNumberSpreadsheetCell(row?.baseSalary, "Currency"),
+          optionalNumberSpreadsheetCell(row?.fringeAmount, "Currency")
+        ]);
+      });
+
+      rows.push(
+        [],
+        [textSpreadsheetCell("Senior Personnel Budget Helper", "Section")],
+        [
+          textSpreadsheetCell("Row", "Header"),
+          textSpreadsheetCell("Label", "Header"),
+          textSpreadsheetCell("Open", "Header"),
+          textSpreadsheetCell("Apply Outputs", "Header"),
+          textSpreadsheetCell("Desired Release TE", "Header"),
+          textSpreadsheetCell("Desired Instructional TE", "Header"),
+          textSpreadsheetCell("Desired Non-Instructional Days", "Header"),
+          textSpreadsheetCell("Annual Salary", "Header"),
+          textSpreadsheetCell("Faculty Term", "Header"),
+          textSpreadsheetCell("Annual Credit Load", "Header"),
+          textSpreadsheetCell("Release Fringe Rate", "Header"),
+          textSpreadsheetCell("Overload Fringe Rate", "Header"),
+          textSpreadsheetCell("Summer Rate Source", "Header"),
+          textSpreadsheetCell("Instructional Cost Per TE", "Header")
+        ]
+      );
+
+      seniorPersonnelDefinitions.filter((definition) => definition.kind !== "others").forEach((definition) => {
+        const row = findStoredRowByKey(year.personnel?.senior || [], definition.key);
+        const helper = row?.helper || null;
+        rows.push([
+          textSpreadsheetCell(definition.prefix || ""),
+          textSpreadsheetCell(state.globalSettings?.seniorPersonnelLabels?.[definition.key] || row?.label || ""),
+          textSpreadsheetCell(helper ? (helper.open ? "Yes" : "No") : ""),
+          textSpreadsheetCell(helper ? (helper.apply ? "Yes" : "No") : ""),
+          optionalNumberSpreadsheetCell(helper?.desiredTE),
+          optionalNumberSpreadsheetCell(helper?.desiredInstructionalTE),
+          optionalNumberSpreadsheetCell(helper?.desiredNonInstructionalDays, "Integer"),
+          optionalNumberSpreadsheetCell(helper?.annualSalary, "Currency"),
+          textSpreadsheetCell(helper?.facultyTerm || ""),
+          optionalNumberSpreadsheetCell(helper?.annualCreditLoad),
+          optionalNumberSpreadsheetCell(helper?.releaseFringeRate),
+          optionalNumberSpreadsheetCell(helper?.overloadFringeRate),
+          textSpreadsheetCell(formatSpreadsheetSummerRateSource(helper?.summerRateSource)),
+          optionalNumberSpreadsheetCell(helper?.instructionalCostPerTE, "Currency")
+        ]);
+      });
+
+      rows.push(
+        [],
+        [textSpreadsheetCell("Other Personnel Inputs", "Section")],
+        [
+          textSpreadsheetCell("Row", "Header"),
+          textSpreadsheetCell("Label", "Header"),
+          textSpreadsheetCell("Qty", "Header"),
+          textSpreadsheetCell("CAL Months", "Header"),
+          textSpreadsheetCell("ACAD Months", "Header"),
+          textSpreadsheetCell("SUMR Months", "Header"),
+          textSpreadsheetCell("Base Salary", "Header"),
+          textSpreadsheetCell("Fringe", "Header")
+        ]
+      );
+
+      otherPersonnelDefinitions.forEach((definition) => {
+        const row = findStoredRowByKey(year.personnel?.otherPersonnel || [], definition.key);
+        rows.push([
+          textSpreadsheetCell(definition.prefix || ""),
+          textSpreadsheetCell(definition.label),
+          optionalNumberSpreadsheetCell(row?.quantity, "Integer"),
+          definition.hasMonths ? optionalNumberSpreadsheetCell(row?.calMonths) : textSpreadsheetCell(""),
+          definition.hasMonths ? optionalNumberSpreadsheetCell(row?.acadMonths) : textSpreadsheetCell(""),
+          definition.hasMonths ? optionalNumberSpreadsheetCell(row?.sumrMonths) : textSpreadsheetCell(""),
+          optionalNumberSpreadsheetCell(row?.baseSalary, "Currency"),
+          optionalNumberSpreadsheetCell(row?.fringeAmount, "Currency")
+        ]);
+      });
+
+      rows.push(
+        [],
+        [textSpreadsheetCell("Non-Personnel Inputs", "Section")],
+        [
+          textSpreadsheetCell("Category", "Header"),
+          textSpreadsheetCell("Detail", "Header"),
+          textSpreadsheetCell("Direct Amount", "Header"),
+          textSpreadsheetCell("IDC Applies", "Header"),
+          textSpreadsheetCell("Indirect Cost", "Header"),
+          textSpreadsheetCell("Total Cost", "Header")
+        ]
+      );
+
+      nonPersonnelDefinitions.forEach((definition) => {
+        const entry = findStoredRowByKey(year.nonPersonnel || [], definition.key);
+        const category = evaluation.nonPersonnel.categories[definition.key];
+        rows.push([
+          textSpreadsheetCell(definition.label),
+          textSpreadsheetCell(entry?.detail || ""),
+          optionalNumberSpreadsheetCell(entry?.amount, "Currency"),
+          textSpreadsheetCell(category?.idcApplies ? "Yes" : "No"),
+          numberSpreadsheetCell(category?.indirectCost || 0, "Currency"),
+          numberSpreadsheetCell(category?.totalCost || 0, "Currency")
+        ]);
+      });
+
+      rows.push([], [textSpreadsheetCell("Worksheet Totals", "Section")], ...buildSpreadsheetTotalsRows(evaluation, { indirectRateText }));
+      return { name: yearLabel, rows };
+    }
+
+    function buildSpreadsheetWorkbook(state = collectPlannerState()) {
+      const evaluations = state.years.map((year, index) => evaluateYearState(year, index, state.years, state.globalSettings || {}));
+      const cumulativeView = state.years.length >= 2 ? buildCumulativeView(state) : null;
+      const usedWorksheetNames = new Set();
+      const worksheets = [
+        buildSpreadsheetSummaryWorksheet(state, evaluations, cumulativeView)
+      ];
+      worksheets[0].name = sanitizeWorksheetName(worksheets[0].name, usedWorksheetNames);
+
+      state.years.forEach((year, index) => {
+        const worksheet = buildYearSpreadsheetWorksheet(state, year, evaluations[index], index);
+        worksheet.name = sanitizeWorksheetName(getYearDisplayLabel(year, index), usedWorksheetNames);
+        worksheets.push(worksheet);
+      });
+
+      if (cumulativeView) {
+        const cumulativeWorksheet = buildYearSpreadsheetWorksheet(
+          state,
+          cumulativeView.yearState,
+          cumulativeView.evaluation,
+          state.years.length,
+          {
+            sheetLabel: "Cumulative",
+            indirectRateText: cumulativeView.indirectRateStaticText
+          }
+        );
+        cumulativeWorksheet.name = sanitizeWorksheetName("Cumulative", usedWorksheetNames);
+        worksheets.push(cumulativeWorksheet);
+      }
+
+      return serializeSpreadsheetWorkbook({ worksheets });
+    }
+
     function renderPrintProposalSnapshot(state = collectPlannerState()) {
       const evaluations = state.years.map((year, index) => evaluateYearState(year, index, state.years, state.globalSettings || {}));
       const cumulativeView = state.years.length >= 2 ? buildCumulativeView(state) : null;
@@ -6018,6 +6829,19 @@
       }
     }
 
+    function downloadSpreadsheet() {
+      calculate();
+
+      try {
+        const state = collectPlannerState();
+        const workbookXml = buildSpreadsheetWorkbook(state);
+        downloadSpreadsheetFile(workbookXml, buildSpreadsheetFilename(state));
+        paintStatus("good", "Spreadsheet downloaded.", "The workbook includes proposal values and calculated totals.");
+      } catch (error) {
+        paintStatus("warn", "Download failed.", "The spreadsheet workbook could not be created.");
+      }
+    }
+
     async function copyShareableLink() {
       calculate();
       const shareUrl = buildAbsoluteShareableUrl();
@@ -6085,6 +6909,7 @@
     elements.removeYearButton.addEventListener("click", removeActiveYear);
     elements.resetButton.addEventListener("click", resetPlanner);
     elements.copySummaryButton.addEventListener("click", copySummaryToClipboard);
+    elements.downloadSpreadsheetButton.addEventListener("click", downloadSpreadsheet);
     elements.copyLinkButton.addEventListener("click", copyShareableLink);
     elements.reloadOrsRatesButton.addEventListener("click", () => {
       loadOrsRates({ forceApply: true });
