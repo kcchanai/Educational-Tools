@@ -6350,6 +6350,74 @@
       return matchingOption?.label || value;
     }
 
+    function calculateStoredBudgetHelperPreview(helperState = null) {
+      if (!helperState) {
+        return {
+          calMonths: 0,
+          acadMonths: 0,
+          sumrMonths: 0,
+          salaryPerTE: 0,
+          salaryBeforeFringe: 0,
+          fringe: 0
+        };
+      }
+
+      const facultyTerm = helperState.facultyTerm || helperStateDefaults.facultyTerm;
+      const desiredTE = readStoredNumberValue(helperState.desiredTE);
+      const desiredInstructionalTE = readStoredNumberValue(helperState.desiredInstructionalTE);
+      const desiredNonInstructionalDays = readStoredNumberValue(helperState.desiredNonInstructionalDays);
+      const annualSalary = readStoredNumberValue(helperState.annualSalary);
+      const annualCreditLoad = helperState.annualCreditLoad === ""
+        ? getDefaultAnnualCreditLoadForFacultyTerm(facultyTerm)
+        : readStoredNumberValue(helperState.annualCreditLoad);
+      const releaseFringeRatePercent = readStoredNumberValue(helperState.releaseFringeRate);
+      const overloadFringeRatePercent = readStoredNumberValue(helperState.overloadFringeRate);
+      const instructionalCostPerTE = readStoredNumberValue(helperState.instructionalCostPerTE);
+      const hasWorkInput = [
+        desiredTE,
+        desiredInstructionalTE,
+        desiredNonInstructionalDays,
+        annualSalary,
+        releaseFringeRatePercent,
+        overloadFringeRatePercent,
+        instructionalCostPerTE
+      ].some((value) => value > 0);
+      const invalid = (hasWorkInput && annualSalary <= 0) ||
+        (desiredTE > 0 && !(annualCreditLoad > 0)) ||
+        (desiredInstructionalTE > 0 && !(instructionalCostPerTE > 0));
+
+      const salaryPerTE = invalid
+        ? 0
+        : roundUpDollar(annualSalary / annualCreditLoad);
+      const releaseSalary = invalid
+        ? 0
+        : roundToCent(salaryPerTE * desiredTE);
+      const instructionalSalary = invalid
+        ? 0
+        : roundToCent(desiredInstructionalTE * instructionalCostPerTE);
+      const nonInstructionalSalary = invalid
+        ? 0
+        : roundToCent((desiredNonInstructionalDays * annualSalary) / getNonInstructionalDayFactorForFacultyTerm(facultyTerm));
+      const releaseFringe = invalid
+        ? 0
+        : roundToCent(releaseSalary * releaseFringeRatePercent / 100);
+      const instructionalFringe = invalid
+        ? 0
+        : roundToCent(instructionalSalary * overloadFringeRatePercent / 100);
+      const nonInstructionalFringe = invalid
+        ? 0
+        : roundToCent(nonInstructionalSalary * overloadFringeRatePercent / 100);
+
+      return {
+        calMonths: 0,
+        acadMonths: roundToCent(desiredTE / 3),
+        sumrMonths: roundToCent((desiredInstructionalTE / 3) + (desiredNonInstructionalDays / 21)),
+        salaryPerTE,
+        salaryBeforeFringe: roundToCent(releaseSalary + instructionalSalary + nonInstructionalSalary),
+        fringe: roundToCent(releaseFringe + instructionalFringe + nonInstructionalFringe)
+      };
+    }
+
     function findStoredRowByKey(rows = [], key) {
       return rows.find((row) => row && row.key === key) || null;
     }
@@ -6971,6 +7039,7 @@
       seniorPersonnelDefinitions.filter((definition) => definition.kind !== "others").forEach((definition) => {
         const row = findStoredRowByKey(year.personnel?.senior || [], definition.key);
         const helper = row?.helper || null;
+        const helperPreview = calculateStoredBudgetHelperPreview(helper);
         const helperRowNumber = rows.length + 1;
         const desiredTERef = getCellRef(helperRowNumber, 4);
         const desiredInstructionalTERef = getCellRef(helperRowNumber, 5);
@@ -7012,12 +7081,12 @@
           optionalNumberSpreadsheetCell(helper?.overloadFringeRate),
           textSpreadsheetCell(formatSpreadsheetSummerRateSource(helper?.summerRateSource)),
           optionalNumberSpreadsheetCell(helper?.instructionalCostPerTE, "Currency"),
-          formulaSpreadsheetCell(0, "0"),
-          formulaSpreadsheetCell(readStoredNumberValue(helper?.desiredTE) / 3, buildSpreadsheetRoundToCentFormula(`${desiredTERef}/3`)),
-          formulaSpreadsheetCell((readStoredNumberValue(helper?.desiredInstructionalTE) / 3) + (readStoredNumberValue(helper?.desiredNonInstructionalDays) / 21), buildSpreadsheetRoundToCentFormula(`${desiredInstructionalTERef}/3+${desiredNonInstructionalDaysRef}/21`)),
-          formulaSpreadsheetCell(0, salaryPerTEFormula, "Currency"),
-          formulaSpreadsheetCell(readStoredNumberValue(row?.baseSalary), buildSpreadsheetRoundToCentFormula(`${releaseSalaryFormula}+${instructionalSalaryFormula}+${nonInstructionalSalaryFormula}`), "Currency"),
-          formulaSpreadsheetCell(readStoredNumberValue(row?.fringeAmount), buildSpreadsheetRoundToCentFormula(`${releaseFringeFormula}+${instructionalFringeFormula}+${nonInstructionalFringeFormula}`), "Currency")
+          formulaSpreadsheetCell(helperPreview.calMonths, "0"),
+          formulaSpreadsheetCell(helperPreview.acadMonths, buildSpreadsheetRoundToCentFormula(`${desiredTERef}/3`)),
+          formulaSpreadsheetCell(helperPreview.sumrMonths, buildSpreadsheetRoundToCentFormula(`${desiredInstructionalTERef}/3+${desiredNonInstructionalDaysRef}/21`)),
+          formulaSpreadsheetCell(helperPreview.salaryPerTE, salaryPerTEFormula, "Currency"),
+          formulaSpreadsheetCell(helperPreview.salaryBeforeFringe, buildSpreadsheetRoundToCentFormula(`${releaseSalaryFormula}+${instructionalSalaryFormula}+${nonInstructionalSalaryFormula}`), "Currency"),
+          formulaSpreadsheetCell(helperPreview.fringe, buildSpreadsheetRoundToCentFormula(`${releaseFringeFormula}+${instructionalFringeFormula}+${nonInstructionalFringeFormula}`), "Currency")
         ]);
         helperOutputRefsByKey[definition.key] = {
           cal: calMonthsRef,
