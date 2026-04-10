@@ -2074,10 +2074,10 @@
       <div class="action-subrow">
         <div class="action-help">
           Reset clears only the active budget period. Copy Text Summary copies a plain-text multi-year budget
-          summary to the clipboard. Download Spreadsheet saves an XLSX workbook of the current proposal
-          values. Copy Shareable Link copies a URL with the current proposal state. Print / Save as PDF opens
-          the browser print dialog for all years. Help opens a quick reference for the worksheet structure and
-          calculations.
+          summary to the clipboard. Download Spreadsheet saves an XLSX workbook with per-year sheets,
+          calculated totals, and native Excel formulas. Copy Shareable Link copies a URL with the current
+          proposal state. Print / Save as PDF opens the browser print dialog for all years. Help opens a quick
+          reference for the worksheet structure and calculations.
         </div>
       </div>
       <div class="status" id="status-box" hidden></div>
@@ -2495,7 +2495,9 @@
               <li>The active worksheet displays NSF-style totals inline as you work through Sections A through M.</li>
               <li>When available, the Cumulative tab shows a summed multi-year view across all editable year tabs.</li>
               <li>Copy Text Summary creates a plain-text multi-year proposal summary for email or planning notes.</li>
-              <li>Download Spreadsheet creates an XLSX workbook with proposal metadata, yearly inputs, and calculated totals.</li>
+              <li>Download Spreadsheet creates an XLSX workbook with proposal metadata, one worksheet per budget period, a summary sheet, and a cumulative sheet when available.</li>
+              <li>The spreadsheet includes native Excel formulas for worksheet totals and Budget Helper outputs so totals can recalculate inside Excel.</li>
+              <li>Exported spreadsheet cells use wrapped text formatting to make long labels and notes easier to read.</li>
               <li>Copy Shareable Link copies a URL containing the current proposal state.</li>
               <li>Print / Save as PDF creates a print-friendly multi-year proposal summary, including the cumulative view when available.</li>
             </ul>
