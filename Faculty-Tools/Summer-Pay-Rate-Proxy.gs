@@ -52,7 +52,9 @@ function doGet(e) {
       fetchedAt: new Date().toISOString(),
       releaseFringeRate: parsedRates.releaseFringeRate,
       overloadFringeRate: parsedRates.overloadFringeRate,
-      indirectRate: parsedRates.indirectRate
+      indirectRate: parsedRates.onCampusIndirectRate,
+      onCampusIndirectRate: parsedRates.onCampusIndirectRate,
+      offCampusIndirectRate: parsedRates.offCampusIndirectRate
     });
   }
 
@@ -193,13 +195,14 @@ function dedupeRates(rates) {
 
 function extractOrsRatesFromHtml(html) {
   const text = htmlToPlainText(html);
-  const indirectRate = extractIndirectRate(text);
+  const indirectRates = extractIndirectRatesSafe(text);
   const fringeRates = extractCompositeFringeRates(text);
 
   return {
     releaseFringeRate: fringeRates.faculty,
     overloadFringeRate: fringeRates.overload,
-    indirectRate: indirectRate
+    onCampusIndirectRate: indirectRates.onCampusIndirectRate,
+    offCampusIndirectRate: indirectRates.offCampusIndirectRate
   };
 }
 
@@ -231,6 +234,38 @@ function extractIndirectRate(text) {
 
   if (rates.length === 0) {
     throw new Error("No F&A percentages found in Research, On-Campus row.");
+  }
+
+  return rates[rates.length - 1];
+}
+
+function extractIndirectRatesSafe(text) {
+  return {
+    onCampusIndirectRate: extractIndirectRateForRow(text, /Research,\s*On[\s\-]*Campus/i, "Research, On-Campus"),
+    offCampusIndirectRate: extractIndirectRateForRow(text, /Research,\s*Off[\s\-]*Campus/i, "Research, Off-Campus")
+  };
+}
+
+function extractIndirectRates(text) {
+  return {
+    onCampusIndirectRate: extractIndirectRateForRow(text, /Research,\s*On[\s\-â€“â€”]*Campus/i, "Research, On-Campus"),
+    offCampusIndirectRate: extractIndirectRateForRow(text, /Research,\s*Off[\s\-â€“â€”]*Campus/i, "Research, Off-Campus")
+  };
+}
+
+function extractIndirectRateForRow(text, rowPattern, rowLabel) {
+  const row = text.split("\n").find(function (line) {
+    return rowPattern.test(line);
+  });
+
+  if (!row) {
+    throw new Error(rowLabel + " row not found in F&A section.");
+  }
+
+  const rates = extractPercentages(row);
+
+  if (rates.length === 0) {
+    throw new Error("No F&A percentages found in " + rowLabel + " row.");
   }
 
   return rates[rates.length - 1];

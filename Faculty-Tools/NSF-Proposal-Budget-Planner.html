@@ -1176,6 +1176,11 @@
       width: 72px;
     }
 
+    .budget-table .idc-treatment-cell {
+      width: 180px;
+      min-width: 180px;
+    }
+
     #non-personnel-sections tbody th {
       text-align: left;
       font-weight: 700;
@@ -2004,9 +2009,14 @@
             <div class="cumulative-static-value" id="budget-period-label-static"></div>
           </div>
           <div>
-            <label for="default-indirect-rate">Indirect cost rate (%)<br><span>for current period</span></label>
+            <label for="default-indirect-rate">On-campus indirect cost rate (%)<br><span>for current period</span></label>
             <input id="default-indirect-rate" type="number" min="0" step="0.01" value="45.50">
             <div class="cumulative-static-value" id="default-indirect-rate-static"></div>
+          </div>
+          <div>
+            <label for="off-campus-indirect-rate">Off-campus indirect cost rate (%)<br><span>for current period</span></label>
+            <input id="off-campus-indirect-rate" type="number" min="0" step="0.01" value="26.00">
+            <div class="cumulative-static-value" id="off-campus-indirect-rate-static"></div>
           </div>
         </div>
       </div>
@@ -2172,14 +2182,20 @@
                 <tr>
                   <th>Equipment (List item and dollar amount for each item exceeding $10,000.)</th>
                   <th>Funds Requested</th>
-                  <th class="checkbox-cell">IDC?</th>
+                  <th class="idc-treatment-cell">IDC Treatment</th>
                 </tr>
               </thead>
               <tbody>
                 <tr data-category-key="equipment" data-category-label="Equipment">
                   <td><textarea id="equipment-description" class="direct-detail entry-text-input" rows="4" placeholder="Describe equipment item(s), one item per line"></textarea></td>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus">On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none" selected>Neither</option>
+                    </select>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -2196,19 +2212,31 @@
                 <tr>
                   <th>Category</th>
                   <th>Funds Requested</th>
-                  <th class="checkbox-cell">IDC?</th>
+                  <th class="idc-treatment-cell">IDC Treatment</th>
                 </tr>
               </thead>
               <tbody>
                 <tr data-category-key="travelDomestic" data-category-label="Domestic Travel">
                   <th scope="row">E1. Domestic (Incl. U.S. Possessions)</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus" selected>On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none">Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="travelInternational" data-category-label="International Travel">
                   <th scope="row">E2. International</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus" selected>On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none">Neither</option>
+                    </select>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -2225,29 +2253,53 @@
                 <tr>
                   <th>Category</th>
                   <th>Funds Requested</th>
-                  <th class="checkbox-cell">IDC?</th>
+                  <th class="idc-treatment-cell">IDC Treatment</th>
                 </tr>
               </thead>
               <tbody>
                 <tr data-category-key="participantStipends" data-category-label="Participant Support - Stipends">
                   <th scope="row">F1. Stipends</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus">On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none" selected>Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="participantTravel" data-category-label="Participant Support - Travel">
                   <th scope="row">F2. Travel</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus">On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none" selected>Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="participantSubsistence" data-category-label="Participant Support - Subsistence">
                   <th scope="row">F3. Subsistence</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus">On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none" selected>Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="participantOther" data-category-label="Participant Support - Other">
                   <th scope="row">F4. Other</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox"></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus">On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none" selected>Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr class="participant-count-row">
                   <th scope="row">
@@ -2279,39 +2331,75 @@
                 <tr>
                   <th>Category</th>
                   <th>Funds Requested</th>
-                  <th class="checkbox-cell">IDC?</th>
+                  <th class="idc-treatment-cell">IDC Treatment</th>
                 </tr>
               </thead>
               <tbody>
                 <tr data-category-key="materials" data-category-label="Materials and Supplies">
                   <th scope="row">G1. Materials and Supplies</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus" selected>On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none">Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="publication" data-category-label="Publication Costs / Documentation / Dissemination">
                   <th scope="row">G2. Publication Costs / Documentation / Dissemination</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus" selected>On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none">Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="consultant" data-category-label="Consultant Services">
                   <th scope="row">G3. Consultant Services</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus" selected>On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none">Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="computer" data-category-label="Computer Services">
                   <th scope="row">G4. Computer Services</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus" selected>On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none">Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="subawards" data-category-label="Subawards">
                   <th scope="row">G5. Subawards</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus" selected>On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none">Neither</option>
+                    </select>
+                  </td>
                 </tr>
                 <tr data-category-key="otherDirect" data-category-label="Other">
                   <th scope="row">G6. Other</th>
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
-                  <td class="checkbox-cell"><input class="idc-applies" type="checkbox" checked></td>
+                  <td class="idc-treatment-cell">
+                    <select class="idc-mode-select">
+                      <option value="onCampus" selected>On-campus IDC</option>
+                      <option value="offCampus">Off-campus IDC</option>
+                      <option value="none">Neither</option>
+                    </select>
+                  </td>
                 </tr>
               </tbody>
               <tfoot>
@@ -2343,12 +2431,20 @@
         </div>
         <dl class="rollup-grid">
           <div class="rollup-row">
-            <dt>Base: Modified Total Direct Costs (MTDC) <span class="inline-note">This is the indirect-cost base and excludes direct-cost lines not subject to IDC, such as participant support costs.</span></dt>
-            <dd id="rollup-mtdc">$0</dd>
+            <dt>On-campus Base (MTDC) <span class="inline-note">The indirect-cost base excludes direct-cost lines not subject to IDC, and personnel costs remain on-campus unless an eligible Section D-G line is assigned off-campus.</span></dt>
+            <dd id="rollup-on-campus-base">$0</dd>
           </div>
           <div class="rollup-row">
-            <dt>IDC rate used</dt>
-            <dd id="rollup-idc-rate-used">45.50%</dd>
+            <dt>On-campus IDC rate used</dt>
+            <dd id="rollup-on-campus-idc-rate-used">45.50%</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>Off-campus Base (MTDC)</dt>
+            <dd id="rollup-off-campus-base">$0</dd>
+          </div>
+          <div class="rollup-row">
+            <dt>Off-campus IDC rate used</dt>
+            <dd id="rollup-off-campus-idc-rate-used">26.00%</dd>
           </div>
           <div class="rollup-row total">
             <dt>I. Total indirect costs (F&amp;A)</dt>
@@ -2433,12 +2529,12 @@
             <h3>Shared Settings and Rates</h3>
             <ul>
               <li>Organization, proposal number, PI / PD name, and Org. Rep. Name are shared across the whole proposal.</li>
-              <li>The Custom budget period label and Indirect cost rate belong to the active year tab and are edited in Active Budget Period Settings.</li>
+              <li>The Custom budget period label plus the on-campus and off-campus indirect cost rates belong to the active year tab and are edited in Active Budget Period Settings.</li>
               <li>Money-entry fields show a non-editable dollar sign; type numbers only.</li>
-              <li>Use Reload Live ORS Defaults to refresh the planner's indirect cost rate and the Budget Helper fringe defaults from the UH ORS rate page.</li>
+              <li>Use Reload Live ORS Defaults to refresh the planner's on-campus and off-campus indirect cost rates and the Budget Helper fringe defaults from the UH ORS rate page.</li>
               <li>Live summer instructional pay rates require a configured proxy URL. When unavailable, Budget Helper still supports manual entry in the adjacent Cost per Instructional Overload TE/Credit cell.</li>
-              <li>Checked direct-cost rows use the active year's indirect cost rate.</li>
-              <li>Clear a row's IDC checkbox when indirect cost should not apply to that line.</li>
+              <li>Each Section D, E, F, and G direct-cost row can use On-campus IDC, Off-campus IDC, or Neither.</li>
+              <li>Personnel costs remain in the on-campus IDC base unless an eligible Section D through G line is assigned off-campus.</li>
             </ul>
           </section>
           <section class="modal-section">
@@ -2475,9 +2571,9 @@
               <li>Section A is a fixed six-row senior-personnel table. Section B is a fixed six-row NSF other-personnel table.</li>
               <li>Sections D through M follow the NSF worksheet order, with separate sections for equipment, travel, participant support, other direct costs, indirect costs, fee, amount requested, and cost sharing.</li>
               <li>Section D includes a multiline equipment description field so you can list multiple equipment items exceeding $10,000.</li>
-              <li>Each D, E, F, and G budget line includes Funds Requested and an IDC checkbox.</li>
+              <li>Each D, E, F, and G budget line includes Funds Requested and an IDC Treatment selector.</li>
               <li>Section F includes participant-support line items, a Total Number of Participants input, and a Total Participant Costs summary row.</li>
-              <li>Section I shows the Modified Total Direct Costs (MTDC) base, indirect cost rate used, and indirect costs.</li>
+              <li>Section I shows separate on-campus and off-campus MTDC bases, the rate used for each base, and total indirect costs.</li>
               <li>Section M includes both Cost Sharing Proposed Level and Agreed Level if Different.</li>
             </ul>
           </section>
@@ -2549,6 +2645,9 @@
 
     const otherPersonnelDefinitionMap = new Map(otherPersonnelDefinitions.map((definition) => [definition.key, definition]));
     const nonPersonnelDefinitionMap = new Map(nonPersonnelDefinitions.map((definition) => [definition.key, definition]));
+    const IDC_MODE_ON_CAMPUS = "onCampus";
+    const IDC_MODE_OFF_CAMPUS = "offCampus";
+    const IDC_MODE_NONE = "none";
 
     const elements = {
       organizationLabel: document.getElementById("organization-label"),
@@ -2559,6 +2658,8 @@
       budgetPeriodLabelStatic: document.getElementById("budget-period-label-static"),
       defaultIndirectRate: document.getElementById("default-indirect-rate"),
       defaultIndirectRateStatic: document.getElementById("default-indirect-rate-static"),
+      offCampusIndirectRate: document.getElementById("off-campus-indirect-rate"),
+      offCampusIndirectRateStatic: document.getElementById("off-campus-indirect-rate-static"),
       yearTabs: document.getElementById("year-tabs"),
       yearTabsCard: document.querySelector(".year-tabs-card"),
       yearTabsCardPlaceholder: document.getElementById("year-tabs-card-placeholder"),
@@ -2601,8 +2702,10 @@
       rollupParticipant: document.getElementById("rollup-participant"),
       rollupOtherDirect: document.getElementById("rollup-other-direct"),
       rollupTotalDirect: document.getElementById("rollup-total-direct"),
-      rollupMTDC: document.getElementById("rollup-mtdc"),
-      rollupIdcRateUsed: document.getElementById("rollup-idc-rate-used"),
+      rollupOnCampusBase: document.getElementById("rollup-on-campus-base"),
+      rollupOnCampusIdcRateUsed: document.getElementById("rollup-on-campus-idc-rate-used"),
+      rollupOffCampusBase: document.getElementById("rollup-off-campus-base"),
+      rollupOffCampusIdcRateUsed: document.getElementById("rollup-off-campus-idc-rate-used"),
       rollupTotalIndirect: document.getElementById("rollup-total-indirect"),
       rollupTotalBudget: document.getElementById("rollup-total-budget"),
       rollupAmountRequested: document.getElementById("rollup-amount-requested"),
@@ -2647,17 +2750,20 @@
     let urlSyncDisabled = false;
     let suppressRateFieldTracking = false;
     let defaultIndirectRateTouched = false;
+    let offCampusIndirectRateTouched = false;
     let liveSummerRateOptions = [];
     let proposalState = null;
     let yearIdCounter = 0;
     let floatingYearTabsFrame = 0;
     const builtInHelperRateDefaults = {
       defaultIndirectRate: elements.defaultIndirectRate.value,
+      defaultOffCampusIndirectRate: elements.offCampusIndirectRate.value,
       releaseFringeRate: "59.5",
       overloadFringeRate: "2.47"
     };
     const helperStateDefaults = {
       defaultIndirectRate: elements.defaultIndirectRate.value,
+      defaultOffCampusIndirectRate: elements.offCampusIndirectRate.value,
       facultyTerm: "uhcc9",
       releaseFringeRate: "59.5",
       overloadFringeRate: "2.47",
@@ -2960,6 +3066,16 @@
       suppressRateFieldTracking = false;
     }
 
+    function setTrackedOffCampusIndirectRate(value, forceApply = false) {
+      if (offCampusIndirectRateTouched && !forceApply) {
+        return;
+      }
+
+      suppressRateFieldTracking = true;
+      elements.offCampusIndirectRate.value = String(value);
+      suppressRateFieldTracking = false;
+    }
+
     function getPersonnelValueInputs(row) {
       return {
         calMonths: row.querySelector(".cal-months"),
@@ -3128,14 +3244,76 @@
       };
     }
 
-    function defaultIdcAppliesForCategory(key) {
-      return ![
+    function defaultIdcModeForCategory(key) {
+      return [
         "equipment",
         "participantStipends",
         "participantTravel",
         "participantSubsistence",
         "participantOther"
-      ].includes(key);
+      ].includes(key)
+        ? IDC_MODE_NONE
+        : IDC_MODE_ON_CAMPUS;
+    }
+
+    function defaultIdcAppliesForCategory(key) {
+      return defaultIdcModeForCategory(key) !== IDC_MODE_NONE;
+    }
+
+    function normalizeIdcMode(value, fallback = IDC_MODE_NONE) {
+      if (value === IDC_MODE_ON_CAMPUS || value === IDC_MODE_OFF_CAMPUS || value === IDC_MODE_NONE) {
+        return value;
+      }
+
+      if (value === true || value === "true" || value === "yes") {
+        return IDC_MODE_ON_CAMPUS;
+      }
+
+      if (value === false || value === "false" || value === "no") {
+        return IDC_MODE_NONE;
+      }
+
+      return fallback;
+    }
+
+    function idcModeApplies(mode) {
+      return mode === IDC_MODE_ON_CAMPUS || mode === IDC_MODE_OFF_CAMPUS;
+    }
+
+    function getIdcModeLabel(mode) {
+      switch (normalizeIdcMode(mode, IDC_MODE_NONE)) {
+        case IDC_MODE_ON_CAMPUS:
+          return "On-campus IDC";
+        case IDC_MODE_OFF_CAMPUS:
+          return "Off-campus IDC";
+        default:
+          return "Neither";
+      }
+    }
+
+    function getIndirectRateForMode(mode, rates = {}) {
+      const normalizedMode = normalizeIdcMode(mode, IDC_MODE_NONE);
+      if (normalizedMode === IDC_MODE_ON_CAMPUS) {
+        return Number.isFinite(rates.onCampusRate) ? rates.onCampusRate : 0;
+      }
+
+      if (normalizedMode === IDC_MODE_OFF_CAMPUS) {
+        return Number.isFinite(rates.offCampusRate) ? rates.offCampusRate : 0;
+      }
+
+      return 0;
+    }
+
+    function buildIdcRateStaticText(onCampusRate, offCampusRate) {
+      const onText = typeof onCampusRate === "string" ? onCampusRate : formatPercent(onCampusRate);
+      const offText = typeof offCampusRate === "string" ? offCampusRate : formatPercent(offCampusRate);
+      return `On-campus: ${onText} | Off-campus: ${offText}`;
+    }
+
+    function buildIdcRateLineText(onCampusRate, offCampusRate) {
+      const onText = typeof onCampusRate === "string" ? onCampusRate : formatPercent(onCampusRate);
+      const offText = typeof offCampusRate === "string" ? offCampusRate : formatPercent(offCampusRate);
+      return `On-campus IDC rate: ${onText}; Off-campus IDC rate: ${offText}`;
     }
 
     function getMoneyStateValue(input) {
@@ -3323,6 +3501,8 @@
           budgetPeriodLabel: "",
           defaultIndirectRate: helperStateDefaults.defaultIndirectRate,
           defaultIndirectRateTouched: false,
+          offCampusIndirectRate: helperStateDefaults.defaultOffCampusIndirectRate,
+          offCampusIndirectRateTouched: false,
           feeAmount: "",
           costSharingAmount: "",
           costSharingAgreedAmount: ""
@@ -3392,8 +3572,10 @@
 
     function clearYearWorksheetForm() {
       defaultIndirectRateTouched = false;
+      offCampusIndirectRateTouched = false;
       elements.budgetPeriodLabel.value = "";
       elements.defaultIndirectRate.value = helperStateDefaults.defaultIndirectRate;
+      elements.offCampusIndirectRate.value = helperStateDefaults.defaultOffCampusIndirectRate;
       elements.participantCount.value = "";
       elements.equipmentDescription.value = "";
       clearMoneyInputValue(elements.feeAmount);
@@ -3407,12 +3589,13 @@
       getNonPersonnelRows().forEach((row) => {
         const detailInput = row.querySelector(".direct-detail");
         const amountInput = row.querySelector(".direct-amount");
-        const checkbox = row.querySelector(".idc-applies");
+        const idcModeSelect = row.querySelector(".idc-mode-select");
         if (detailInput) {
           detailInput.value = "";
         }
         clearMoneyInputValue(amountInput);
-        checkbox.checked = defaultIdcAppliesForCategory(row.dataset.categoryKey);
+        idcModeSelect.value = defaultIdcModeForCategory(row.dataset.categoryKey);
+        delete idcModeSelect.dataset.staticValue;
       });
     }
 
@@ -3423,6 +3606,8 @@
           budgetPeriodLabel: elements.budgetPeriodLabel.value.trim(),
           defaultIndirectRate: elements.defaultIndirectRate.value.trim() || helperStateDefaults.defaultIndirectRate,
           defaultIndirectRateTouched,
+          offCampusIndirectRate: elements.offCampusIndirectRate.value.trim() || helperStateDefaults.defaultOffCampusIndirectRate,
+          offCampusIndirectRateTouched,
           feeAmount: getMoneyStateValue(elements.feeAmount),
           costSharingAmount: getMoneyStateValue(elements.costSharingAmount),
           costSharingAgreedAmount: getMoneyStateValue(elements.costSharingAgreedAmount)
@@ -3440,9 +3625,12 @@
           .map((row) => {
             const detail = row.querySelector(".direct-detail")?.value.trim() || "";
             const amount = getMoneyStateValue(row.querySelector(".direct-amount"));
-            const idcApplies = row.querySelector(".idc-applies").checked;
+            const idcMode = normalizeIdcMode(
+              row.querySelector(".idc-mode-select")?.value,
+              defaultIdcModeForCategory(row.dataset.categoryKey)
+            );
             const key = row.dataset.categoryKey;
-            const hasContent = detail !== "" || amount !== "" || idcApplies !== defaultIdcAppliesForCategory(key);
+            const hasContent = detail !== "" || amount !== "" || idcMode !== defaultIdcModeForCategory(key);
 
             if (!hasContent) {
               return null;
@@ -3451,7 +3639,7 @@
             return {
               key,
               amount,
-              idcApplies,
+              idcMode,
               detail
             };
           })
@@ -3484,10 +3672,21 @@
       normalizedYear.settings.budgetPeriodLabel = normalizedYear.settings.budgetPeriodLabel || "";
       normalizedYear.settings.defaultIndirectRate = normalizedYear.settings.defaultIndirectRate || helperStateDefaults.defaultIndirectRate;
       normalizedYear.settings.defaultIndirectRateTouched = Boolean(normalizedYear.settings.defaultIndirectRateTouched);
+      normalizedYear.settings.offCampusIndirectRate = normalizedYear.settings.offCampusIndirectRate || helperStateDefaults.defaultOffCampusIndirectRate;
+      normalizedYear.settings.offCampusIndirectRateTouched = Boolean(normalizedYear.settings.offCampusIndirectRateTouched);
       normalizedYear.settings.feeAmount = normalizedYear.settings.feeAmount || "";
       normalizedYear.settings.costSharingAmount = normalizedYear.settings.costSharingAmount || "";
       normalizedYear.settings.costSharingAgreedAmount = normalizedYear.settings.costSharingAgreedAmount || "";
       normalizedYear.participantSupport.participantCount = normalizedYear.participantSupport.participantCount || "";
+      normalizedYear.nonPersonnel = normalizedYear.nonPersonnel.map((entry) => ({
+        ...entry,
+        idcMode: normalizeIdcMode(
+          entry?.idcMode,
+          Object.prototype.hasOwnProperty.call(entry || {}, "idcApplies")
+            ? (entry.idcApplies ? IDC_MODE_ON_CAMPUS : IDC_MODE_NONE)
+            : defaultIdcModeForCategory(entry?.key)
+        )
+      }));
 
       return normalizedYear;
     }
@@ -3497,7 +3696,9 @@
         settings: {
           budgetPeriodLabel: state.settings?.budgetPeriodLabel || "",
           defaultIndirectRate: state.settings?.defaultIndirectRate || helperStateDefaults.defaultIndirectRate,
-          defaultIndirectRateTouched: Boolean(state.settings && Object.prototype.hasOwnProperty.call(state.settings, "defaultIndirectRate"))
+          defaultIndirectRateTouched: Boolean(state.settings && Object.prototype.hasOwnProperty.call(state.settings, "defaultIndirectRate")),
+          offCampusIndirectRate: helperStateDefaults.defaultOffCampusIndirectRate,
+          offCampusIndirectRateTouched: false
         },
         participantSupport: {
           participantCount: state.participantSupport?.participantCount || ""
@@ -3593,10 +3794,12 @@
       return Boolean(year?.settings?.budgetPeriodLabel) ||
         Boolean(year?.participantSupport?.participantCount) ||
         Boolean(year?.settings?.defaultIndirectRateTouched) ||
+        Boolean(year?.settings?.offCampusIndirectRateTouched) ||
         Boolean(year?.settings?.feeAmount) ||
         Boolean(year?.settings?.costSharingAmount) ||
         Boolean(year?.settings?.costSharingAgreedAmount) ||
         (year?.settings?.defaultIndirectRate && year.settings.defaultIndirectRate !== helperStateDefaults.defaultIndirectRate) ||
+        (year?.settings?.offCampusIndirectRate && year.settings.offCampusIndirectRate !== helperStateDefaults.defaultOffCampusIndirectRate) ||
         Object.values(year?.personnel || {}).some((rows) => Array.isArray(rows) && rows.length > 0) ||
         (Array.isArray(year?.nonPersonnel) && year.nonPersonnel.length > 0);
     }
@@ -3757,6 +3960,10 @@
         return control.indeterminate ? "Mixed" : (control.checked ? "Yes" : "No");
       }
 
+      if (control.classList.contains("idc-mode-select")) {
+        return getIdcModeLabel(control.value);
+      }
+
       if (control.classList.contains("money-input")) {
         const value = readStoredNumberValue(getMoneyStateValue(control));
         return formatWholeDollarNumber(value);
@@ -3787,13 +3994,16 @@
 
       elements.budgetPeriodLabelStatic.textContent = elements.budgetPeriodLabel.dataset.staticValue || elements.budgetPeriodLabel.value || "\u2014";
       elements.defaultIndirectRateStatic.textContent = elements.defaultIndirectRate.dataset.staticValue || (elements.defaultIndirectRate.value ? `${elements.defaultIndirectRate.value}%` : "\u2014");
+      elements.offCampusIndirectRateStatic.textContent = elements.offCampusIndirectRate.dataset.staticValue || (elements.offCampusIndirectRate.value ? `${elements.offCampusIndirectRate.value}%` : "\u2014");
     }
 
     function clearCumulativeStaticOverrides() {
       delete elements.budgetPeriodLabel.dataset.staticValue;
       delete elements.defaultIndirectRate.dataset.staticValue;
+      delete elements.offCampusIndirectRate.dataset.staticValue;
       elements.budgetPeriodLabelStatic.textContent = "";
       elements.defaultIndirectRateStatic.textContent = "";
+      elements.offCampusIndirectRateStatic.textContent = "";
     }
 
     function setWorksheetReadOnly(isReadOnly) {
@@ -3801,6 +4011,8 @@
       elements.budgetPeriodLabel.readOnly = isReadOnly;
       elements.defaultIndirectRate.readOnly = isReadOnly;
       elements.defaultIndirectRate.disabled = isReadOnly;
+      elements.offCampusIndirectRate.readOnly = isReadOnly;
+      elements.offCampusIndirectRate.disabled = isReadOnly;
       elements.participantCount.readOnly = isReadOnly;
       elements.participantCount.disabled = isReadOnly;
       elements.resetButton.disabled = isReadOnly;
@@ -3829,8 +4041,10 @@
       clearYearWorksheetForm();
 
       defaultIndirectRateTouched = Boolean(yearState.settings?.defaultIndirectRateTouched);
+      offCampusIndirectRateTouched = Boolean(yearState.settings?.offCampusIndirectRateTouched);
       elements.budgetPeriodLabel.value = yearState.settings?.budgetPeriodLabel || "";
       elements.defaultIndirectRate.value = yearState.settings?.defaultIndirectRate ?? helperStateDefaults.defaultIndirectRate;
+      elements.offCampusIndirectRate.value = yearState.settings?.offCampusIndirectRate ?? helperStateDefaults.defaultOffCampusIndirectRate;
       elements.participantCount.value = yearState.participantSupport?.participantCount || "";
       elements.equipmentDescription.value = (yearState.nonPersonnel || []).find((entry) => entry.key === "equipment")?.detail || "";
       elements.feeAmount.value = yearState.settings?.feeAmount || "";
@@ -3847,7 +4061,8 @@
       }
       if (isReadOnly) {
         elements.budgetPeriodLabel.dataset.staticValue = yearState.settings?.budgetPeriodLabel || "Cumulative";
-        elements.defaultIndirectRate.dataset.staticValue = options.indirectRateStaticText || "Varies by year";
+        elements.defaultIndirectRate.dataset.staticValue = options.onCampusIndirectRateStaticText || "Varies by year";
+        elements.offCampusIndirectRate.dataset.staticValue = options.offCampusIndirectRateStaticText || "Varies by year";
       } else {
         clearCumulativeStaticOverrides();
       }
@@ -3860,14 +4075,14 @@
         const stateRow = (yearState.nonPersonnel || []).find((entry) => entry.key === row.dataset.categoryKey);
         const detailInput = row.querySelector(".direct-detail");
         const amountInput = row.querySelector(".direct-amount");
-        const checkbox = row.querySelector(".idc-applies");
+        const idcModeSelect = row.querySelector(".idc-mode-select");
 
         if (detailInput) {
           detailInput.value = "";
         }
         clearMoneyInputValue(amountInput);
-        checkbox.checked = defaultIdcAppliesForCategory(row.dataset.categoryKey);
-        checkbox.indeterminate = false;
+        idcModeSelect.value = defaultIdcModeForCategory(row.dataset.categoryKey);
+        delete idcModeSelect.dataset.staticValue;
 
         if (stateRow) {
           if (detailInput) {
@@ -3877,8 +4092,15 @@
           if (amountInput.value !== "") {
             formatMoneyInputDisplay(amountInput);
           }
-          checkbox.checked = Boolean(stateRow.idcApplies);
-          checkbox.indeterminate = Boolean(stateRow.idcAppliesMixed);
+          idcModeSelect.value = normalizeIdcMode(
+            stateRow.idcMode,
+            Object.prototype.hasOwnProperty.call(stateRow, "idcApplies")
+              ? (stateRow.idcApplies ? IDC_MODE_ON_CAMPUS : IDC_MODE_NONE)
+              : defaultIdcModeForCategory(row.dataset.categoryKey)
+          );
+          if (stateRow.idcModeMixed) {
+            idcModeSelect.dataset.staticValue = "Mixed";
+          }
         }
       });
 
@@ -3892,7 +4114,11 @@
       renderYearTabs();
       if (isCumulativeActive()) {
         const cumulativeView = buildCumulativeView(proposalState);
-        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: cumulativeView.indirectRateStaticText });
+        applyYearStateToForm(cumulativeView.yearState, {
+          readOnly: true,
+          onCampusIndirectRateStaticText: cumulativeView.onCampusIndirectRateStaticText,
+          offCampusIndirectRateStaticText: cumulativeView.offCampusIndirectRateStaticText
+        });
       } else {
         applyYearStateToForm(getActiveYearRecord(), { readOnly: false });
       }
@@ -3993,7 +4219,8 @@
 
       proposalState.years = proposalState.years.map((year) => {
         const touched = Boolean(year.settings?.defaultIndirectRateTouched);
-        if (touched && !forceApply) {
+        const offCampusTouched = Boolean(year.settings?.offCampusIndirectRateTouched);
+        if (touched && offCampusTouched && !forceApply) {
           return year;
         }
 
@@ -4001,8 +4228,14 @@
           ...year,
           settings: {
             ...year.settings,
-            defaultIndirectRate: helperStateDefaults.defaultIndirectRate,
-            defaultIndirectRateTouched: false
+            defaultIndirectRate: touched && !forceApply
+              ? year.settings?.defaultIndirectRate
+              : helperStateDefaults.defaultIndirectRate,
+            defaultIndirectRateTouched: touched && !forceApply,
+            offCampusIndirectRate: offCampusTouched && !forceApply
+              ? year.settings?.offCampusIndirectRate
+              : helperStateDefaults.defaultOffCampusIndirectRate,
+            offCampusIndirectRateTouched: offCampusTouched && !forceApply
           }
         };
       });
@@ -4013,12 +4246,14 @@
 
       if (forceApply) {
         defaultIndirectRateTouched = false;
+        offCampusIndirectRateTouched = false;
         document.querySelectorAll(".helper-release-fringe-rate, .helper-overload-fringe-rate").forEach((input) => {
           delete input.dataset.rateTouched;
         });
       }
 
       setTrackedDefaultIndirectRate(helperStateDefaults.defaultIndirectRate, forceApply);
+      setTrackedOffCampusIndirectRate(helperStateDefaults.defaultOffCampusIndirectRate, forceApply);
 
       document.querySelectorAll(".personnel-row").forEach((row) => {
         const controls = getPersonnelHelperControls(row);
@@ -4097,6 +4332,7 @@
         if (!RATE_PROXY_URL) {
           const defaults = forceApply ? liveHelperRateDefaults : builtInHelperRateDefaults;
           helperStateDefaults.defaultIndirectRate = defaults.defaultIndirectRate;
+          helperStateDefaults.defaultOffCampusIndirectRate = defaults.defaultOffCampusIndirectRate;
           helperStateDefaults.releaseFringeRate = defaults.releaseFringeRate;
           helperStateDefaults.overloadFringeRate = defaults.overloadFringeRate;
           applyHelperOrsDefaults(forceApply);
@@ -4122,20 +4358,24 @@
         const payload = await response.json();
         const releaseFringeRate = Number(payload.releaseFringeRate);
         const overloadFringeRate = Number(payload.overloadFringeRate);
-        const indirectRate = Number(payload.indirectRate);
+        const indirectRate = Number(payload.onCampusIndirectRate ?? payload.indirectRate);
+        const offCampusIndirectRate = Number(payload.offCampusIndirectRate ?? builtInHelperRateDefaults.defaultOffCampusIndirectRate);
 
         if (
           !Number.isFinite(releaseFringeRate) ||
           !Number.isFinite(overloadFringeRate) ||
-          !Number.isFinite(indirectRate)
+          !Number.isFinite(indirectRate) ||
+          !Number.isFinite(offCampusIndirectRate)
         ) {
           throw new Error("Malformed ORS rate payload.");
         }
 
         liveHelperRateDefaults.defaultIndirectRate = String(indirectRate);
+        liveHelperRateDefaults.defaultOffCampusIndirectRate = String(offCampusIndirectRate);
         liveHelperRateDefaults.releaseFringeRate = String(releaseFringeRate);
         liveHelperRateDefaults.overloadFringeRate = String(overloadFringeRate);
         helperStateDefaults.defaultIndirectRate = liveHelperRateDefaults.defaultIndirectRate;
+        helperStateDefaults.defaultOffCampusIndirectRate = liveHelperRateDefaults.defaultOffCampusIndirectRate;
         helperStateDefaults.releaseFringeRate = liveHelperRateDefaults.releaseFringeRate;
         helperStateDefaults.overloadFringeRate = liveHelperRateDefaults.overloadFringeRate;
         applyHelperOrsDefaults(forceApply);
@@ -4148,6 +4388,7 @@
       } catch (error) {
         const defaults = forceApply ? liveHelperRateDefaults : builtInHelperRateDefaults;
         helperStateDefaults.defaultIndirectRate = defaults.defaultIndirectRate;
+        helperStateDefaults.defaultOffCampusIndirectRate = defaults.defaultOffCampusIndirectRate;
         helperStateDefaults.releaseFringeRate = defaults.releaseFringeRate;
         helperStateDefaults.overloadFringeRate = defaults.overloadFringeRate;
         applyHelperOrsDefaults(forceApply);
@@ -5010,12 +5251,14 @@
       return totals;
     }
 
-    function computeNonPersonnel(defaultIndirectRate) {
+    function computeNonPersonnel(defaultIndirectRate, offCampusIndirectRate = 0) {
       const totals = {
         categories: {},
         direct: 0,
         includedDirect: 0,
         excludedDirect: 0,
+        onCampusBase: 0,
+        offCampusBase: 0,
         indirect: 0,
         total: 0,
         participantCount: Math.max(readNumber(elements.participantCount) ?? 0, 0)
@@ -5026,13 +5269,21 @@
         const label = row.dataset.categoryLabel;
         const detail = row.querySelector(".direct-detail")?.value.trim() || "";
         const amount = nonNegativeMoney(row.querySelector(".direct-amount"));
-        const idcApplies = row.querySelector(".idc-applies").checked;
-        const indirectCost = idcApplies ? roundToCent(amount * defaultIndirectRate / 100) : 0;
+        const idcMode = normalizeIdcMode(row.querySelector(".idc-mode-select")?.value, defaultIdcModeForCategory(key));
+        const indirectRate = getIndirectRateForMode(idcMode, {
+          onCampusRate: defaultIndirectRate,
+          offCampusRate: offCampusIndirectRate
+        });
+        const indirectCost = idcModeApplies(idcMode) ? roundToCent(amount * indirectRate / 100) : 0;
         const totalCost = roundToCent(amount + indirectCost);
+        const onCampusBaseAmount = idcMode === IDC_MODE_ON_CAMPUS ? amount : 0;
+        const offCampusBaseAmount = idcMode === IDC_MODE_OFF_CAMPUS ? amount : 0;
 
         totals.direct = roundToCent(totals.direct + amount);
-        totals.includedDirect = roundToCent(totals.includedDirect + (idcApplies ? amount : 0));
-        totals.excludedDirect = roundToCent(totals.excludedDirect + (idcApplies ? 0 : amount));
+        totals.includedDirect = roundToCent(totals.includedDirect + onCampusBaseAmount + offCampusBaseAmount);
+        totals.excludedDirect = roundToCent(totals.excludedDirect + (idcModeApplies(idcMode) ? 0 : amount));
+        totals.onCampusBase = roundToCent(totals.onCampusBase + onCampusBaseAmount);
+        totals.offCampusBase = roundToCent(totals.offCampusBase + offCampusBaseAmount);
         totals.indirect = roundToCent(totals.indirect + indirectCost);
         totals.total = roundToCent(totals.total + totalCost);
         totals.categories[key] = {
@@ -5040,7 +5291,8 @@
           label,
           detail,
           amount,
-          idcApplies,
+          idcMode,
+          indirectRate,
           indirectCost,
           totalCost
         };
@@ -5054,7 +5306,8 @@
       const seniorFringe = personnelResults.senior.fringe;
       const otherSalary = personnelResults.otherPersonnel.salary;
       const fringeTotal = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].fringe, 0);
-      const indirectRateDecimal = totals.indirectRate / 100;
+      const onCampusIndirectRateDecimal = totals.indirectRate / 100;
+      const offCampusIndirectRateDecimal = totals.offCampusIndirectRate / 100;
 
       const equipmentAmount = nonPersonnelResults.categories.equipment?.amount ?? 0;
       const travelAmounts = [
@@ -5096,18 +5349,26 @@
         otherDirectDisplay
       );
 
-      const mtdcDisplay = roundUpDollar(
+      const onCampusBaseDisplay = roundUpDollar(
         seniorSalaryDisplay +
         otherSalaryDisplay +
         fringeDisplay +
         sumRoundedDisplay(
           Object.values(nonPersonnelResults.categories)
-            .filter((category) => category.idcApplies)
+            .filter((category) => category.idcMode === IDC_MODE_ON_CAMPUS)
             .map((category) => category.amount)
         )
       );
+      const offCampusBaseDisplay = roundUpDollar(sumRoundedDisplay(
+        Object.values(nonPersonnelResults.categories)
+          .filter((category) => category.idcMode === IDC_MODE_OFF_CAMPUS)
+          .map((category) => category.amount)
+      ));
+      const mtdcDisplay = roundUpDollar(onCampusBaseDisplay + offCampusBaseDisplay);
 
-      const totalIndirectDisplay = roundUpDollar(mtdcDisplay * indirectRateDecimal);
+      const onCampusIndirectDisplay = roundUpDollar(onCampusBaseDisplay * onCampusIndirectRateDecimal);
+      const offCampusIndirectDisplay = roundUpDollar(offCampusBaseDisplay * offCampusIndirectRateDecimal);
+      const totalIndirectDisplay = roundUpDollar(onCampusIndirectDisplay + offCampusIndirectDisplay);
       const totalBudgetDisplay = roundUpDollar(totalDirectDisplay + totalIndirectDisplay);
       const feeDisplay = roundUpDollar(readStoredNumberValue(yearSettings.feeAmount));
       const costSharingDisplay = roundUpDollar(readStoredNumberValue(yearSettings.costSharingAmount));
@@ -5128,7 +5389,13 @@
         participantCount: nonPersonnelResults.participantCount,
         otherDirect: otherDirectDisplay,
         totalDirect: totalDirectDisplay,
+        onCampusBase: onCampusBaseDisplay,
+        offCampusBase: offCampusBaseDisplay,
         mtdc: mtdcDisplay,
+        onCampusIndirect: onCampusIndirectDisplay,
+        offCampusIndirect: offCampusIndirectDisplay,
+        onCampusIndirectRate: totals.indirectRate,
+        offCampusIndirectRate: totals.offCampusIndirectRate,
         indirect: totalIndirectDisplay,
         totalBudget: totalBudgetDisplay,
         fee: feeDisplay,
@@ -5160,8 +5427,10 @@
       elements.rollupParticipant.textContent = formatCurrency(displayTotals.participant);
       elements.rollupOtherDirect.textContent = formatCurrency(displayTotals.otherDirect);
       elements.rollupTotalDirect.textContent = formatCurrency(displayTotals.totalDirect);
-      elements.rollupMTDC.textContent = formatCurrency(displayTotals.mtdc);
-      elements.rollupIdcRateUsed.textContent = formatPercent(totals.indirectRate);
+      elements.rollupOnCampusBase.textContent = formatCurrency(displayTotals.onCampusBase);
+      elements.rollupOnCampusIdcRateUsed.textContent = formatPercent(displayTotals.onCampusIndirectRate);
+      elements.rollupOffCampusBase.textContent = formatCurrency(displayTotals.offCampusBase);
+      elements.rollupOffCampusIdcRateUsed.textContent = formatPercent(displayTotals.offCampusIndirectRate);
       elements.rollupTotalIndirect.textContent = formatCurrency(displayTotals.indirect);
       elements.rollupTotalBudget.textContent = formatCurrency(displayTotals.totalBudget);
       elements.rollupAmountRequested.textContent = formatCurrency(displayTotals.amountRequested);
@@ -5269,12 +5538,14 @@
       return totals;
     }
 
-    function evaluateStoredNonPersonnel(entries = [], participantSupport = {}, defaultIndirectRate = 0) {
+    function evaluateStoredNonPersonnel(entries = [], participantSupport = {}, defaultIndirectRate = 0, offCampusIndirectRate = 0) {
       const totals = {
         categories: {},
         direct: 0,
         includedDirect: 0,
         excludedDirect: 0,
+        onCampusBase: 0,
+        offCampusBase: 0,
         indirect: 0,
         total: 0,
         participantCount: readStoredNumberValue(participantSupport.participantCount)
@@ -5284,13 +5555,26 @@
       nonPersonnelDefinitions.forEach((definition) => {
         const entry = entryMap.get(definition.key);
         const amount = readStoredNumberValue(entry?.amount);
-        const idcApplies = entry ? Boolean(entry.idcApplies) : defaultIdcAppliesForCategory(definition.key);
-        const indirectCost = idcApplies ? roundToCent(amount * defaultIndirectRate / 100) : 0;
+        const idcMode = normalizeIdcMode(
+          entry?.idcMode,
+          Object.prototype.hasOwnProperty.call(entry || {}, "idcApplies")
+            ? (entry.idcApplies ? IDC_MODE_ON_CAMPUS : IDC_MODE_NONE)
+            : defaultIdcModeForCategory(definition.key)
+        );
+        const indirectRate = getIndirectRateForMode(idcMode, {
+          onCampusRate: defaultIndirectRate,
+          offCampusRate: offCampusIndirectRate
+        });
+        const indirectCost = idcModeApplies(idcMode) ? roundToCent(amount * indirectRate / 100) : 0;
         const totalCost = roundToCent(amount + indirectCost);
+        const onCampusBaseAmount = idcMode === IDC_MODE_ON_CAMPUS ? amount : 0;
+        const offCampusBaseAmount = idcMode === IDC_MODE_OFF_CAMPUS ? amount : 0;
 
         totals.direct = roundToCent(totals.direct + amount);
-        totals.includedDirect = roundToCent(totals.includedDirect + (idcApplies ? amount : 0));
-        totals.excludedDirect = roundToCent(totals.excludedDirect + (idcApplies ? 0 : amount));
+        totals.includedDirect = roundToCent(totals.includedDirect + onCampusBaseAmount + offCampusBaseAmount);
+        totals.excludedDirect = roundToCent(totals.excludedDirect + (idcModeApplies(idcMode) ? 0 : amount));
+        totals.onCampusBase = roundToCent(totals.onCampusBase + onCampusBaseAmount);
+        totals.offCampusBase = roundToCent(totals.offCampusBase + offCampusBaseAmount);
         totals.indirect = roundToCent(totals.indirect + indirectCost);
         totals.total = roundToCent(totals.total + totalCost);
         totals.categories[definition.key] = {
@@ -5298,7 +5582,8 @@
           label: definition.label,
           detail: typeof entry?.detail === "string" ? entry.detail.trim() : "",
           amount,
-          idcApplies,
+          idcMode,
+          indirectRate,
           indirectCost,
           totalCost
         };
@@ -5309,31 +5594,39 @@
 
     function evaluateYearState(year, yearIndex = 0, allYears = [], globalSettings = {}) {
       const indirectRate = readStoredNumberValue(year.settings?.defaultIndirectRate || helperStateDefaults.defaultIndirectRate);
+      const offCampusIndirectRate = readStoredNumberValue(year.settings?.offCampusIndirectRate || helperStateDefaults.defaultOffCampusIndirectRate);
       const personnelResults = {
         senior: evaluateStoredSeniorPersonnel(year.personnel?.senior || [], {
           sharedSeniorLabels: globalSettings.seniorPersonnelLabels || {}
         }),
         otherPersonnel: evaluateStoredOtherPersonnel(year.personnel?.otherPersonnel || [])
       };
-      const nonPersonnelResults = evaluateStoredNonPersonnel(year.nonPersonnel || [], year.participantSupport || {}, indirectRate);
+      const nonPersonnelResults = evaluateStoredNonPersonnel(year.nonPersonnel || [], year.participantSupport || {}, indirectRate, offCampusIndirectRate);
       const totalPersonnelDirect = roundToCent(personnelSections.reduce(
         (sum, section) => sum + personnelResults[section.key].salary + personnelResults[section.key].fringe,
         0
       ));
       const totalPersonnelIndirect = roundToCent(totalPersonnelDirect * indirectRate / 100);
+      const offCampusIndirect = roundToCent(nonPersonnelResults.offCampusBase * offCampusIndirectRate / 100);
       const totals = {
         direct: roundToCent(totalPersonnelDirect + nonPersonnelResults.direct),
         personnelIndirect: totalPersonnelIndirect,
+        onCampusIndirect: roundToCent(totalPersonnelIndirect + (nonPersonnelResults.indirect - offCampusIndirect)),
+        offCampusIndirect,
         indirect: roundToCent(totalPersonnelIndirect + nonPersonnelResults.indirect),
+        onCampusBase: roundToCent(totalPersonnelDirect + nonPersonnelResults.onCampusBase),
+        offCampusBase: roundToCent(nonPersonnelResults.offCampusBase),
         mtdc: roundToCent(totalPersonnelDirect + nonPersonnelResults.includedDirect),
         indirectRate,
+        offCampusIndirectRate,
         total: 0
       };
       totals.total = roundToCent(totals.direct + totals.indirect);
 
       return {
         defaults: {
-          indirectRate
+          indirectRate,
+          offCampusIndirectRate
         },
         personnel: personnelResults,
         nonPersonnel: nonPersonnelResults,
@@ -5363,7 +5656,11 @@
         aggregate.participantCount = roundToCent(aggregate.participantCount + evaluation.displayTotals.participantCount);
         aggregate.otherDirect += evaluation.displayTotals.otherDirect;
         aggregate.totalDirect += evaluation.displayTotals.totalDirect;
+        aggregate.onCampusBase += evaluation.displayTotals.onCampusBase;
+        aggregate.offCampusBase += evaluation.displayTotals.offCampusBase;
         aggregate.mtdc += evaluation.displayTotals.mtdc;
+        aggregate.onCampusIndirect += evaluation.displayTotals.onCampusIndirect;
+        aggregate.offCampusIndirect += evaluation.displayTotals.offCampusIndirect;
         aggregate.indirect += evaluation.displayTotals.indirect;
         aggregate.totalBudget += evaluation.displayTotals.totalBudget;
         aggregate.fee += evaluation.displayTotals.fee;
@@ -5392,7 +5689,11 @@
         participantCount: 0,
         otherDirect: 0,
         totalDirect: 0,
+        onCampusBase: 0,
+        offCampusBase: 0,
         mtdc: 0,
+        onCampusIndirect: 0,
+        offCampusIndirect: 0,
         indirect: 0,
         totalBudget: 0,
         fee: 0,
@@ -5408,11 +5709,16 @@
       const evaluations = years.map((year, index) => evaluateYearState(year, index, years, state.globalSettings || {}));
       const aggregate = buildProposalAggregate(years, evaluations);
       const sharedSeniorLabels = state.globalSettings?.seniorPersonnelLabels || {};
-      const indirectRates = evaluations.map((evaluation) => evaluation.defaults.indirectRate);
-      const firstIndirectRate = indirectRates[0];
-      const hasCommonIndirectRate = indirectRates.length > 0 && indirectRates.every((rate) => Math.abs(rate - firstIndirectRate) < 0.000001);
-      const indirectRateStaticText = hasCommonIndirectRate ? formatPercent(firstIndirectRate) : "Varies by year";
-      const indirectRateLineText = hasCommonIndirectRate ? `IDC Rate: ${formatPercent(firstIndirectRate)}` : "IDC Rate: varies by year";
+      const onCampusIndirectRates = evaluations.map((evaluation) => evaluation.defaults.indirectRate);
+      const offCampusIndirectRates = evaluations.map((evaluation) => evaluation.defaults.offCampusIndirectRate);
+      const firstOnCampusIndirectRate = onCampusIndirectRates[0];
+      const firstOffCampusIndirectRate = offCampusIndirectRates[0];
+      const hasCommonOnCampusIndirectRate = onCampusIndirectRates.length > 0 && onCampusIndirectRates.every((rate) => Math.abs(rate - firstOnCampusIndirectRate) < 0.000001);
+      const hasCommonOffCampusIndirectRate = offCampusIndirectRates.length > 0 && offCampusIndirectRates.every((rate) => Math.abs(rate - firstOffCampusIndirectRate) < 0.000001);
+      const onCampusIndirectRateStaticText = hasCommonOnCampusIndirectRate ? formatPercent(firstOnCampusIndirectRate) : "Varies by year";
+      const offCampusIndirectRateStaticText = hasCommonOffCampusIndirectRate ? formatPercent(firstOffCampusIndirectRate) : "Varies by year";
+      const indirectRateStaticText = buildIdcRateStaticText(onCampusIndirectRateStaticText, offCampusIndirectRateStaticText);
+      const indirectRateLineText = buildIdcRateLineText(onCampusIndirectRateStaticText, offCampusIndirectRateStaticText);
 
       const seniorByKey = new Map(seniorPersonnelDefinitions.map((definition) => [definition.key, {
         key: definition.key,
@@ -5439,8 +5745,8 @@
         amount: "",
         detail: "",
         detailParts: [],
-        idcApplies: defaultIdcAppliesForCategory(definition.key),
-        idcAppliesMixed: false
+        idcMode: defaultIdcModeForCategory(definition.key),
+        idcModeMixed: false
       }]));
 
       years.forEach((year, yearIndex) => {
@@ -5480,9 +5786,13 @@
           const sourceEntry = (year.nonPersonnel || []).find((entry) => entry.key === definition.key);
           const sourceEval = evaluations[yearIndex].nonPersonnel.categories[definition.key];
           const target = nonPersonnelByKey.get(definition.key);
-          const forceCumulativeIdcOff = definition.key === "equipment";
-          const sourceIdc = sourceEntry ? Boolean(sourceEntry.idcApplies) : defaultIdcAppliesForCategory(definition.key);
-          const idcStateKey = `year${yearIndex}`;
+          const sourceIdcMode = normalizeIdcMode(
+            sourceEntry?.idcMode,
+            Object.prototype.hasOwnProperty.call(sourceEntry || {}, "idcApplies")
+              ? (sourceEntry.idcApplies ? IDC_MODE_ON_CAMPUS : IDC_MODE_NONE)
+              : defaultIdcModeForCategory(definition.key)
+          );
+          const idcStateKey = `year${yearIndex}IdcMode`;
           const sourceDetail = typeof sourceEntry?.detail === "string" ? sourceEntry.detail.trim() : "";
 
           target.amount = addDisplayMoneyToFormattedTotal(target.amount, sourceEntry?.amount);
@@ -5490,14 +5800,11 @@
             target.detailParts.push(`${getYearDisplayLabel(year, yearIndex)}: ${sourceDetail}`);
             target.detail = target.detailParts.join(" | ");
           }
-          target[idcStateKey] = sourceIdc;
-          if (forceCumulativeIdcOff) {
-            target.idcApplies = false;
-            target.idcAppliesMixed = false;
-          } else if (yearIndex === 0) {
-            target.idcApplies = sourceIdc;
-          } else if (target.idcApplies !== sourceIdc) {
-            target.idcAppliesMixed = true;
+          target[idcStateKey] = sourceIdcMode;
+          if (yearIndex === 0) {
+            target.idcMode = sourceIdcMode;
+          } else if (target.idcMode !== sourceIdcMode) {
+            target.idcModeMixed = true;
           }
           target.indirectCost = roundToCent((target.indirectCost || 0) + (sourceEval?.indirectCost || 0));
           target.totalCost = roundToCent((target.totalCost || 0) + (sourceEval?.totalCost || 0));
@@ -5527,6 +5834,8 @@
       const cumulativeNonPersonnel = Array.from(nonPersonnelByKey.values());
       const cumulativeEvaluation = {
         defaults: {
+          indirectRate: hasCommonOnCampusIndirectRate ? firstOnCampusIndirectRate : 0,
+          offCampusIndirectRate: hasCommonOffCampusIndirectRate ? firstOffCampusIndirectRate : 0,
           indirectRateText: indirectRateStaticText
         },
         personnel: {
@@ -5541,20 +5850,27 @@
               label: definition.label,
               detail: entry.detail || "",
               amount: readStoredNumberValue(entry.amount),
-              idcApplies: entry.idcApplies,
-              idcAppliesMixed: entry.idcAppliesMixed,
+              idcMode: entry.idcMode,
+              idcModeMixed: entry.idcModeMixed,
               indirectCost: roundToCent(entry.indirectCost || 0),
               totalCost: roundToCent(entry.totalCost || 0)
             }];
           })),
           direct: roundToCent(cumulativeNonPersonnel.reduce((sum, entry) => sum + readStoredNumberValue(entry.amount), 0)),
-          includedDirect: 0,
-          excludedDirect: 0,
+          includedDirect: roundToCent(aggregate.onCampusBase + aggregate.offCampusBase - aggregate.salariesFringe),
+          excludedDirect: roundToCent(cumulativeNonPersonnel.reduce((sum, entry) => {
+            const amount = readStoredNumberValue(entry.amount);
+            return sum + (entry.idcMode === IDC_MODE_NONE ? amount : 0);
+          }, 0)),
+          onCampusBase: aggregate.onCampusBase - aggregate.salariesFringe,
+          offCampusBase: aggregate.offCampusBase,
           indirect: roundToCent(cumulativeNonPersonnel.reduce((sum, entry) => sum + (entry.indirectCost || 0), 0)),
           total: roundToCent(cumulativeNonPersonnel.reduce((sum, entry) => sum + (entry.totalCost || 0), 0)),
           participantCount: aggregate.participantCount
         },
         totals: {
+          indirectRate: hasCommonOnCampusIndirectRate ? firstOnCampusIndirectRate : 0,
+          offCampusIndirectRate: hasCommonOffCampusIndirectRate ? firstOffCampusIndirectRate : 0,
           indirectRateText: indirectRateStaticText
         },
         displayTotals: {
@@ -5571,7 +5887,13 @@
           participantCount: aggregate.participantCount,
           otherDirect: aggregate.otherDirect,
           totalDirect: aggregate.totalDirect,
+          onCampusBase: aggregate.onCampusBase,
+          offCampusBase: aggregate.offCampusBase,
           mtdc: aggregate.mtdc,
+          onCampusIndirect: aggregate.onCampusIndirect,
+          offCampusIndirect: aggregate.offCampusIndirect,
+          onCampusIndirectRate: hasCommonOnCampusIndirectRate ? firstOnCampusIndirectRate : 0,
+          offCampusIndirectRate: hasCommonOffCampusIndirectRate ? firstOffCampusIndirectRate : 0,
           indirect: aggregate.indirect,
           totalBudget: aggregate.totalBudget,
           fee: aggregate.fee,
@@ -5594,6 +5916,7 @@
           settings: {
             budgetPeriodLabel: "Cumulative",
             defaultIndirectRate: "",
+            offCampusIndirectRate: "",
             feeAmount: formatInputDecimal(aggregate.fee),
             costSharingAmount: formatInputDecimal(aggregate.costSharing),
             costSharingAgreedAmount: formatInputDecimal(aggregate.costSharingAgreed)
@@ -5609,6 +5932,8 @@
         },
         evaluation: cumulativeEvaluation,
         aggregate,
+        onCampusIndirectRateStaticText,
+        offCampusIndirectRateStaticText,
         indirectRateStaticText,
         indirectRateLineText
       };
@@ -5634,15 +5959,19 @@
       elements.rollupParticipant.textContent = formatCurrency(summary.participant);
       elements.rollupOtherDirect.textContent = formatCurrency(summary.otherDirect);
       elements.rollupTotalDirect.textContent = formatCurrency(summary.totalDirect);
-      elements.rollupMTDC.textContent = formatCurrency(summary.mtdc);
-      elements.rollupIdcRateUsed.textContent = summary.idcRateText || "Varies by year";
+      elements.rollupOnCampusBase.textContent = formatCurrency(summary.onCampusBase);
+      elements.rollupOnCampusIdcRateUsed.textContent = summary.onCampusIdcRateText || "Varies by year";
+      elements.rollupOffCampusBase.textContent = formatCurrency(summary.offCampusBase);
+      elements.rollupOffCampusIdcRateUsed.textContent = summary.offCampusIdcRateText || "Varies by year";
       elements.rollupTotalIndirect.textContent = formatCurrency(summary.indirect);
       elements.rollupTotalBudget.textContent = formatCurrency(summary.totalBudget);
       elements.rollupAmountRequested.textContent = formatCurrency(summary.amountRequested);
     }
 
     function buildYearSummaryText(year, evaluation, index, options = {}) {
-      const idcRateLine = options.idcRateText || `IDC Rate: ${formatPercent(evaluation.defaults.indirectRate)}`;
+      const onCampusRateText = options.onCampusIdcRateText || formatPercent(evaluation.displayTotals.onCampusIndirectRate);
+      const offCampusRateText = options.offCampusIdcRateText || formatPercent(evaluation.displayTotals.offCampusIndirectRate);
+      const idcRateLine = options.idcRateText || buildIdcRateLineText(onCampusRateText, offCampusRateText);
       const equipmentDetail = evaluation.nonPersonnel.categories.equipment?.detail || "";
       const lines = [
         getYearDisplayLabel(year, index),
@@ -5687,10 +6016,10 @@
 
       lines.push("Non-Personnel Budget Categories");
       Object.values(evaluation.nonPersonnel.categories).forEach((category) => {
-        const indirectText = category.idcAppliesMixed
+        const indirectText = category.idcModeMixed
           ? `indirect ${formatCurrency(category.indirectCost)} with mixed IDC treatment across years`
-          : (category.idcApplies
-              ? `indirect ${formatCurrency(category.indirectCost)} at the default IDC rate`
+          : (idcModeApplies(category.idcMode)
+              ? `indirect ${formatCurrency(category.indirectCost)} using ${getIdcModeLabel(category.idcMode)}`
               : "no indirect cost");
         lines.push(
           `${category.label}: direct ${formatCurrency(category.amount)}, ` +
@@ -5720,7 +6049,11 @@
       lines.push(`F. Participant Support Costs: ${formatCurrency(evaluation.displayTotals.participant)}`);
       lines.push(`G. Other Direct Costs: ${formatCurrency(evaluation.displayTotals.otherDirect)}`);
       lines.push(`H. Total Direct Costs: ${formatCurrency(evaluation.displayTotals.totalDirect)}`);
-      lines.push(`I. Indirect Costs: MTDC ${formatCurrency(evaluation.displayTotals.mtdc)}, ${idcRateLine}, total indirect ${formatCurrency(evaluation.displayTotals.indirect)}`);
+      lines.push(
+        `I. Indirect Costs: on-campus base ${formatCurrency(evaluation.displayTotals.onCampusBase)} at ${onCampusRateText}, ` +
+        `off-campus base ${formatCurrency(evaluation.displayTotals.offCampusBase)} at ${offCampusRateText}, ` +
+        `total indirect ${formatCurrency(evaluation.displayTotals.indirect)}`
+      );
       lines.push(`J. Total Direct and Indirect Costs: ${formatCurrency(evaluation.displayTotals.totalBudget)}`);
       lines.push(`K. Fee: ${formatCurrency(evaluation.displayTotals.fee)}`);
       lines.push(`L. Amount of This Request: ${formatCurrency(evaluation.displayTotals.amountRequested)}`);
@@ -5757,7 +6090,11 @@
           cumulativeView.yearState,
           cumulativeView.evaluation,
           state.years.length,
-          { idcRateText: cumulativeView.indirectRateLineText }
+          {
+            idcRateText: cumulativeView.indirectRateLineText,
+            onCampusIdcRateText: cumulativeView.onCampusIndirectRateStaticText,
+            offCampusIdcRateText: cumulativeView.offCampusIndirectRateStaticText
+          }
         ));
       }
 
@@ -6467,7 +6804,7 @@
         [textSpreadsheetCell("Budget Period Totals", "Section")],
         [
           textSpreadsheetCell("Budget Period", "Header"),
-          textSpreadsheetCell("IDC Rate", "Header"),
+          textSpreadsheetCell("IDC Rates", "Header"),
           textSpreadsheetCell("Senior Count", "Header"),
           textSpreadsheetCell("Salaries and Wages", "Header"),
           textSpreadsheetCell("Fringe", "Header"),
@@ -6764,9 +7101,12 @@
         const { evaluation, name, refs } = worksheetMeta;
         rows.push([
           textSpreadsheetCell(label),
-          refs.settings.defaultIndirectRate
-            ? formulaSpreadsheetCell(evaluation.defaults.indirectRate / 100, buildSpreadsheetSheetCellFormula(name, refs.settings.defaultIndirectRate), "Percentage")
-            : textSpreadsheetCell(fallbackRateText || formatPercent(evaluation.defaults.indirectRate)),
+          textSpreadsheetCell(
+            fallbackRateText || buildIdcRateStaticText(
+              evaluation.displayTotals.onCampusIndirectRate,
+              evaluation.displayTotals.offCampusIndirectRate
+            )
+          ),
           formulaSpreadsheetCell(evaluation.displayTotals.seniorCount, buildSpreadsheetSheetCellFormula(name, refs.totals.seniorCount)),
           formulaSpreadsheetCell(evaluation.displayTotals.salariesWages, buildSpreadsheetSheetCellFormula(name, refs.totals.salariesWages), "Currency"),
           formulaSpreadsheetCell(evaluation.displayTotals.fringe, buildSpreadsheetSheetCellFormula(name, refs.totals.fringe), "Currency"),
@@ -6867,12 +7207,31 @@
         buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.totalDirect),
         "Currency"
       ));
+      refs.totals.onCampusBase = addMetricRow("I. On-Campus Base", formulaSpreadsheetCell(
+        evaluation.displayTotals.onCampusBase,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.onCampusBase),
+        "Currency"
+      ));
+      refs.totals.onCampusIndirectRate = addMetricRow("I. On-Campus IDC Rate", textSpreadsheetCell(
+        aggregateSourceSheets.every((sheet) => sheet.refs.totals.onCampusIndirectRate)
+          ? indirectRateText.split("|")[0].replace("On-campus:", "").trim()
+          : indirectRateText
+      ));
+      refs.totals.offCampusBase = addMetricRow("I. Off-Campus Base", formulaSpreadsheetCell(
+        evaluation.displayTotals.offCampusBase,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.offCampusBase),
+        "Currency"
+      ));
+      refs.totals.offCampusIndirectRate = addMetricRow("I. Off-Campus IDC Rate", textSpreadsheetCell(
+        indirectRateText.includes("|")
+          ? indirectRateText.split("|")[1].replace("Off-campus:", "").trim()
+          : indirectRateText
+      ));
       refs.totals.mtdc = addMetricRow("I. MTDC", formulaSpreadsheetCell(
         evaluation.displayTotals.mtdc,
         buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.mtdc),
         "Currency"
       ));
-      refs.totals.indirectRate = addMetricRow("I. IDC Rate", textSpreadsheetCell(indirectRateText));
       refs.totals.indirect = addMetricRow("I. Total Indirect Costs", formulaSpreadsheetCell(
         evaluation.displayTotals.indirect,
         buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.indirect),
@@ -6907,6 +7266,8 @@
 
     function populateStandardSpreadsheetTotals(evaluation, refs, addMetricRow, context) {
       const roundedOtherSalaryFormula = buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula(context.otherSalaryRefs));
+      const roundedOnCampusIncludedDirectFormula = buildSpreadsheetSumFormula(context.onCampusIncludedDirectRoundedExpressions);
+      const roundedOffCampusIncludedDirectFormula = buildSpreadsheetSumFormula(context.offCampusIncludedDirectRoundedExpressions);
       refs.totals.seniorCount = addMetricRow("A7. Total Senior Personnel Count", formulaSpreadsheetCell(
         evaluation.displayTotals.seniorCount,
         buildSpreadsheetSumFormula(context.namedSeniorCountExpressions.concat(context.othersCountRef ? [context.othersCountRef] : []))
@@ -6925,9 +7286,15 @@
       refs.totals.participantCount = addMetricRow("Participant Count", formulaSpreadsheetCell(evaluation.displayTotals.participantCount, refs.settings.participantCount));
       refs.totals.otherDirect = addMetricRow("G. Other Direct Costs", formulaSpreadsheetCell(evaluation.displayTotals.otherDirect, buildSpreadsheetSumFormula(context.otherDirectAmountRefs.map((cellRef) => buildSpreadsheetRoundUpDollarFormula(cellRef))), "Currency"));
       refs.totals.totalDirect = addMetricRow("H. Total Direct Costs", formulaSpreadsheetCell(evaluation.displayTotals.totalDirect, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.seniorSalary, roundedOtherSalaryFormula, refs.totals.fringe, refs.totals.equipment, refs.totals.travel, refs.totals.participant, refs.totals.otherDirect])), "Currency"));
-      refs.totals.mtdc = addMetricRow("I. MTDC", formulaSpreadsheetCell(evaluation.displayTotals.mtdc, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.seniorSalary, roundedOtherSalaryFormula, refs.totals.fringe, buildSpreadsheetSumFormula(context.includedDirectRoundedExpressions)])), "Currency"));
-      refs.totals.indirectRate = addMetricRow("I. IDC Rate", formulaSpreadsheetCell(evaluation.defaults.indirectRate / 100, refs.settings.defaultIndirectRate, "Percentage"));
-      refs.totals.indirect = addMetricRow("I. Total Indirect Costs", formulaSpreadsheetCell(evaluation.displayTotals.indirect, buildSpreadsheetRoundUpDollarFormula(`${refs.totals.mtdc}*${refs.settings.defaultIndirectRate}`), "Currency"));
+      refs.totals.onCampusBase = addMetricRow("I. On-Campus Base", formulaSpreadsheetCell(evaluation.displayTotals.onCampusBase, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.seniorSalary, roundedOtherSalaryFormula, refs.totals.fringe, roundedOnCampusIncludedDirectFormula])), "Currency"));
+      refs.totals.onCampusIndirectRate = addMetricRow("I. On-Campus IDC Rate", formulaSpreadsheetCell(evaluation.defaults.indirectRate / 100, refs.settings.defaultIndirectRate, "Percentage"));
+      refs.totals.offCampusBase = addMetricRow("I. Off-Campus Base", formulaSpreadsheetCell(evaluation.displayTotals.offCampusBase, buildSpreadsheetRoundUpDollarFormula(roundedOffCampusIncludedDirectFormula), "Currency"));
+      refs.totals.offCampusIndirectRate = addMetricRow("I. Off-Campus IDC Rate", formulaSpreadsheetCell(evaluation.defaults.offCampusIndirectRate / 100, refs.settings.offCampusIndirectRate, "Percentage"));
+      refs.totals.mtdc = addMetricRow("I. MTDC", formulaSpreadsheetCell(evaluation.displayTotals.mtdc, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.onCampusBase, refs.totals.offCampusBase])), "Currency"));
+      refs.totals.indirect = addMetricRow("I. Total Indirect Costs", formulaSpreadsheetCell(evaluation.displayTotals.indirect, buildSpreadsheetSumFormula([
+        buildSpreadsheetRoundUpDollarFormula(`${refs.totals.onCampusBase}*${refs.settings.defaultIndirectRate}`),
+        buildSpreadsheetRoundUpDollarFormula(`${refs.totals.offCampusBase}*${refs.settings.offCampusIndirectRate}`)
+      ]), "Currency"));
       refs.totals.totalBudget = addMetricRow("J. Total Direct and Indirect Costs", formulaSpreadsheetCell(evaluation.displayTotals.totalBudget, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.totalDirect, refs.totals.indirect])), "Currency"));
       refs.totals.fee = addMetricRow("K. Fee", formulaSpreadsheetCell(evaluation.displayTotals.fee, buildSpreadsheetRoundUpDollarFormula(refs.settings.fee), "Currency"));
       refs.totals.amountRequested = addMetricRow("L. Amount Requested", formulaSpreadsheetCell(evaluation.displayTotals.amountRequested, buildSpreadsheetRoundUpDollarFormula(`MAX(${refs.totals.totalBudget}-${refs.totals.fee},0)`), "Currency"));
@@ -6938,7 +7305,12 @@
     function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options = {}) {
       const yearLabel = options.sheetLabel || getYearDisplayLabel(year, index);
       const sheetName = options.sheetName || yearLabel;
-      const indirectRateText = options.indirectRateText || formatPercent(evaluation.defaults.indirectRate);
+      const indirectRateText = options.indirectRateText || buildIdcRateStaticText(
+        evaluation.defaults.indirectRate,
+        evaluation.defaults.offCampusIndirectRate
+      );
+      const onCampusIndirectRateText = options.onCampusIndirectRateText || formatPercent(evaluation.defaults.indirectRate);
+      const offCampusIndirectRateText = options.offCampusIndirectRateText || formatPercent(evaluation.defaults.offCampusIndirectRate);
       const aggregateSourceSheets = Array.isArray(options.aggregateSourceSheets) ? options.aggregateSourceSheets : [];
       const rows = [];
       const refs = { settings: {}, totals: {} };
@@ -6966,10 +7338,13 @@
       addRow([textSpreadsheetCell("Budget Period Label"), textSpreadsheetCell(year.settings?.budgetPeriodLabel || getYearFallbackLabel(index))]);
 
       if (aggregateSourceSheets.length) {
-        addRow([textSpreadsheetCell("Default IDC Rate"), textSpreadsheetCell(indirectRateText)]);
+        addRow([textSpreadsheetCell("On-Campus IDC Rate"), textSpreadsheetCell(onCampusIndirectRateText)]);
+        addRow([textSpreadsheetCell("Off-Campus IDC Rate"), textSpreadsheetCell(offCampusIndirectRateText)]);
       } else {
-        const rateRowNumber = addRow([textSpreadsheetCell("Default IDC Rate"), percentSpreadsheetCell(evaluation.defaults.indirectRate / 100)]);
-        refs.settings.defaultIndirectRate = getCellRef(rateRowNumber, 1);
+        const onCampusRateRowNumber = addRow([textSpreadsheetCell("On-Campus IDC Rate"), percentSpreadsheetCell(evaluation.defaults.indirectRate / 100)]);
+        refs.settings.defaultIndirectRate = getCellRef(onCampusRateRowNumber, 1);
+        const offCampusRateRowNumber = addRow([textSpreadsheetCell("Off-Campus IDC Rate"), percentSpreadsheetCell(evaluation.defaults.offCampusIndirectRate / 100)]);
+        refs.settings.offCampusIndirectRate = getCellRef(offCampusRateRowNumber, 1);
       }
 
       const sumFromAggregate = (value, selector, styleId = "Number") =>
@@ -7130,17 +7505,26 @@
 
       addRow([]);
       addRow([textSpreadsheetCell("Non-Personnel Inputs", "Section")]);
-      addRow([textSpreadsheetCell("Category", "Header"), textSpreadsheetCell("Detail", "Header"), textSpreadsheetCell("Direct Amount", "Header"), textSpreadsheetCell("IDC Applies", "Header"), textSpreadsheetCell("Indirect Cost", "Header"), textSpreadsheetCell("Total Cost", "Header")]);
+      addRow([textSpreadsheetCell("Category", "Header"), textSpreadsheetCell("Detail", "Header"), textSpreadsheetCell("Direct Amount", "Header"), textSpreadsheetCell("IDC Treatment", "Header"), textSpreadsheetCell("Indirect Cost", "Header"), textSpreadsheetCell("Total Cost", "Header")]);
 
       nonPersonnelDefinitions.forEach((definition) => {
         const entry = findStoredRowByKey(year.nonPersonnel || [], definition.key);
         const category = evaluation.nonPersonnel.categories[definition.key];
         const rowNumber = rows.length + 1;
         const directAmountRef = getCellRef(rowNumber, 2);
-        const idcAppliesRef = getCellRef(rowNumber, 3);
+        const idcTreatmentRef = getCellRef(rowNumber, 3);
         const indirectCostRef = getCellRef(rowNumber, 4);
-        const indirectFormula = refs.settings.defaultIndirectRate ? `IF(${idcAppliesRef}="Yes",${buildSpreadsheetRoundToCentFormula(`${directAmountRef}*${refs.settings.defaultIndirectRate}`)},0)` : "";
-        rows.push([textSpreadsheetCell(definition.label), textSpreadsheetCell(entry?.detail || ""), optionalNumberSpreadsheetCell(entry?.amount, "Currency"), textSpreadsheetCell(category?.idcAppliesMixed ? "Mixed" : (category?.idcApplies ? "Yes" : "No")), indirectFormula ? formulaSpreadsheetCell(category?.indirectCost || 0, indirectFormula, "Currency") : numberSpreadsheetCell(category?.indirectCost || 0, "Currency"), indirectFormula ? formulaSpreadsheetCell(category?.totalCost || 0, buildSpreadsheetRoundToCentFormula(`${directAmountRef}+${indirectCostRef}`), "Currency") : numberSpreadsheetCell(category?.totalCost || 0, "Currency")]);
+        const indirectFormula = refs.settings.defaultIndirectRate && refs.settings.offCampusIndirectRate
+          ? `IF(${idcTreatmentRef}="On-campus IDC",${buildSpreadsheetRoundToCentFormula(`${directAmountRef}*${refs.settings.defaultIndirectRate}`)},IF(${idcTreatmentRef}="Off-campus IDC",${buildSpreadsheetRoundToCentFormula(`${directAmountRef}*${refs.settings.offCampusIndirectRate}`)},0))`
+          : "";
+        rows.push([
+          textSpreadsheetCell(definition.label),
+          textSpreadsheetCell(entry?.detail || ""),
+          optionalNumberSpreadsheetCell(entry?.amount, "Currency"),
+          textSpreadsheetCell(category?.idcModeMixed ? "Mixed" : getIdcModeLabel(category?.idcMode)),
+          indirectFormula ? formulaSpreadsheetCell(category?.indirectCost || 0, indirectFormula, "Currency") : numberSpreadsheetCell(category?.indirectCost || 0, "Currency"),
+          indirectFormula ? formulaSpreadsheetCell(category?.totalCost || 0, buildSpreadsheetRoundToCentFormula(`${directAmountRef}+${indirectCostRef}`), "Currency") : numberSpreadsheetCell(category?.totalCost || 0, "Currency")
+        ]);
         nonPersonnelRowNumbers[definition.key] = rowNumber;
       });
 
@@ -7164,7 +7548,8 @@
         travelAmountRefs: [nonPersonnelRowNumbers.travelDomestic, nonPersonnelRowNumbers.travelInternational].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
         participantAmountRefs: [nonPersonnelRowNumbers.participantStipends, nonPersonnelRowNumbers.participantTravel, nonPersonnelRowNumbers.participantSubsistence, nonPersonnelRowNumbers.participantOther].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
         otherDirectAmountRefs: [nonPersonnelRowNumbers.materials, nonPersonnelRowNumbers.publication, nonPersonnelRowNumbers.consultant, nonPersonnelRowNumbers.computer, nonPersonnelRowNumbers.subawards, nonPersonnelRowNumbers.otherDirect].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
-        includedDirectRoundedExpressions: Object.values(nonPersonnelRowNumbers).map((rowNumber) => `IF(${getCellRef(rowNumber, 3)}="Yes",${buildSpreadsheetRoundUpDollarFormula(getCellRef(rowNumber, 2))},0)`)
+        onCampusIncludedDirectRoundedExpressions: Object.values(nonPersonnelRowNumbers).map((rowNumber) => `IF(${getCellRef(rowNumber, 3)}="On-campus IDC",${buildSpreadsheetRoundUpDollarFormula(getCellRef(rowNumber, 2))},0)`),
+        offCampusIncludedDirectRoundedExpressions: Object.values(nonPersonnelRowNumbers).map((rowNumber) => `IF(${getCellRef(rowNumber, 3)}="Off-campus IDC",${buildSpreadsheetRoundUpDollarFormula(getCellRef(rowNumber, 2))},0)`)
       };
 
       if (aggregateSourceSheets.length) {
@@ -7197,6 +7582,8 @@
               sheetLabel: "Cumulative",
               sheetName: sanitizeWorksheetName("Cumulative", usedWorksheetNames),
               indirectRateText: cumulativeView.indirectRateStaticText,
+              onCampusIndirectRateText: cumulativeView.onCampusIndirectRateStaticText,
+              offCampusIndirectRateText: cumulativeView.offCampusIndirectRateStaticText,
               aggregateSourceSheets: yearWorksheets
             }
           )
@@ -7241,7 +7628,10 @@
           <section class="print-year-block">
             <div class="print-year-header">
               <h3>${escapeHtml(getYearDisplayLabel(year, index))}</h3>
-              <p>IDC Rate: ${escapeHtml(formatPercent(evaluations[index].defaults.indirectRate))}</p>
+              <p>${escapeHtml(buildIdcRateLineText(
+                formatPercent(evaluations[index].defaults.indirectRate),
+                formatPercent(evaluations[index].defaults.offCampusIndirectRate)
+              ))}</p>
             </div>
             <pre class="print-summary-block">${escapeHtml(buildYearSummaryText(year, evaluations[index], index))}</pre>
           </section>
@@ -7256,7 +7646,11 @@
               cumulativeView.yearState,
               cumulativeView.evaluation,
               state.years.length,
-              { idcRateText: cumulativeView.indirectRateLineText }
+              {
+                idcRateText: cumulativeView.indirectRateLineText,
+                onCampusIdcRateText: cumulativeView.onCampusIndirectRateStaticText,
+                offCampusIdcRateText: cumulativeView.offCampusIndirectRateStaticText
+              }
             ))}</pre>
           </section>
         ` : ""}
@@ -7281,7 +7675,11 @@
       proposalState.activeYearId = yearId;
       if (isCumulativeActive()) {
         const cumulativeView = buildCumulativeView(proposalState);
-        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: cumulativeView.indirectRateStaticText });
+        applyYearStateToForm(cumulativeView.yearState, {
+          readOnly: true,
+          onCampusIndirectRateStaticText: cumulativeView.onCampusIndirectRateStaticText,
+          offCampusIndirectRateStaticText: cumulativeView.offCampusIndirectRateStaticText
+        });
       } else {
         applyYearStateToForm(getActiveYearRecord(), { readOnly: false });
       }
@@ -7296,7 +7694,11 @@
       proposalState.activeYearId = isCumulativeActive() ? CUMULATIVE_YEAR_ID : newYear.id;
       if (isCumulativeActive()) {
         const cumulativeView = buildCumulativeView(proposalState);
-        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: cumulativeView.indirectRateStaticText });
+        applyYearStateToForm(cumulativeView.yearState, {
+          readOnly: true,
+          onCampusIndirectRateStaticText: cumulativeView.onCampusIndirectRateStaticText,
+          offCampusIndirectRateStaticText: cumulativeView.offCampusIndirectRateStaticText
+        });
       } else {
         applyYearStateToForm(newYear, { readOnly: false });
       }
@@ -7358,7 +7760,11 @@
       if (isCumulativeActive()) {
         proposalState.globalSettings = collectGlobalSettings();
         const cumulativeView = buildCumulativeView(proposalState);
-        applyYearStateToForm(cumulativeView.yearState, { readOnly: true, indirectRateStaticText: cumulativeView.indirectRateStaticText });
+        applyYearStateToForm(cumulativeView.yearState, {
+          readOnly: true,
+          onCampusIndirectRateStaticText: cumulativeView.onCampusIndirectRateStaticText,
+          offCampusIndirectRateStaticText: cumulativeView.offCampusIndirectRateStaticText
+        });
         updateActiveYearHeader();
         updateRollupFromSummary({
           seniorCount: cumulativeView.aggregate.seniorCount,
@@ -7376,11 +7782,16 @@
           participantCount: cumulativeView.aggregate.participantCount,
           otherDirect: cumulativeView.aggregate.otherDirect,
           totalDirect: cumulativeView.aggregate.totalDirect,
+          onCampusBase: cumulativeView.aggregate.onCampusBase,
+          offCampusBase: cumulativeView.aggregate.offCampusBase,
           mtdc: cumulativeView.aggregate.mtdc,
+          onCampusIndirect: cumulativeView.aggregate.onCampusIndirect,
+          offCampusIndirect: cumulativeView.aggregate.offCampusIndirect,
           indirect: cumulativeView.aggregate.indirect,
           totalBudget: cumulativeView.aggregate.totalBudget,
           amountRequested: cumulativeView.aggregate.amountRequested,
-          idcRateText: cumulativeView.indirectRateStaticText
+          onCampusIdcRateText: cumulativeView.onCampusIndirectRateStaticText,
+          offCampusIdcRateText: cumulativeView.offCampusIndirectRateStaticText
         });
         renderYearTabs();
         renderPrintProposalSnapshot(collectPlannerState());
@@ -7390,25 +7801,35 @@
       }
 
       const defaultIndirectRate = Math.max(readNumber(elements.defaultIndirectRate) ?? 0, 0);
+      const offCampusIndirectRate = Math.max(readNumber(elements.offCampusIndirectRate) ?? 0, 0);
 
       const personnelResults = {};
       personnelSections.forEach((section) => {
         personnelResults[section.key] = computePersonnelSection(section);
       });
 
-      const nonPersonnelResults = computeNonPersonnel(defaultIndirectRate);
+      const nonPersonnelResults = computeNonPersonnel(defaultIndirectRate, offCampusIndirectRate);
 
       const totalPersonnelDirect = roundToCent(personnelSections.reduce(
         (sum, section) => sum + personnelResults[section.key].salary + personnelResults[section.key].fringe,
         0
       ));
       const totalPersonnelIndirect = roundToCent(totalPersonnelDirect * defaultIndirectRate / 100);
+      const onCampusBase = roundToCent(totalPersonnelDirect + nonPersonnelResults.onCampusBase);
+      const offCampusBase = roundToCent(nonPersonnelResults.offCampusBase);
+      const onCampusIndirect = roundToCent(onCampusBase * defaultIndirectRate / 100);
+      const offCampusIndirect = roundToCent(offCampusBase * offCampusIndirectRate / 100);
       const totals = {
         direct: roundToCent(totalPersonnelDirect + nonPersonnelResults.direct),
         personnelIndirect: totalPersonnelIndirect,
-        indirect: roundToCent(totalPersonnelIndirect + nonPersonnelResults.indirect),
+        onCampusIndirect,
+        offCampusIndirect,
+        indirect: roundToCent(onCampusIndirect + offCampusIndirect),
+        onCampusBase,
+        offCampusBase,
         mtdc: roundToCent(totalPersonnelDirect + nonPersonnelResults.includedDirect),
         indirectRate: defaultIndirectRate,
+        offCampusIndirectRate,
         total: 0
       };
       totals.total = roundToCent(totals.direct + totals.indirect);
@@ -7426,7 +7847,8 @@
 
       return {
         defaults: {
-          indirectRate: defaultIndirectRate
+          indirectRate: defaultIndirectRate,
+          offCampusIndirectRate
         },
         personnel: personnelResults,
         nonPersonnel: nonPersonnelResults,
@@ -7519,13 +7941,19 @@
       });
     });
 
-    document.querySelectorAll("input").forEach((input) => {
-      registerPlannerInput(input);
+    document.querySelectorAll("input, .idc-mode-select").forEach((control) => {
+      registerPlannerInput(control);
     });
 
     elements.defaultIndirectRate.addEventListener("input", () => {
       if (!suppressRateFieldTracking) {
         defaultIndirectRateTouched = true;
+      }
+    });
+
+    elements.offCampusIndirectRate.addEventListener("input", () => {
+      if (!suppressRateFieldTracking) {
+        offCampusIndirectRateTouched = true;
       }
     });
 
