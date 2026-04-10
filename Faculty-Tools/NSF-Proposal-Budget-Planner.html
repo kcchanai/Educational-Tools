@@ -5798,6 +5798,14 @@
       return createSpreadsheetCell(Number.isFinite(value) ? value : 0, { styleId, type: "Number" });
     }
 
+    function formulaSpreadsheetCell(value, formula, styleId = "Number") {
+      return createSpreadsheetCell(Number.isFinite(value) ? value : 0, { styleId, type: "Number", formula });
+    }
+
+    function percentSpreadsheetCell(value, styleId = "Percentage") {
+      return createSpreadsheetCell(Number.isFinite(value) ? value : 0, { styleId, type: "Number" });
+    }
+
     function optionalNumberSpreadsheetCell(value, styleId = "Number") {
       if (value === null || value === undefined || value === "") {
         return textSpreadsheetCell("");
@@ -5826,9 +5834,47 @@
           return 4;
         case "Integer":
           return 5;
+        case "Percentage":
+          return 6;
         default:
           return 0;
       }
+    }
+
+    function buildSpreadsheetSumFormula(expressions = []) {
+      const filteredExpressions = expressions.filter(Boolean);
+      if (!filteredExpressions.length) {
+        return "0";
+      }
+
+      if (filteredExpressions.length === 1) {
+        return filteredExpressions[0];
+      }
+
+      return `SUM(${filteredExpressions.join(",")})`;
+    }
+
+    function buildSpreadsheetRoundToCentFormula(expression) {
+      return `ROUND(${expression},2)`;
+    }
+
+    function buildSpreadsheetRoundUpDollarFormula(expression) {
+      return `ROUNDUP(MAX(0,${expression}),0)`;
+    }
+
+    function buildSpreadsheetSheetCellFormula(sheetName, cellReference) {
+      const escapedSheetName = String(sheetName || "").replace(/'/g, "''");
+      return `'${escapedSheetName}'!${cellReference}`;
+    }
+
+    function buildSpreadsheetFormulaSumFromSheets(sourceSheets = [], selector) {
+      return buildSpreadsheetSumFormula(
+        sourceSheets
+          .map((sheet) => {
+            const cellReference = selector(sheet);
+            return cellReference ? buildSpreadsheetSheetCellFormula(sheet.name, cellReference) : "";
+          })
+      );
     }
 
     function encodeSpreadsheetText(value) {
@@ -5892,6 +5938,7 @@
       const rowCount = Math.max(worksheet.rows.length, 1);
       const maxColumns = Math.max(1, ...worksheet.rows.map((row) => Array.isArray(row) ? row.length : 0));
       const dimensionRef = `A1:${buildSpreadsheetCellReference(rowCount, maxColumns - 1)}`;
+      const approximateColumnWidth = "12.3";
 
       return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -5900,6 +5947,9 @@
     <sheetView workbookViewId="0"/>
   </sheetViews>
   <sheetFormatPr defaultRowHeight="15"/>
+  <cols>
+    <col min="1" max="${maxColumns}" width="${approximateColumnWidth}" customWidth="1"/>
+  </cols>
   <sheetData>${rowXml}</sheetData>
 </worksheet>`;
     }
@@ -5949,15 +5999,32 @@
     </border>
   </borders>
   <cellStyleXfs count="1">
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" applyAlignment="1">
+      <alignment vertical="top" wrapText="1"/>
+    </xf>
   </cellStyleXfs>
-  <cellXfs count="6">
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-    <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
-    <xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
-    <xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
-    <xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
-    <xf numFmtId="1" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>
+  <cellXfs count="7">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1">
+      <alignment vertical="top" wrapText="1"/>
+    </xf>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1">
+      <alignment vertical="top" wrapText="1"/>
+    </xf>
+    <xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1">
+      <alignment vertical="top" wrapText="1"/>
+    </xf>
+    <xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1">
+      <alignment vertical="top" wrapText="1"/>
+    </xf>
+    <xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1">
+      <alignment vertical="top" wrapText="1"/>
+    </xf>
+    <xf numFmtId="1" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1">
+      <alignment vertical="top" wrapText="1"/>
+    </xf>
+    <xf numFmtId="10" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1">
+      <alignment vertical="top" wrapText="1"/>
+    </xf>
   </cellXfs>
   <cellStyles count="1">
     <cellStyle name="Normal" xfId="0" builtinId="0"/>
@@ -5977,6 +6044,7 @@
       <sheet name="${escapeSpreadsheetAttribute(worksheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>
     `).join("")}
   </sheets>
+  <calcPr calcId="0" fullCalcOnLoad="1"/>
 </workbook>`;
     }
 
@@ -6286,7 +6354,7 @@
       return rows.find((row) => row && row.key === key) || null;
     }
 
-    function buildSpreadsheetTotalsRows(evaluation, options = {}) {
+    function legacyBuildSpreadsheetTotalsRows(evaluation, options = {}) {
       const indirectRateText = options.indirectRateText || formatPercent(evaluation.defaults.indirectRate);
       return [
         [textSpreadsheetCell("Metric", "Header"), textSpreadsheetCell("Value", "Header")],
@@ -6316,7 +6384,7 @@
       ];
     }
 
-    function buildSpreadsheetSummaryWorksheet(state, evaluations, cumulativeView) {
+    function legacyBuildSpreadsheetSummaryWorksheet(state, yearWorksheets = [], cumulativeWorksheet = null) {
       const rows = [
         [textSpreadsheetCell("Proposal Summary", "Section")],
         [textSpreadsheetCell("Field", "Header"), textSpreadsheetCell("Value", "Header")],
@@ -6348,55 +6416,68 @@
         ]
       ];
 
-      state.years.forEach((year, index) => {
-        const evaluation = evaluations[index];
+      yearWorksheets.forEach((worksheetMeta) => {
+        const { year, index, evaluation, name, refs } = worksheetMeta;
         rows.push([
           textSpreadsheetCell(getYearDisplayLabel(year, index)),
-          textSpreadsheetCell(formatPercent(evaluation.defaults.indirectRate)),
-          numberSpreadsheetCell(evaluation.displayTotals.seniorCount),
-          numberSpreadsheetCell(evaluation.displayTotals.salariesWages, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.fringe, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.equipment, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.travel, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.participant, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.otherDirect, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.totalDirect, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.mtdc, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.indirect, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.totalBudget, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.fee, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.amountRequested, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.costSharing, "Currency"),
-          numberSpreadsheetCell(evaluation.displayTotals.costSharingAgreed, "Currency")
+          refs.settings.defaultIndirectRate
+            ? formulaSpreadsheetCell(
+                evaluation.defaults.indirectRate / 100,
+                buildSpreadsheetSheetCellFormula(name, refs.settings.defaultIndirectRate),
+                "Percentage"
+              )
+            : textSpreadsheetCell(formatPercent(evaluation.defaults.indirectRate)),
+          formulaSpreadsheetCell(evaluation.displayTotals.seniorCount, buildSpreadsheetSheetCellFormula(name, refs.totals.seniorCount)),
+          formulaSpreadsheetCell(evaluation.displayTotals.salariesWages, buildSpreadsheetSheetCellFormula(name, refs.totals.salariesWages), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.fringe, buildSpreadsheetSheetCellFormula(name, refs.totals.fringe), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.equipment, buildSpreadsheetSheetCellFormula(name, refs.totals.equipment), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.travel, buildSpreadsheetSheetCellFormula(name, refs.totals.travel), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.participant, buildSpreadsheetSheetCellFormula(name, refs.totals.participant), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.otherDirect, buildSpreadsheetSheetCellFormula(name, refs.totals.otherDirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.totalDirect, buildSpreadsheetSheetCellFormula(name, refs.totals.totalDirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.mtdc, buildSpreadsheetSheetCellFormula(name, refs.totals.mtdc), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.indirect, buildSpreadsheetSheetCellFormula(name, refs.totals.indirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.totalBudget, buildSpreadsheetSheetCellFormula(name, refs.totals.totalBudget), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.fee, buildSpreadsheetSheetCellFormula(name, refs.totals.fee), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.amountRequested, buildSpreadsheetSheetCellFormula(name, refs.totals.amountRequested), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.costSharing, buildSpreadsheetSheetCellFormula(name, refs.totals.costSharing), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.costSharingAgreed, buildSpreadsheetSheetCellFormula(name, refs.totals.costSharingAgreed), "Currency")
         ]);
       });
 
-      if (cumulativeView) {
+      if (cumulativeWorksheet) {
+        const { evaluation, name, refs, indirectRateText } = cumulativeWorksheet;
         rows.push([
           textSpreadsheetCell("Cumulative"),
-          textSpreadsheetCell(cumulativeView.indirectRateStaticText),
-          numberSpreadsheetCell(cumulativeView.aggregate.seniorCount),
-          numberSpreadsheetCell(cumulativeView.aggregate.salariesWages, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.fringe, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.equipment, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.travel, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.participant, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.otherDirect, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.totalDirect, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.mtdc, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.indirect, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.totalBudget, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.fee, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.amountRequested, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.costSharing, "Currency"),
-          numberSpreadsheetCell(cumulativeView.aggregate.costSharingAgreed, "Currency")
+          refs.settings.defaultIndirectRate
+            ? formulaSpreadsheetCell(
+                evaluation.defaults.indirectRate / 100,
+                buildSpreadsheetSheetCellFormula(name, refs.settings.defaultIndirectRate),
+                "Percentage"
+              )
+            : textSpreadsheetCell(indirectRateText || "Varies by year"),
+          formulaSpreadsheetCell(evaluation.displayTotals.seniorCount, buildSpreadsheetSheetCellFormula(name, refs.totals.seniorCount)),
+          formulaSpreadsheetCell(evaluation.displayTotals.salariesWages, buildSpreadsheetSheetCellFormula(name, refs.totals.salariesWages), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.fringe, buildSpreadsheetSheetCellFormula(name, refs.totals.fringe), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.equipment, buildSpreadsheetSheetCellFormula(name, refs.totals.equipment), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.travel, buildSpreadsheetSheetCellFormula(name, refs.totals.travel), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.participant, buildSpreadsheetSheetCellFormula(name, refs.totals.participant), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.otherDirect, buildSpreadsheetSheetCellFormula(name, refs.totals.otherDirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.totalDirect, buildSpreadsheetSheetCellFormula(name, refs.totals.totalDirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.mtdc, buildSpreadsheetSheetCellFormula(name, refs.totals.mtdc), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.indirect, buildSpreadsheetSheetCellFormula(name, refs.totals.indirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.totalBudget, buildSpreadsheetSheetCellFormula(name, refs.totals.totalBudget), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.fee, buildSpreadsheetSheetCellFormula(name, refs.totals.fee), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.amountRequested, buildSpreadsheetSheetCellFormula(name, refs.totals.amountRequested), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.costSharing, buildSpreadsheetSheetCellFormula(name, refs.totals.costSharing), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.costSharingAgreed, buildSpreadsheetSheetCellFormula(name, refs.totals.costSharingAgreed), "Currency")
         ]);
       }
 
       return { name: "Proposal Summary", rows };
     }
 
-    function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options = {}) {
+    function legacyBuildYearSpreadsheetWorksheet(state, year, evaluation, index, options = {}) {
       const yearLabel = options.sheetLabel || getYearDisplayLabel(year, index);
       const indirectRateText = options.indirectRateText || formatPercent(evaluation.defaults.indirectRate);
       const rows = [
@@ -6540,27 +6621,27 @@
         ]);
       });
 
-      rows.push([], [textSpreadsheetCell("Worksheet Totals", "Section")], ...buildSpreadsheetTotalsRows(evaluation, { indirectRateText }));
+      rows.push([], [textSpreadsheetCell("Worksheet Totals", "Section")], ...legacyBuildSpreadsheetTotalsRows(evaluation, { indirectRateText }));
       return { name: yearLabel, rows };
     }
 
-    function buildSpreadsheetWorkbook(state = collectPlannerState()) {
+    function legacyBuildSpreadsheetWorkbook(state = collectPlannerState()) {
       const evaluations = state.years.map((year, index) => evaluateYearState(year, index, state.years, state.globalSettings || {}));
       const cumulativeView = state.years.length >= 2 ? buildCumulativeView(state) : null;
       const usedWorksheetNames = new Set();
       const worksheets = [
-        buildSpreadsheetSummaryWorksheet(state, evaluations, cumulativeView)
+        legacyBuildSpreadsheetSummaryWorksheet(state, evaluations, cumulativeView)
       ];
       worksheets[0].name = sanitizeWorksheetName(worksheets[0].name, usedWorksheetNames);
 
       state.years.forEach((year, index) => {
-        const worksheet = buildYearSpreadsheetWorksheet(state, year, evaluations[index], index);
+        const worksheet = legacyBuildYearSpreadsheetWorksheet(state, year, evaluations[index], index);
         worksheet.name = sanitizeWorksheetName(getYearDisplayLabel(year, index), usedWorksheetNames);
         worksheets.push(worksheet);
       });
 
       if (cumulativeView) {
-        const cumulativeWorksheet = buildYearSpreadsheetWorksheet(
+        const cumulativeWorksheet = legacyBuildYearSpreadsheetWorksheet(
           state,
           cumulativeView.yearState,
           cumulativeView.evaluation,
@@ -6575,6 +6656,485 @@
       }
 
       return serializeSpreadsheetWorkbook({ worksheets });
+    }
+
+    function buildSpreadsheetSummaryWorksheet(state, yearWorksheets = [], cumulativeWorksheet = null) {
+      const rows = [
+        [textSpreadsheetCell("Proposal Summary", "Section")],
+        [textSpreadsheetCell("Field", "Header"), textSpreadsheetCell("Value", "Header")],
+        [textSpreadsheetCell("Organization"), textSpreadsheetCell(state.globalSettings.organizationLabel || "")],
+        [textSpreadsheetCell("Proposal No."), textSpreadsheetCell(state.globalSettings.proposalNumber || "")],
+        [textSpreadsheetCell("PI / PD Name"), textSpreadsheetCell(state.globalSettings.piLabel || "")],
+        [textSpreadsheetCell("Org. Rep. Name"), textSpreadsheetCell(state.globalSettings.orgRepName || "")],
+        [textSpreadsheetCell("Budget Period Count"), numberSpreadsheetCell(state.years.length, "Integer")],
+        [],
+        [textSpreadsheetCell("Budget Period Totals", "Section")],
+        [
+          textSpreadsheetCell("Budget Period", "Header"),
+          textSpreadsheetCell("IDC Rate", "Header"),
+          textSpreadsheetCell("Senior Count", "Header"),
+          textSpreadsheetCell("Salaries and Wages", "Header"),
+          textSpreadsheetCell("Fringe", "Header"),
+          textSpreadsheetCell("Equipment", "Header"),
+          textSpreadsheetCell("Travel", "Header"),
+          textSpreadsheetCell("Participant Support", "Header"),
+          textSpreadsheetCell("Other Direct", "Header"),
+          textSpreadsheetCell("Total Direct", "Header"),
+          textSpreadsheetCell("MTDC", "Header"),
+          textSpreadsheetCell("Indirect", "Header"),
+          textSpreadsheetCell("Total Budget", "Header"),
+          textSpreadsheetCell("Fee", "Header"),
+          textSpreadsheetCell("Amount Requested", "Header"),
+          textSpreadsheetCell("Cost Sharing", "Header"),
+          textSpreadsheetCell("Agreed Cost Sharing", "Header")
+        ]
+      ];
+
+      const appendSummaryRow = (label, worksheetMeta, fallbackRateText = "") => {
+        const { evaluation, name, refs } = worksheetMeta;
+        rows.push([
+          textSpreadsheetCell(label),
+          refs.settings.defaultIndirectRate
+            ? formulaSpreadsheetCell(evaluation.defaults.indirectRate / 100, buildSpreadsheetSheetCellFormula(name, refs.settings.defaultIndirectRate), "Percentage")
+            : textSpreadsheetCell(fallbackRateText || formatPercent(evaluation.defaults.indirectRate)),
+          formulaSpreadsheetCell(evaluation.displayTotals.seniorCount, buildSpreadsheetSheetCellFormula(name, refs.totals.seniorCount)),
+          formulaSpreadsheetCell(evaluation.displayTotals.salariesWages, buildSpreadsheetSheetCellFormula(name, refs.totals.salariesWages), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.fringe, buildSpreadsheetSheetCellFormula(name, refs.totals.fringe), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.equipment, buildSpreadsheetSheetCellFormula(name, refs.totals.equipment), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.travel, buildSpreadsheetSheetCellFormula(name, refs.totals.travel), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.participant, buildSpreadsheetSheetCellFormula(name, refs.totals.participant), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.otherDirect, buildSpreadsheetSheetCellFormula(name, refs.totals.otherDirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.totalDirect, buildSpreadsheetSheetCellFormula(name, refs.totals.totalDirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.mtdc, buildSpreadsheetSheetCellFormula(name, refs.totals.mtdc), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.indirect, buildSpreadsheetSheetCellFormula(name, refs.totals.indirect), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.totalBudget, buildSpreadsheetSheetCellFormula(name, refs.totals.totalBudget), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.fee, buildSpreadsheetSheetCellFormula(name, refs.totals.fee), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.amountRequested, buildSpreadsheetSheetCellFormula(name, refs.totals.amountRequested), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.costSharing, buildSpreadsheetSheetCellFormula(name, refs.totals.costSharing), "Currency"),
+          formulaSpreadsheetCell(evaluation.displayTotals.costSharingAgreed, buildSpreadsheetSheetCellFormula(name, refs.totals.costSharingAgreed), "Currency")
+        ]);
+      };
+
+      yearWorksheets.forEach((worksheetMeta) => {
+        appendSummaryRow(getYearDisplayLabel(worksheetMeta.year, worksheetMeta.index), worksheetMeta);
+      });
+
+      if (cumulativeWorksheet) {
+        appendSummaryRow("Cumulative", cumulativeWorksheet, cumulativeWorksheet.indirectRateText || "Varies by year");
+      }
+
+      return { name: "Proposal Summary", rows };
+    }
+
+    function populateAggregateSpreadsheetTotals(evaluation, refs, addMetricRow, aggregateSourceSheets, indirectRateText) {
+      refs.totals.seniorCount = addMetricRow("A7. Total Senior Personnel Count", formulaSpreadsheetCell(
+        evaluation.displayTotals.seniorCount,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.seniorCount)
+      ));
+      refs.totals.seniorCal = addMetricRow("A7. Senior CAL Months", formulaSpreadsheetCell(
+        evaluation.personnel.senior.calMonths,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.seniorCal)
+      ));
+      refs.totals.seniorAcad = addMetricRow("A7. Senior ACAD Months", formulaSpreadsheetCell(
+        evaluation.personnel.senior.acadMonths,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.seniorAcad)
+      ));
+      refs.totals.seniorSumr = addMetricRow("A7. Senior SUMR Months", formulaSpreadsheetCell(
+        evaluation.personnel.senior.sumrMonths,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.seniorSumr)
+      ));
+      refs.totals.seniorSalary = addMetricRow("A7. Senior Salary Before Fringe", formulaSpreadsheetCell(
+        evaluation.displayTotals.seniorSalary,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.seniorSalary),
+        "Currency"
+      ));
+      refs.totals.seniorFringe = addMetricRow("A7. Senior Fringe", formulaSpreadsheetCell(
+        evaluation.displayTotals.seniorFringe,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.seniorFringe),
+        "Currency"
+      ));
+      refs.totals.salariesWages = addMetricRow("Total Salaries and Wages (A + B)", formulaSpreadsheetCell(
+        evaluation.displayTotals.salariesWages,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.salariesWages),
+        "Currency"
+      ));
+      refs.totals.fringe = addMetricRow("C. Fringe Benefits", formulaSpreadsheetCell(
+        evaluation.displayTotals.fringe,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.fringe),
+        "Currency"
+      ));
+      refs.totals.salariesFringe = addMetricRow("Total Salaries, Wages and Fringe (A + B + C)", formulaSpreadsheetCell(
+        evaluation.displayTotals.salariesFringe,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.salariesFringe),
+        "Currency"
+      ));
+      refs.totals.equipment = addMetricRow("D. Equipment", formulaSpreadsheetCell(
+        evaluation.displayTotals.equipment,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.equipment),
+        "Currency"
+      ));
+      refs.totals.travel = addMetricRow("E. Travel", formulaSpreadsheetCell(
+        evaluation.displayTotals.travel,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.travel),
+        "Currency"
+      ));
+      refs.totals.participant = addMetricRow("F. Participant Support", formulaSpreadsheetCell(
+        evaluation.displayTotals.participant,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.participant),
+        "Currency"
+      ));
+      refs.totals.participantCount = addMetricRow("Participant Count", formulaSpreadsheetCell(
+        evaluation.displayTotals.participantCount,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.participantCount)
+      ));
+      refs.totals.otherDirect = addMetricRow("G. Other Direct Costs", formulaSpreadsheetCell(
+        evaluation.displayTotals.otherDirect,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.otherDirect),
+        "Currency"
+      ));
+      refs.totals.totalDirect = addMetricRow("H. Total Direct Costs", formulaSpreadsheetCell(
+        evaluation.displayTotals.totalDirect,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.totalDirect),
+        "Currency"
+      ));
+      refs.totals.mtdc = addMetricRow("I. MTDC", formulaSpreadsheetCell(
+        evaluation.displayTotals.mtdc,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.mtdc),
+        "Currency"
+      ));
+      refs.totals.indirectRate = addMetricRow("I. IDC Rate", textSpreadsheetCell(indirectRateText));
+      refs.totals.indirect = addMetricRow("I. Total Indirect Costs", formulaSpreadsheetCell(
+        evaluation.displayTotals.indirect,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.indirect),
+        "Currency"
+      ));
+      refs.totals.totalBudget = addMetricRow("J. Total Direct and Indirect Costs", formulaSpreadsheetCell(
+        evaluation.displayTotals.totalBudget,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.totalBudget),
+        "Currency"
+      ));
+      refs.totals.fee = addMetricRow("K. Fee", formulaSpreadsheetCell(
+        evaluation.displayTotals.fee,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.fee),
+        "Currency"
+      ));
+      refs.totals.amountRequested = addMetricRow("L. Amount Requested", formulaSpreadsheetCell(
+        evaluation.displayTotals.amountRequested,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.amountRequested),
+        "Currency"
+      ));
+      refs.totals.costSharing = addMetricRow("M. Cost Sharing Proposed Level", formulaSpreadsheetCell(
+        evaluation.displayTotals.costSharing,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.costSharing),
+        "Currency"
+      ));
+      refs.totals.costSharingAgreed = addMetricRow("Agreed Level if Different", formulaSpreadsheetCell(
+        evaluation.displayTotals.costSharingAgreed,
+        buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, (sheet) => sheet.refs.totals.costSharingAgreed),
+        "Currency"
+      ));
+    }
+
+    function populateStandardSpreadsheetTotals(evaluation, refs, addMetricRow, context) {
+      const roundedOtherSalaryFormula = buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula(context.otherSalaryRefs));
+      refs.totals.seniorCount = addMetricRow("A7. Total Senior Personnel Count", formulaSpreadsheetCell(
+        evaluation.displayTotals.seniorCount,
+        buildSpreadsheetSumFormula(context.namedSeniorCountExpressions.concat(context.othersCountRef ? [context.othersCountRef] : []))
+      ));
+      refs.totals.seniorCal = addMetricRow("A7. Senior CAL Months", formulaSpreadsheetCell(evaluation.personnel.senior.calMonths, buildSpreadsheetSumFormula(context.seniorMonthRefs.cal)));
+      refs.totals.seniorAcad = addMetricRow("A7. Senior ACAD Months", formulaSpreadsheetCell(evaluation.personnel.senior.acadMonths, buildSpreadsheetSumFormula(context.seniorMonthRefs.acad)));
+      refs.totals.seniorSumr = addMetricRow("A7. Senior SUMR Months", formulaSpreadsheetCell(evaluation.personnel.senior.sumrMonths, buildSpreadsheetSumFormula(context.seniorMonthRefs.sumr)));
+      refs.totals.seniorSalary = addMetricRow("A7. Senior Salary Before Fringe", formulaSpreadsheetCell(evaluation.displayTotals.seniorSalary, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula(context.seniorSalaryRefs)), "Currency"));
+      refs.totals.seniorFringe = addMetricRow("A7. Senior Fringe", formulaSpreadsheetCell(evaluation.displayTotals.seniorFringe, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula(context.seniorFringeRefs)), "Currency"));
+      refs.totals.salariesWages = addMetricRow("Total Salaries and Wages (A + B)", formulaSpreadsheetCell(evaluation.displayTotals.salariesWages, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.seniorSalary, roundedOtherSalaryFormula])), "Currency"));
+      refs.totals.fringe = addMetricRow("C. Fringe Benefits", formulaSpreadsheetCell(evaluation.displayTotals.fringe, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula(context.fringeRefs)), "Currency"));
+      refs.totals.salariesFringe = addMetricRow("Total Salaries, Wages and Fringe (A + B + C)", formulaSpreadsheetCell(evaluation.displayTotals.salariesFringe, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.salariesWages, refs.totals.fringe])), "Currency"));
+      refs.totals.equipment = addMetricRow("D. Equipment", formulaSpreadsheetCell(evaluation.displayTotals.equipment, buildSpreadsheetRoundUpDollarFormula(context.equipmentAmountRef), "Currency"));
+      refs.totals.travel = addMetricRow("E. Travel", formulaSpreadsheetCell(evaluation.displayTotals.travel, buildSpreadsheetSumFormula(context.travelAmountRefs.map((cellRef) => buildSpreadsheetRoundUpDollarFormula(cellRef))), "Currency"));
+      refs.totals.participant = addMetricRow("F. Participant Support", formulaSpreadsheetCell(evaluation.displayTotals.participant, buildSpreadsheetSumFormula(context.participantAmountRefs.map((cellRef) => buildSpreadsheetRoundUpDollarFormula(cellRef))), "Currency"));
+      refs.totals.participantCount = addMetricRow("Participant Count", formulaSpreadsheetCell(evaluation.displayTotals.participantCount, refs.settings.participantCount));
+      refs.totals.otherDirect = addMetricRow("G. Other Direct Costs", formulaSpreadsheetCell(evaluation.displayTotals.otherDirect, buildSpreadsheetSumFormula(context.otherDirectAmountRefs.map((cellRef) => buildSpreadsheetRoundUpDollarFormula(cellRef))), "Currency"));
+      refs.totals.totalDirect = addMetricRow("H. Total Direct Costs", formulaSpreadsheetCell(evaluation.displayTotals.totalDirect, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.seniorSalary, roundedOtherSalaryFormula, refs.totals.fringe, refs.totals.equipment, refs.totals.travel, refs.totals.participant, refs.totals.otherDirect])), "Currency"));
+      refs.totals.mtdc = addMetricRow("I. MTDC", formulaSpreadsheetCell(evaluation.displayTotals.mtdc, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.seniorSalary, roundedOtherSalaryFormula, refs.totals.fringe, buildSpreadsheetSumFormula(context.includedDirectRoundedExpressions)])), "Currency"));
+      refs.totals.indirectRate = addMetricRow("I. IDC Rate", formulaSpreadsheetCell(evaluation.defaults.indirectRate / 100, refs.settings.defaultIndirectRate, "Percentage"));
+      refs.totals.indirect = addMetricRow("I. Total Indirect Costs", formulaSpreadsheetCell(evaluation.displayTotals.indirect, buildSpreadsheetRoundUpDollarFormula(`${refs.totals.mtdc}*${refs.settings.defaultIndirectRate}`), "Currency"));
+      refs.totals.totalBudget = addMetricRow("J. Total Direct and Indirect Costs", formulaSpreadsheetCell(evaluation.displayTotals.totalBudget, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.totalDirect, refs.totals.indirect])), "Currency"));
+      refs.totals.fee = addMetricRow("K. Fee", formulaSpreadsheetCell(evaluation.displayTotals.fee, buildSpreadsheetRoundUpDollarFormula(refs.settings.fee), "Currency"));
+      refs.totals.amountRequested = addMetricRow("L. Amount Requested", formulaSpreadsheetCell(evaluation.displayTotals.amountRequested, buildSpreadsheetRoundUpDollarFormula(`MAX(${refs.totals.totalBudget}-${refs.totals.fee},0)`), "Currency"));
+      refs.totals.costSharing = addMetricRow("M. Cost Sharing Proposed Level", formulaSpreadsheetCell(evaluation.displayTotals.costSharing, buildSpreadsheetRoundUpDollarFormula(refs.settings.costSharing), "Currency"));
+      refs.totals.costSharingAgreed = addMetricRow("Agreed Level if Different", formulaSpreadsheetCell(evaluation.displayTotals.costSharingAgreed, buildSpreadsheetRoundUpDollarFormula(refs.settings.costSharingAgreed), "Currency"));
+    }
+
+    function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options = {}) {
+      const yearLabel = options.sheetLabel || getYearDisplayLabel(year, index);
+      const sheetName = options.sheetName || yearLabel;
+      const indirectRateText = options.indirectRateText || formatPercent(evaluation.defaults.indirectRate);
+      const aggregateSourceSheets = Array.isArray(options.aggregateSourceSheets) ? options.aggregateSourceSheets : [];
+      const rows = [];
+      const refs = { settings: {}, totals: {} };
+      const seniorRowNumbers = [];
+      const seniorRowCellsByKey = {};
+      const namedSeniorRowNumbers = [];
+      const otherRowNumbers = [];
+      const nonPersonnelRowNumbers = {};
+      const helperOutputRefsByKey = {};
+      let othersSeniorRowNumber = 0;
+
+      const addRow = (cells = []) => {
+        rows.push(cells);
+        return rows.length;
+      };
+      const getCellRef = (rowNumber, columnIndex) => buildSpreadsheetCellReference(rowNumber, columnIndex);
+      const addMetricRow = (label, valueCell) => {
+        const rowNumber = addRow([textSpreadsheetCell(label), valueCell]);
+        return getCellRef(rowNumber, 1);
+      };
+
+      addRow([textSpreadsheetCell(yearLabel, "Section")]);
+      addRow([textSpreadsheetCell("Budget Period Settings", "Section")]);
+      addRow([textSpreadsheetCell("Field", "Header"), textSpreadsheetCell("Value", "Header")]);
+      addRow([textSpreadsheetCell("Budget Period Label"), textSpreadsheetCell(year.settings?.budgetPeriodLabel || getYearFallbackLabel(index))]);
+
+      if (aggregateSourceSheets.length) {
+        addRow([textSpreadsheetCell("Default IDC Rate"), textSpreadsheetCell(indirectRateText)]);
+      } else {
+        const rateRowNumber = addRow([textSpreadsheetCell("Default IDC Rate"), percentSpreadsheetCell(evaluation.defaults.indirectRate / 100)]);
+        refs.settings.defaultIndirectRate = getCellRef(rateRowNumber, 1);
+      }
+
+      const sumFromAggregate = (value, selector, styleId = "Number") =>
+        formulaSpreadsheetCell(value, buildSpreadsheetFormulaSumFromSheets(aggregateSourceSheets, selector), styleId);
+
+      const participantCountRowNumber = addRow([textSpreadsheetCell("Participant Count"), aggregateSourceSheets.length
+        ? sumFromAggregate(evaluation.displayTotals.participantCount, (sheet) => sheet.refs.totals.participantCount)
+        : optionalNumberSpreadsheetCell(year.participantSupport?.participantCount)]);
+      refs.settings.participantCount = getCellRef(participantCountRowNumber, 1);
+
+      const feeRowNumber = addRow([textSpreadsheetCell("Fee"), aggregateSourceSheets.length
+        ? sumFromAggregate(evaluation.displayTotals.fee, (sheet) => sheet.refs.totals.fee, "Currency")
+        : optionalNumberSpreadsheetCell(year.settings?.feeAmount, "Currency")]);
+      refs.settings.fee = getCellRef(feeRowNumber, 1);
+
+      const costSharingRowNumber = addRow([textSpreadsheetCell("Cost Sharing Proposed Level"), aggregateSourceSheets.length
+        ? sumFromAggregate(evaluation.displayTotals.costSharing, (sheet) => sheet.refs.totals.costSharing, "Currency")
+        : optionalNumberSpreadsheetCell(year.settings?.costSharingAmount, "Currency")]);
+      refs.settings.costSharing = getCellRef(costSharingRowNumber, 1);
+
+      const costSharingAgreedRowNumber = addRow([textSpreadsheetCell("Cost Sharing Agreed Level"), aggregateSourceSheets.length
+        ? sumFromAggregate(evaluation.displayTotals.costSharingAgreed, (sheet) => sheet.refs.totals.costSharingAgreed, "Currency")
+        : optionalNumberSpreadsheetCell(year.settings?.costSharingAgreedAmount, "Currency")]);
+      refs.settings.costSharingAgreed = getCellRef(costSharingAgreedRowNumber, 1);
+
+      addRow([]);
+      addRow([textSpreadsheetCell("Senior Personnel Inputs", "Section")]);
+      addRow([textSpreadsheetCell("Row", "Header"), textSpreadsheetCell("Label", "Header"), textSpreadsheetCell("Qty", "Header"), textSpreadsheetCell("CAL Months", "Header"), textSpreadsheetCell("ACAD Months", "Header"), textSpreadsheetCell("SUMR Months", "Header"), textSpreadsheetCell("Base Salary", "Header"), textSpreadsheetCell("Fringe", "Header")]);
+
+      seniorPersonnelDefinitions.forEach((definition) => {
+        const row = findStoredRowByKey(year.personnel?.senior || [], definition.key);
+        const label = definition.kind === "others" ? definition.label : (state.globalSettings?.seniorPersonnelLabels?.[definition.key] || row?.label || "");
+        const rowCells = [textSpreadsheetCell(definition.prefix || ""), textSpreadsheetCell(label), definition.kind === "others" ? optionalNumberSpreadsheetCell(row?.quantity, "Integer") : textSpreadsheetCell(""), optionalNumberSpreadsheetCell(row?.calMonths), optionalNumberSpreadsheetCell(row?.acadMonths), optionalNumberSpreadsheetCell(row?.sumrMonths), optionalNumberSpreadsheetCell(row?.baseSalary, "Currency"), optionalNumberSpreadsheetCell(row?.fringeAmount, "Currency")];
+        const rowNumber = addRow(rowCells);
+        seniorRowNumbers.push(rowNumber);
+        seniorRowCellsByKey[definition.key] = rowCells;
+        if (definition.kind === "others") {
+          othersSeniorRowNumber = rowNumber;
+        } else {
+          namedSeniorRowNumbers.push(rowNumber);
+        }
+      });
+
+      addRow([]);
+      addRow([textSpreadsheetCell("Senior Personnel Budget Helper", "Section")]);
+      addRow([
+        textSpreadsheetCell("Row", "Header"),
+        textSpreadsheetCell("Label", "Header"),
+        textSpreadsheetCell("Open", "Header"),
+        textSpreadsheetCell("Apply Outputs", "Header"),
+        textSpreadsheetCell("Desired Release TE", "Header"),
+        textSpreadsheetCell("Desired Instructional TE", "Header"),
+        textSpreadsheetCell("Desired Non-Instructional Days", "Header"),
+        textSpreadsheetCell("Annual Salary", "Header"),
+        textSpreadsheetCell("Faculty Term", "Header"),
+        textSpreadsheetCell("Annual Credit Load", "Header"),
+        textSpreadsheetCell("Release Fringe Rate", "Header"),
+        textSpreadsheetCell("Overload Fringe Rate", "Header"),
+        textSpreadsheetCell("Summer Rate Source", "Header"),
+        textSpreadsheetCell("Instructional Cost Per TE", "Header"),
+        textSpreadsheetCell("Calendar Months", "Header"),
+        textSpreadsheetCell("Academic Months", "Header"),
+        textSpreadsheetCell("Summer Months", "Header"),
+        textSpreadsheetCell("Salary per TE/Credit", "Header"),
+        textSpreadsheetCell("Total Salary Before Fringe", "Header"),
+        textSpreadsheetCell("Total Fringe", "Header")
+      ]);
+
+      seniorPersonnelDefinitions.filter((definition) => definition.kind !== "others").forEach((definition) => {
+        const row = findStoredRowByKey(year.personnel?.senior || [], definition.key);
+        const helper = row?.helper || null;
+        const helperRowNumber = rows.length + 1;
+        const desiredTERef = getCellRef(helperRowNumber, 4);
+        const desiredInstructionalTERef = getCellRef(helperRowNumber, 5);
+        const desiredNonInstructionalDaysRef = getCellRef(helperRowNumber, 6);
+        const annualSalaryRef = getCellRef(helperRowNumber, 7);
+        const facultyTermRef = getCellRef(helperRowNumber, 8);
+        const annualCreditLoadRef = getCellRef(helperRowNumber, 9);
+        const releaseFringeRateRef = getCellRef(helperRowNumber, 10);
+        const overloadFringeRateRef = getCellRef(helperRowNumber, 11);
+        const instructionalCostPerTERef = getCellRef(helperRowNumber, 13);
+        const calMonthsRef = getCellRef(helperRowNumber, 14);
+        const acadMonthsRef = getCellRef(helperRowNumber, 15);
+        const sumrMonthsRef = getCellRef(helperRowNumber, 16);
+        const salaryPerTERef = getCellRef(helperRowNumber, 17);
+        const totalSalaryRef = getCellRef(helperRowNumber, 18);
+        const totalFringeRef = getCellRef(helperRowNumber, 19);
+        const hasWorkInputFormula = `SUM(${desiredTERef},${desiredInstructionalTERef},${desiredNonInstructionalDaysRef},${annualSalaryRef},${releaseFringeRateRef},${overloadFringeRateRef},${instructionalCostPerTERef})>0`;
+        const invalidFormula = `OR(AND(${hasWorkInputFormula},${annualSalaryRef}<=0),AND(${desiredTERef}>0,${annualCreditLoadRef}<=0),AND(${desiredInstructionalTERef}>0,${instructionalCostPerTERef}<=0))`;
+        const nonInstructionalDayFactorFormula = `IF(OR(${facultyTermRef}="uhcc11",${facultyTermRef}="manoa11"),260,195)`;
+        const salaryPerTEFormula = `IF(${invalidFormula},0,IFERROR(${buildSpreadsheetRoundUpDollarFormula(`${annualSalaryRef}/${annualCreditLoadRef}`)},0))`;
+        const releaseSalaryFormula = `IF(${invalidFormula},0,${buildSpreadsheetRoundToCentFormula(`${salaryPerTERef}*${desiredTERef}`)})`;
+        const instructionalSalaryFormula = `IF(${invalidFormula},0,${buildSpreadsheetRoundToCentFormula(`${desiredInstructionalTERef}*${instructionalCostPerTERef}`)})`;
+        const nonInstructionalSalaryFormula = `IF(${invalidFormula},0,${buildSpreadsheetRoundToCentFormula(`(${desiredNonInstructionalDaysRef}*${annualSalaryRef})/${nonInstructionalDayFactorFormula}`)})`;
+        const releaseFringeFormula = buildSpreadsheetRoundToCentFormula(`(${releaseSalaryFormula})*${releaseFringeRateRef}/100`);
+        const instructionalFringeFormula = buildSpreadsheetRoundToCentFormula(`(${instructionalSalaryFormula})*${overloadFringeRateRef}/100`);
+        const nonInstructionalFringeFormula = buildSpreadsheetRoundToCentFormula(`(${nonInstructionalSalaryFormula})*${overloadFringeRateRef}/100`);
+        addRow([
+          textSpreadsheetCell(definition.prefix || ""),
+          textSpreadsheetCell(state.globalSettings?.seniorPersonnelLabels?.[definition.key] || row?.label || ""),
+          textSpreadsheetCell(helper ? (helper.open ? "Yes" : "No") : ""),
+          textSpreadsheetCell(helper ? (helper.apply ? "Yes" : "No") : ""),
+          optionalNumberSpreadsheetCell(helper?.desiredTE),
+          optionalNumberSpreadsheetCell(helper?.desiredInstructionalTE),
+          optionalNumberSpreadsheetCell(helper?.desiredNonInstructionalDays, "Integer"),
+          optionalNumberSpreadsheetCell(helper?.annualSalary, "Currency"),
+          textSpreadsheetCell(helper?.facultyTerm || ""),
+          optionalNumberSpreadsheetCell(helper?.annualCreditLoad),
+          optionalNumberSpreadsheetCell(helper?.releaseFringeRate),
+          optionalNumberSpreadsheetCell(helper?.overloadFringeRate),
+          textSpreadsheetCell(formatSpreadsheetSummerRateSource(helper?.summerRateSource)),
+          optionalNumberSpreadsheetCell(helper?.instructionalCostPerTE, "Currency"),
+          formulaSpreadsheetCell(0, "0"),
+          formulaSpreadsheetCell(readStoredNumberValue(helper?.desiredTE) / 3, buildSpreadsheetRoundToCentFormula(`${desiredTERef}/3`)),
+          formulaSpreadsheetCell((readStoredNumberValue(helper?.desiredInstructionalTE) / 3) + (readStoredNumberValue(helper?.desiredNonInstructionalDays) / 21), buildSpreadsheetRoundToCentFormula(`${desiredInstructionalTERef}/3+${desiredNonInstructionalDaysRef}/21`)),
+          formulaSpreadsheetCell(0, salaryPerTEFormula, "Currency"),
+          formulaSpreadsheetCell(readStoredNumberValue(row?.baseSalary), buildSpreadsheetRoundToCentFormula(`${releaseSalaryFormula}+${instructionalSalaryFormula}+${nonInstructionalSalaryFormula}`), "Currency"),
+          formulaSpreadsheetCell(readStoredNumberValue(row?.fringeAmount), buildSpreadsheetRoundToCentFormula(`${releaseFringeFormula}+${instructionalFringeFormula}+${nonInstructionalFringeFormula}`), "Currency")
+        ]);
+        helperOutputRefsByKey[definition.key] = {
+          cal: calMonthsRef,
+          acad: acadMonthsRef,
+          sumr: sumrMonthsRef,
+          salary: totalSalaryRef,
+          fringe: totalFringeRef
+        };
+      });
+
+      seniorPersonnelDefinitions.filter((definition) => definition.kind !== "others").forEach((definition) => {
+        const row = findStoredRowByKey(year.personnel?.senior || [], definition.key);
+        if (!row?.helper?.apply) {
+          return;
+        }
+
+        const rowCells = seniorRowCellsByKey[definition.key];
+        const helperRefs = helperOutputRefsByKey[definition.key];
+        if (!rowCells || !helperRefs) {
+          return;
+        }
+
+        rowCells[3] = formulaSpreadsheetCell(readStoredNumberValue(row?.calMonths), helperRefs.cal);
+        rowCells[4] = formulaSpreadsheetCell(readStoredNumberValue(row?.acadMonths), helperRefs.acad);
+        rowCells[5] = formulaSpreadsheetCell(readStoredNumberValue(row?.sumrMonths), helperRefs.sumr);
+        rowCells[6] = formulaSpreadsheetCell(readStoredNumberValue(row?.baseSalary), helperRefs.salary, "Currency");
+        rowCells[7] = formulaSpreadsheetCell(readStoredNumberValue(row?.fringeAmount), helperRefs.fringe, "Currency");
+      });
+
+      addRow([]);
+      addRow([textSpreadsheetCell("Other Personnel Inputs", "Section")]);
+      addRow([textSpreadsheetCell("Row", "Header"), textSpreadsheetCell("Label", "Header"), textSpreadsheetCell("Qty", "Header"), textSpreadsheetCell("CAL Months", "Header"), textSpreadsheetCell("ACAD Months", "Header"), textSpreadsheetCell("SUMR Months", "Header"), textSpreadsheetCell("Base Salary", "Header"), textSpreadsheetCell("Fringe", "Header")]);
+
+      otherPersonnelDefinitions.forEach((definition) => {
+        const row = findStoredRowByKey(year.personnel?.otherPersonnel || [], definition.key);
+        const rowNumber = addRow([textSpreadsheetCell(definition.prefix || ""), textSpreadsheetCell(definition.label), optionalNumberSpreadsheetCell(row?.quantity, "Integer"), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.calMonths) : textSpreadsheetCell(""), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.acadMonths) : textSpreadsheetCell(""), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.sumrMonths) : textSpreadsheetCell(""), optionalNumberSpreadsheetCell(row?.baseSalary, "Currency"), optionalNumberSpreadsheetCell(row?.fringeAmount, "Currency")]);
+        otherRowNumbers.push(rowNumber);
+      });
+
+      addRow([]);
+      addRow([textSpreadsheetCell("Non-Personnel Inputs", "Section")]);
+      addRow([textSpreadsheetCell("Category", "Header"), textSpreadsheetCell("Detail", "Header"), textSpreadsheetCell("Direct Amount", "Header"), textSpreadsheetCell("IDC Applies", "Header"), textSpreadsheetCell("Indirect Cost", "Header"), textSpreadsheetCell("Total Cost", "Header")]);
+
+      nonPersonnelDefinitions.forEach((definition) => {
+        const entry = findStoredRowByKey(year.nonPersonnel || [], definition.key);
+        const category = evaluation.nonPersonnel.categories[definition.key];
+        const rowNumber = rows.length + 1;
+        const directAmountRef = getCellRef(rowNumber, 2);
+        const idcAppliesRef = getCellRef(rowNumber, 3);
+        const indirectCostRef = getCellRef(rowNumber, 4);
+        const indirectFormula = refs.settings.defaultIndirectRate ? `IF(${idcAppliesRef}="Yes",${buildSpreadsheetRoundToCentFormula(`${directAmountRef}*${refs.settings.defaultIndirectRate}`)},0)` : "";
+        rows.push([textSpreadsheetCell(definition.label), textSpreadsheetCell(entry?.detail || ""), optionalNumberSpreadsheetCell(entry?.amount, "Currency"), textSpreadsheetCell(category?.idcAppliesMixed ? "Mixed" : (category?.idcApplies ? "Yes" : "No")), indirectFormula ? formulaSpreadsheetCell(category?.indirectCost || 0, indirectFormula, "Currency") : numberSpreadsheetCell(category?.indirectCost || 0, "Currency"), indirectFormula ? formulaSpreadsheetCell(category?.totalCost || 0, buildSpreadsheetRoundToCentFormula(`${directAmountRef}+${indirectCostRef}`), "Currency") : numberSpreadsheetCell(category?.totalCost || 0, "Currency")]);
+        nonPersonnelRowNumbers[definition.key] = rowNumber;
+      });
+
+      addRow([]);
+      addRow([textSpreadsheetCell("Worksheet Totals", "Section")]);
+      addRow([textSpreadsheetCell("Metric", "Header"), textSpreadsheetCell("Value", "Header")]);
+
+      const standardContext = {
+        namedSeniorCountExpressions: namedSeniorRowNumbers.map((rowNumber) => `IF(OR(${[getCellRef(rowNumber, 1), getCellRef(rowNumber, 3), getCellRef(rowNumber, 4), getCellRef(rowNumber, 5), getCellRef(rowNumber, 6), getCellRef(rowNumber, 7)].map((cellRef) => `${cellRef}<>""`).join(",")}),1,0)`),
+        othersCountRef: othersSeniorRowNumber ? getCellRef(othersSeniorRowNumber, 2) : "",
+        seniorMonthRefs: {
+          cal: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 3)),
+          acad: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 4)),
+          sumr: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 5))
+        },
+        seniorSalaryRefs: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 6)),
+        seniorFringeRefs: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 7)),
+        otherSalaryRefs: otherRowNumbers.map((rowNumber) => getCellRef(rowNumber, 6)),
+        fringeRefs: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 7)).concat(otherRowNumbers.map((rowNumber) => getCellRef(rowNumber, 7))),
+        equipmentAmountRef: nonPersonnelRowNumbers.equipment ? getCellRef(nonPersonnelRowNumbers.equipment, 2) : "0",
+        travelAmountRefs: [nonPersonnelRowNumbers.travelDomestic, nonPersonnelRowNumbers.travelInternational].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
+        participantAmountRefs: [nonPersonnelRowNumbers.participantStipends, nonPersonnelRowNumbers.participantTravel, nonPersonnelRowNumbers.participantSubsistence, nonPersonnelRowNumbers.participantOther].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
+        otherDirectAmountRefs: [nonPersonnelRowNumbers.materials, nonPersonnelRowNumbers.publication, nonPersonnelRowNumbers.consultant, nonPersonnelRowNumbers.computer, nonPersonnelRowNumbers.subawards, nonPersonnelRowNumbers.otherDirect].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
+        includedDirectRoundedExpressions: Object.values(nonPersonnelRowNumbers).map((rowNumber) => `IF(${getCellRef(rowNumber, 3)}="Yes",${buildSpreadsheetRoundUpDollarFormula(getCellRef(rowNumber, 2))},0)`)
+      };
+
+      if (aggregateSourceSheets.length) {
+        populateAggregateSpreadsheetTotals(evaluation, refs, addMetricRow, aggregateSourceSheets, indirectRateText);
+      } else {
+        populateStandardSpreadsheetTotals(evaluation, refs, addMetricRow, standardContext);
+      }
+
+      return { name: sheetName, rows, refs, evaluation, year, index, indirectRateText };
+    }
+
+    function buildSpreadsheetWorkbook(state = collectPlannerState()) {
+      const evaluations = state.years.map((year, index) => evaluateYearState(year, index, state.years, state.globalSettings || {}));
+      const cumulativeView = state.years.length >= 2 ? buildCumulativeView(state) : null;
+      const usedWorksheetNames = new Set();
+      const yearWorksheets = state.years.map((year, index) => buildYearSpreadsheetWorksheet(
+        state,
+        year,
+        evaluations[index],
+        index,
+        { sheetName: sanitizeWorksheetName(getYearDisplayLabel(year, index), usedWorksheetNames) }
+      ));
+      const cumulativeWorksheet = cumulativeView
+        ? buildYearSpreadsheetWorksheet(
+            state,
+            cumulativeView.yearState,
+            cumulativeView.evaluation,
+            state.years.length,
+            {
+              sheetLabel: "Cumulative",
+              sheetName: sanitizeWorksheetName("Cumulative", usedWorksheetNames),
+              indirectRateText: cumulativeView.indirectRateStaticText,
+              aggregateSourceSheets: yearWorksheets
+            }
+          )
+        : null;
+      const summaryWorksheet = buildSpreadsheetSummaryWorksheet(state, yearWorksheets, cumulativeWorksheet);
+      summaryWorksheet.name = sanitizeWorksheetName(summaryWorksheet.name, usedWorksheetNames);
+      return serializeSpreadsheetWorkbook({
+        worksheets: [summaryWorksheet].concat(yearWorksheets, cumulativeWorksheet ? [cumulativeWorksheet] : [])
+      });
     }
 
     function renderPrintProposalSnapshot(state = collectPlannerState()) {
