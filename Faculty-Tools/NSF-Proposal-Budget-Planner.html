@@ -1011,6 +1011,43 @@
       text-align: center;
     }
 
+    .senior-personnel-table > thead th:nth-child(8),
+    .senior-personnel-table > tbody > .personnel-row > td:nth-child(8),
+    .senior-personnel-table > tbody > .senior-total-row > td:nth-child(8) {
+      width: 124px;
+      text-align: center;
+    }
+
+    .other-personnel-table > thead th:nth-child(2),
+    .other-personnel-table > tbody > .other-personnel-row > td:nth-child(2) {
+      width: 76px;
+      text-align: center;
+    }
+
+    .other-personnel-table > thead th:nth-child(3),
+    .other-personnel-table > thead th:nth-child(4),
+    .other-personnel-table > thead th:nth-child(5),
+    .other-personnel-table > tbody > .other-personnel-row > td:nth-child(3),
+    .other-personnel-table > tbody > .other-personnel-row > td:nth-child(4),
+    .other-personnel-table > tbody > .other-personnel-row > td:nth-child(5) {
+      width: 86px;
+      text-align: center;
+    }
+
+    .other-personnel-table > thead th:nth-child(6),
+    .other-personnel-table > thead th:nth-child(7),
+    .other-personnel-table > tbody > .other-personnel-row > td:nth-child(6),
+    .other-personnel-table > tbody > .other-personnel-row > td:nth-child(7) {
+      width: var(--funds-column-width);
+      text-align: center;
+    }
+
+    .other-personnel-table > thead th:nth-child(8),
+    .other-personnel-table > tbody > .other-personnel-row > td:nth-child(8) {
+      width: 124px;
+      text-align: center;
+    }
+
     .fixed-person-label {
       min-height: 40px;
       display: grid;
@@ -1177,8 +1214,8 @@
     }
 
     .budget-table .idc-treatment-cell {
-      width: 180px;
-      min-width: 180px;
+      width: 124px;
+      min-width: 124px;
     }
 
     #non-personnel-sections tbody th {
@@ -2115,6 +2152,7 @@
                 <th class="months-column">SUMR<br>Months</th>
                 <th>Funds Requested<br>(Before Fringe)</th>
                 <th>Fringe</th>
+                <th class="idc-treatment-cell">IDC Treatment</th>
               </tr>
             </thead>
             <tbody id="senior-personnel-body"></tbody>
@@ -2137,6 +2175,7 @@
                 <th class="months-column">SUMR<br>Months</th>
                 <th>Funds Requested<br>(Before Fringe)</th>
                 <th>Fringe</th>
+                <th class="idc-treatment-cell">IDC Treatment</th>
               </tr>
             </thead>
             <tbody id="otherPersonnel-personnel-body"></tbody>
@@ -2191,9 +2230,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus">On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none" selected>Neither</option>
+                      <option value="onCampus">On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none" selected>Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2221,9 +2260,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus" selected>On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none">Neither</option>
+                      <option value="onCampus" selected>On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none">Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2232,9 +2271,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus" selected>On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none">Neither</option>
+                      <option value="onCampus" selected>On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none">Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2262,9 +2301,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus">On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none" selected>Neither</option>
+                      <option value="onCampus">On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none" selected>Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2273,9 +2312,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus">On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none" selected>Neither</option>
+                      <option value="onCampus">On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none" selected>Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2284,9 +2323,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus">On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none" selected>Neither</option>
+                      <option value="onCampus">On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none" selected>Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2295,9 +2334,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus">On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none" selected>Neither</option>
+                      <option value="onCampus">On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none" selected>Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2340,9 +2379,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus" selected>On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none">Neither</option>
+                      <option value="onCampus" selected>On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none">Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2351,9 +2390,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus" selected>On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none">Neither</option>
+                      <option value="onCampus" selected>On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none">Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2362,9 +2401,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus" selected>On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none">Neither</option>
+                      <option value="onCampus" selected>On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none">Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2373,9 +2412,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus" selected>On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none">Neither</option>
+                      <option value="onCampus" selected>On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none">Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2384,9 +2423,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus" selected>On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none">Neither</option>
+                      <option value="onCampus" selected>On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none">Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2395,9 +2434,9 @@
                   <td><input class="direct-amount money-input" type="text" inputmode="numeric" placeholder="0"></td>
                   <td class="idc-treatment-cell">
                     <select class="idc-mode-select">
-                      <option value="onCampus" selected>On-campus IDC</option>
-                      <option value="offCampus">Off-campus IDC</option>
-                      <option value="none">Neither</option>
+                      <option value="onCampus" selected>On-campus</option>
+                      <option value="offCampus">Off-campus</option>
+                      <option value="none">Exempt</option>
                     </select>
                   </td>
                 </tr>
@@ -2533,8 +2572,8 @@
               <li>Money-entry fields show a non-editable dollar sign; type numbers only.</li>
               <li>Use Reload Live ORS Defaults to refresh the planner's on-campus and off-campus indirect cost rates and the Budget Helper fringe defaults from the UH ORS rate page.</li>
               <li>Live summer instructional pay rates require a configured proxy URL. When unavailable, Budget Helper still supports manual entry in the adjacent Cost per Instructional Overload TE/Credit cell.</li>
-              <li>Each Section D, E, F, and G direct-cost row can use On-campus IDC, Off-campus IDC, or Neither.</li>
-              <li>Personnel costs remain in the on-campus IDC base unless an eligible Section D through G line is assigned off-campus.</li>
+              <li>Each Section A, B, D, E, F, and G budget row can use On-campus, Off-campus, or Exempt IDC treatment.</li>
+              <li>Personnel costs no longer default into the on-campus IDC base if you explicitly mark a Section A or B row as Off-campus or Exempt.</li>
             </ul>
           </section>
           <section class="modal-section">
@@ -2571,7 +2610,7 @@
               <li>Section A is a fixed six-row senior-personnel table. Section B is a fixed six-row NSF other-personnel table.</li>
               <li>Sections D through M follow the NSF worksheet order, with separate sections for equipment, travel, participant support, other direct costs, indirect costs, fee, amount requested, and cost sharing.</li>
               <li>Section D includes a multiline equipment description field so you can list multiple equipment items exceeding $10,000.</li>
-              <li>Each D, E, F, and G budget line includes Funds Requested and an IDC Treatment selector.</li>
+              <li>Each A, B, D, E, F, and G budget line includes an IDC Treatment selector.</li>
               <li>Section F includes participant-support line items, a Total Number of Participants input, and a Total Participant Costs summary row.</li>
               <li>Section I shows separate on-campus and off-campus MTDC bases, the rate used for each base, and total indirect costs.</li>
               <li>Section M includes both Cost Sharing Proposed Level and Agreed Level if Different.</li>
@@ -3283,11 +3322,11 @@
     function getIdcModeLabel(mode) {
       switch (normalizeIdcMode(mode, IDC_MODE_NONE)) {
         case IDC_MODE_ON_CAMPUS:
-          return "On-campus IDC";
+          return "On-campus";
         case IDC_MODE_OFF_CAMPUS:
-          return "Off-campus IDC";
+          return "Off-campus";
         default:
-          return "Neither";
+          return "Exempt";
       }
     }
 
@@ -3316,6 +3355,10 @@
       return `On-campus IDC rate: ${onText}; Off-campus IDC rate: ${offText}`;
     }
 
+    function defaultPersonnelIdcMode() {
+      return IDC_MODE_ON_CAMPUS;
+    }
+
     function getMoneyStateValue(input) {
       return input.dataset.moneyValue || normalizeCurrencyInputValue(input.value);
     }
@@ -3340,6 +3383,8 @@
 
     function buildSeniorPersonnelRowState(row) {
       const isOthersRow = row.dataset.personnelKind === "others";
+      const idcMode = normalizeIdcMode(row.querySelector(".idc-mode-select")?.value, defaultPersonnelIdcMode());
+      const hasIdcOverride = idcMode !== defaultPersonnelIdcMode();
       const helperControls = getPersonnelHelperControls(row);
       const helperState = helperControls ? {
         open: !helperControls.row.hidden,
@@ -3373,7 +3418,7 @@
         helperState.instructionalCostPerTE !== ""
       );
 
-      if (!rowHasSeniorPersonnelContent(row) && !hasHelperContent) {
+      if (!rowHasSeniorPersonnelContent(row) && !hasHelperContent && !hasIdcOverride) {
         return null;
       }
 
@@ -3386,6 +3431,7 @@
         sumrMonths: row.querySelector(".sumr-months").value.trim(),
         baseSalary: getMoneyStateValue(row.querySelector(".base-salary")),
         fringeAmount: getMoneyStateValue(row.querySelector(".fringe-amount")),
+        idcMode,
         helper: isOthersRow ? null : helperState
       };
     }
@@ -3402,7 +3448,8 @@
     }
 
     function buildOtherPersonnelRowState(row) {
-      if (!rowHasOtherPersonnelContent(row)) {
+      const idcMode = normalizeIdcMode(row.querySelector(".idc-mode-select")?.value, defaultPersonnelIdcMode());
+      if (!rowHasOtherPersonnelContent(row) && idcMode === defaultPersonnelIdcMode()) {
         return null;
       }
 
@@ -3413,7 +3460,8 @@
         acadMonths: row.querySelector(".acad-months")?.value.trim() || "",
         sumrMonths: row.querySelector(".sumr-months")?.value.trim() || "",
         baseSalary: getMoneyStateValue(row.querySelector(".base-salary")),
-        fringeAmount: getMoneyStateValue(row.querySelector(".fringe-amount"))
+        fringeAmount: getMoneyStateValue(row.querySelector(".fringe-amount")),
+        idcMode
       };
     }
 
@@ -3661,8 +3709,20 @@
           ...(rawYear.participantSupport || {})
         },
         personnel: {
-          senior: Array.isArray(rawYear.personnel?.senior) ? rawYear.personnel.senior.filter(Boolean) : [],
-          otherPersonnel: Array.isArray(rawYear.personnel?.otherPersonnel) ? rawYear.personnel.otherPersonnel.filter(Boolean) : []
+          senior: Array.isArray(rawYear.personnel?.senior)
+            ? rawYear.personnel.senior.filter(Boolean).map((row) => ({
+                ...row,
+                idcMode: normalizeIdcMode(row?.idcMode, defaultPersonnelIdcMode()),
+                idcModeMixed: Boolean(row?.idcModeMixed)
+              }))
+            : [],
+          otherPersonnel: Array.isArray(rawYear.personnel?.otherPersonnel)
+            ? rawYear.personnel.otherPersonnel.filter(Boolean).map((row) => ({
+                ...row,
+                idcMode: normalizeIdcMode(row?.idcMode, defaultPersonnelIdcMode()),
+                idcModeMixed: Boolean(row?.idcModeMixed)
+              }))
+            : []
         },
         nonPersonnel: Array.isArray(rawYear.nonPersonnel)
           ? rawYear.nonPersonnel.filter((entry) => entry && typeof entry.key === "string")
@@ -4679,6 +4739,13 @@
             <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
             <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
             <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+            <td class="idc-treatment-cell">
+              <select class="idc-mode-select">
+                <option value="onCampus">On-campus</option>
+                <option value="offCampus">Off-campus</option>
+                <option value="none">Exempt</option>
+              </select>
+            </td>
           `
         : `
             <td>
@@ -4696,6 +4763,13 @@
             <td><input type="number" class="sumr-months months-input" min="0" step="0.01" placeholder="0.00"></td>
             <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
             <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+            <td class="idc-treatment-cell">
+              <select class="idc-mode-select">
+                <option value="onCampus">On-campus</option>
+                <option value="offCampus">Off-campus</option>
+                <option value="none">Exempt</option>
+              </select>
+            </td>
           `;
 
       let helperRow = null;
@@ -4704,7 +4778,7 @@
         helperRow.className = "personnel-helper-row";
         helperRow.hidden = true;
         helperRow.innerHTML = `
-          <td colspan="7">
+          <td colspan="8">
             <div class="personnel-helper-panel">
               <div class="personnel-helper-header">
                 <h4>Budget Required Helper</h4>
@@ -4835,6 +4909,10 @@
       row.querySelector(".sumr-months").value = data.sumrMonths || "";
       row.querySelector(".base-salary").value = data.baseSalary || "";
       row.querySelector(".fringe-amount").value = data.fringeAmount || "";
+      row.querySelector(".idc-mode-select").value = normalizeIdcMode(data.idcMode, defaultPersonnelIdcMode());
+      if (data.idcModeMixed) {
+        row.querySelector(".idc-mode-select").dataset.staticValue = "Mixed";
+      }
 
       const helperState = data.helper || {};
       if (helperRow) {
@@ -4857,7 +4935,7 @@
         );
       }
 
-      row.querySelectorAll("input").forEach((input) => {
+      row.querySelectorAll("input, select").forEach((input) => {
         registerPlannerInput(input);
       });
 
@@ -4973,6 +5051,13 @@
         ${monthCells}
         <td><input type="text" inputmode="numeric" class="base-salary money-input" placeholder="0"></td>
         <td><input type="text" inputmode="numeric" class="fringe-amount money-input" placeholder="0"></td>
+        <td class="idc-treatment-cell">
+          <select class="idc-mode-select">
+            <option value="onCampus">On-campus</option>
+            <option value="offCampus">Off-campus</option>
+            <option value="none">Exempt</option>
+          </select>
+        </td>
       `;
 
       row.querySelector(".person-quantity").value = data.quantity || "";
@@ -4983,8 +5068,12 @@
       }
       row.querySelector(".base-salary").value = data.baseSalary || "";
       row.querySelector(".fringe-amount").value = data.fringeAmount || "";
+      row.querySelector(".idc-mode-select").value = normalizeIdcMode(data.idcMode, defaultPersonnelIdcMode());
+      if (data.idcModeMixed) {
+        row.querySelector(".idc-mode-select").dataset.staticValue = "Mixed";
+      }
 
-      row.querySelectorAll("input").forEach((input) => {
+      row.querySelectorAll("input, select").forEach((input) => {
         registerPlannerInput(input);
       });
 
@@ -5015,6 +5104,7 @@
         <td id="rollup-senior-sumr" class="computed-center-cell">0.00</td>
         <td id="rollup-senior-salary" class="computed-cell senior-total-money-cell">$0</td>
         <td id="rollup-senior-fringe" class="computed-cell senior-total-money-cell">$0</td>
+        <td class="computed-center-cell"></td>
       `;
       return row;
     }
@@ -5171,6 +5261,7 @@
         syncBudgetHelperRow(row);
         const kind = row.dataset.personnelKind;
         const label = getSeniorRowDisplayLabel(row);
+        const idcMode = normalizeIdcMode(row.querySelector(".idc-mode-select")?.value, defaultPersonnelIdcMode());
         const quantity = kind === "others"
           ? nonNegativeNumber(row.querySelector(".person-quantity"))
           : 0;
@@ -5199,7 +5290,8 @@
             acadMonths,
             sumrMonths,
             baseSalary,
-            fringeAmount
+            fringeAmount,
+            idcMode
           });
         }
       });
@@ -5220,6 +5312,7 @@
       Array.from(section.body.querySelectorAll(".other-personnel-row")).forEach((row) => {
         const label = row.dataset.personnelDisplayLabel;
         const hasMonths = row.dataset.hasMonths === "true";
+        const idcMode = normalizeIdcMode(row.querySelector(".idc-mode-select")?.value, defaultPersonnelIdcMode());
         const quantity = nonNegativeNumber(row.querySelector(".person-quantity"));
         const calMonths = hasMonths ? nonNegativeNumber(row.querySelector(".cal-months")) : 0;
         const acadMonths = hasMonths ? nonNegativeNumber(row.querySelector(".acad-months")) : 0;
@@ -5243,7 +5336,8 @@
             acadMonths,
             sumrMonths,
             baseSalary,
-            fringeAmount
+            fringeAmount,
+            idcMode
           });
         }
       });
@@ -5301,6 +5395,30 @@
       return totals;
     }
 
+    function computePersonnelIdcBases(personnelResults) {
+      const rows = personnelSections.flatMap((section) => personnelResults[section.key]?.rows || []);
+      return rows.reduce((totals, row) => {
+        const directAmount = roundToCent(readStoredNumberValue(row.baseSalary) + readStoredNumberValue(row.fringeAmount));
+        const idcMode = normalizeIdcMode(row.idcMode, defaultPersonnelIdcMode());
+
+        if (idcMode === IDC_MODE_ON_CAMPUS) {
+          totals.onCampusBase = roundToCent(totals.onCampusBase + directAmount);
+        } else if (idcMode === IDC_MODE_OFF_CAMPUS) {
+          totals.offCampusBase = roundToCent(totals.offCampusBase + directAmount);
+        } else {
+          totals.exemptDirect = roundToCent(totals.exemptDirect + directAmount);
+        }
+
+        totals.direct = roundToCent(totals.direct + directAmount);
+        return totals;
+      }, {
+        direct: 0,
+        onCampusBase: 0,
+        offCampusBase: 0,
+        exemptDirect: 0
+      });
+    }
+
     function computeDisplayedBudgetTotals(personnelResults, nonPersonnelResults, totals, yearSettings = {}) {
       const seniorSalary = personnelResults.senior.salary;
       const seniorFringe = personnelResults.senior.fringe;
@@ -5308,6 +5426,7 @@
       const fringeTotal = personnelSections.reduce((sum, section) => sum + personnelResults[section.key].fringe, 0);
       const onCampusIndirectRateDecimal = totals.indirectRate / 100;
       const offCampusIndirectRateDecimal = totals.offCampusIndirectRate / 100;
+      const personnelIdcBases = computePersonnelIdcBases(personnelResults);
 
       const equipmentAmount = nonPersonnelResults.categories.equipment?.amount ?? 0;
       const travelAmounts = [
@@ -5350,21 +5469,18 @@
       );
 
       const onCampusBaseDisplay = roundUpDollar(
-        seniorSalaryDisplay +
-        otherSalaryDisplay +
-        fringeDisplay +
-        sumRoundedDisplay(
-          Object.values(nonPersonnelResults.categories)
-            .filter((category) => category.idcMode === IDC_MODE_ON_CAMPUS)
-            .map((category) => category.amount)
-        )
+        personnelIdcBases.onCampusBase +
+        Object.values(nonPersonnelResults.categories)
+          .filter((category) => category.idcMode === IDC_MODE_ON_CAMPUS)
+          .reduce((sum, category) => sum + category.amount, 0)
       );
-      const offCampusBaseDisplay = roundUpDollar(sumRoundedDisplay(
+      const offCampusBaseDisplay = roundUpDollar(
+        personnelIdcBases.offCampusBase +
         Object.values(nonPersonnelResults.categories)
           .filter((category) => category.idcMode === IDC_MODE_OFF_CAMPUS)
-          .map((category) => category.amount)
-      ));
-      const mtdcDisplay = roundUpDollar(onCampusBaseDisplay + offCampusBaseDisplay);
+          .reduce((sum, category) => sum + category.amount, 0)
+      );
+      const mtdcDisplay = onCampusBaseDisplay + offCampusBaseDisplay;
 
       const onCampusIndirectDisplay = roundUpDollar(onCampusBaseDisplay * onCampusIndirectRateDecimal);
       const offCampusIndirectDisplay = roundUpDollar(offCampusBaseDisplay * offCampusIndirectRateDecimal);
@@ -5466,6 +5582,7 @@
         const sumrMonths = readStoredNumberValue(row.sumrMonths);
         const baseSalary = readStoredNumberValue(row.baseSalary);
         const fringeAmount = readStoredNumberValue(row.fringeAmount);
+        const idcMode = normalizeIdcMode(row.idcMode, defaultPersonnelIdcMode());
 
         totals.calMonths = roundToCent(totals.calMonths + calMonths);
         totals.acadMonths = roundToCent(totals.acadMonths + acadMonths);
@@ -5489,7 +5606,9 @@
           acadMonths,
           sumrMonths,
           baseSalary,
-          fringeAmount
+          fringeAmount,
+          idcMode,
+          idcModeMixed: Boolean(row.idcModeMixed)
         });
       });
 
@@ -5516,6 +5635,7 @@
         const sumrMonths = hasMonths ? readStoredNumberValue(row.sumrMonths) : 0;
         const baseSalary = readStoredNumberValue(row.baseSalary);
         const fringeAmount = readStoredNumberValue(row.fringeAmount);
+        const idcMode = normalizeIdcMode(row.idcMode, defaultPersonnelIdcMode());
 
         totals.calMonths = roundToCent(totals.calMonths + calMonths);
         totals.acadMonths = roundToCent(totals.acadMonths + acadMonths);
@@ -5531,7 +5651,9 @@
           acadMonths,
           sumrMonths,
           baseSalary,
-          fringeAmount
+          fringeAmount,
+          idcMode,
+          idcModeMixed: Boolean(row.idcModeMixed)
         });
       });
 
@@ -5602,25 +5724,27 @@
         otherPersonnel: evaluateStoredOtherPersonnel(year.personnel?.otherPersonnel || [])
       };
       const nonPersonnelResults = evaluateStoredNonPersonnel(year.nonPersonnel || [], year.participantSupport || {}, indirectRate, offCampusIndirectRate);
+      const personnelIdcBases = computePersonnelIdcBases(personnelResults);
       const totalPersonnelDirect = roundToCent(personnelSections.reduce(
         (sum, section) => sum + personnelResults[section.key].salary + personnelResults[section.key].fringe,
         0
       ));
-      const totalPersonnelIndirect = roundToCent(totalPersonnelDirect * indirectRate / 100);
-      const offCampusIndirect = roundToCent(nonPersonnelResults.offCampusBase * offCampusIndirectRate / 100);
+      const totalPersonnelIndirect = roundToCent(personnelIdcBases.onCampusBase * indirectRate / 100);
+      const offCampusIndirect = roundToCent((personnelIdcBases.offCampusBase + nonPersonnelResults.offCampusBase) * offCampusIndirectRate / 100);
       const totals = {
         direct: roundToCent(totalPersonnelDirect + nonPersonnelResults.direct),
         personnelIndirect: totalPersonnelIndirect,
-        onCampusIndirect: roundToCent(totalPersonnelIndirect + (nonPersonnelResults.indirect - offCampusIndirect)),
+        onCampusIndirect: roundToCent((personnelIdcBases.onCampusBase + nonPersonnelResults.onCampusBase) * indirectRate / 100),
         offCampusIndirect,
         indirect: roundToCent(totalPersonnelIndirect + nonPersonnelResults.indirect),
-        onCampusBase: roundToCent(totalPersonnelDirect + nonPersonnelResults.onCampusBase),
-        offCampusBase: roundToCent(nonPersonnelResults.offCampusBase),
-        mtdc: roundToCent(totalPersonnelDirect + nonPersonnelResults.includedDirect),
+        onCampusBase: roundToCent(personnelIdcBases.onCampusBase + nonPersonnelResults.onCampusBase),
+        offCampusBase: roundToCent(personnelIdcBases.offCampusBase + nonPersonnelResults.offCampusBase),
+        mtdc: roundToCent(personnelIdcBases.onCampusBase + personnelIdcBases.offCampusBase + nonPersonnelResults.includedDirect),
         indirectRate,
         offCampusIndirectRate,
         total: 0
       };
+      totals.indirect = roundToCent(totals.onCampusIndirect + totals.offCampusIndirect);
       totals.total = roundToCent(totals.direct + totals.indirect);
 
       return {
@@ -5724,6 +5848,9 @@
         key: definition.key,
         kind: definition.kind,
         label: definition.kind === "others" ? (definition.label || "") : (sharedSeniorLabels[definition.key] || ""),
+        idcMode: defaultPersonnelIdcMode(),
+        idcModeMixed: false,
+        idcModeInitialized: false,
         quantityTotal: 0,
         calMonthsTotal: 0,
         acadMonthsTotal: 0,
@@ -5733,6 +5860,9 @@
       }]));
       const otherByKey = new Map(otherPersonnelDefinitions.map((definition) => [definition.key, {
         key: definition.key,
+        idcMode: defaultPersonnelIdcMode(),
+        idcModeMixed: false,
+        idcModeInitialized: false,
         quantityTotal: 0,
         calMonthsTotal: 0,
         acadMonthsTotal: 0,
@@ -5757,6 +5887,7 @@
             return;
           }
 
+          const sourceIdcMode = normalizeIdcMode(source.idcMode, defaultPersonnelIdcMode());
           const sourceMonths = getPreciseCumulativeMonths(source, { includeHelperPrecision: definition.kind !== "others" });
           target.quantityTotal += readStoredNumberValue(source.quantity);
           target.calMonthsTotal += sourceMonths.calMonths;
@@ -5764,6 +5895,12 @@
           target.sumrMonthsTotal += sourceMonths.sumrMonths;
           target.baseSalaryTotal += roundUpDollar(readStoredNumberValue(source.baseSalary));
           target.fringeAmountTotal += roundUpDollar(readStoredNumberValue(source.fringeAmount));
+          if (!target.idcModeInitialized) {
+            target.idcMode = sourceIdcMode;
+            target.idcModeInitialized = true;
+          } else if (target.idcMode !== sourceIdcMode) {
+            target.idcModeMixed = true;
+          }
         });
 
         otherPersonnelDefinitions.forEach((definition) => {
@@ -5773,6 +5910,7 @@
             return;
           }
 
+          const sourceIdcMode = normalizeIdcMode(source.idcMode, defaultPersonnelIdcMode());
           const sourceMonths = getPreciseCumulativeMonths(source);
           target.quantityTotal += readStoredNumberValue(source.quantity);
           target.calMonthsTotal += sourceMonths.calMonths;
@@ -5780,6 +5918,12 @@
           target.sumrMonthsTotal += sourceMonths.sumrMonths;
           target.baseSalaryTotal += roundUpDollar(readStoredNumberValue(source.baseSalary));
           target.fringeAmountTotal += roundUpDollar(readStoredNumberValue(source.fringeAmount));
+          if (!target.idcModeInitialized) {
+            target.idcMode = sourceIdcMode;
+            target.idcModeInitialized = true;
+          } else if (target.idcMode !== sourceIdcMode) {
+            target.idcModeMixed = true;
+          }
         });
 
         nonPersonnelDefinitions.forEach((definition) => {
@@ -5820,7 +5964,9 @@
         acadMonths: formatCumulativeMonthValue(entry.acadMonthsTotal),
         sumrMonths: formatCumulativeMonthValue(entry.sumrMonthsTotal),
         baseSalary: formatInputDecimal(entry.baseSalaryTotal),
-        fringeAmount: formatInputDecimal(entry.fringeAmountTotal)
+        fringeAmount: formatInputDecimal(entry.fringeAmountTotal),
+        idcMode: entry.idcMode,
+        idcModeMixed: entry.idcModeMixed
       }));
       const cumulativeOtherRows = Array.from(otherByKey.values()).map((entry) => ({
         key: entry.key,
@@ -5829,7 +5975,9 @@
         acadMonths: formatCumulativeMonthValue(entry.acadMonthsTotal),
         sumrMonths: formatCumulativeMonthValue(entry.sumrMonthsTotal),
         baseSalary: formatInputDecimal(entry.baseSalaryTotal),
-        fringeAmount: formatInputDecimal(entry.fringeAmountTotal)
+        fringeAmount: formatInputDecimal(entry.fringeAmountTotal),
+        idcMode: entry.idcMode,
+        idcModeMixed: entry.idcModeMixed
       }));
       const cumulativeNonPersonnel = Array.from(nonPersonnelByKey.values());
       const cumulativeEvaluation = {
@@ -5994,14 +6142,16 @@
                 : "";
               lines.push(
                 `${row.label}: ${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months, ` +
-                `salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}${quantityText}`
+                `salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}, ` +
+                `IDC treatment ${row.idcModeMixed ? "Mixed" : getIdcModeLabel(row.idcMode)}${quantityText}`
               );
             } else {
               const monthsText = row.hasMonths
                 ? `, ${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months`
                 : "";
               lines.push(
-                `${row.label}: qty ${formatDecimal(row.quantity)}${monthsText}, salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}`
+                `${row.label}: qty ${formatDecimal(row.quantity)}${monthsText}, salary before fringe ${formatCurrency(row.baseSalary)}, fringe ${formatCurrency(row.fringeAmount)}, ` +
+                `IDC treatment ${row.idcModeMixed ? "Mixed" : getIdcModeLabel(row.idcMode)}`
               );
             }
           });
@@ -7286,9 +7436,15 @@
       refs.totals.participantCount = addMetricRow("Participant Count", formulaSpreadsheetCell(evaluation.displayTotals.participantCount, refs.settings.participantCount));
       refs.totals.otherDirect = addMetricRow("G. Other Direct Costs", formulaSpreadsheetCell(evaluation.displayTotals.otherDirect, buildSpreadsheetSumFormula(context.otherDirectAmountRefs.map((cellRef) => buildSpreadsheetRoundUpDollarFormula(cellRef))), "Currency"));
       refs.totals.totalDirect = addMetricRow("H. Total Direct Costs", formulaSpreadsheetCell(evaluation.displayTotals.totalDirect, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.seniorSalary, roundedOtherSalaryFormula, refs.totals.fringe, refs.totals.equipment, refs.totals.travel, refs.totals.participant, refs.totals.otherDirect])), "Currency"));
-      refs.totals.onCampusBase = addMetricRow("I. On-Campus Base", formulaSpreadsheetCell(evaluation.displayTotals.onCampusBase, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.seniorSalary, roundedOtherSalaryFormula, refs.totals.fringe, roundedOnCampusIncludedDirectFormula])), "Currency"));
+      refs.totals.onCampusBase = addMetricRow("I. On-Campus Base", formulaSpreadsheetCell(evaluation.displayTotals.onCampusBase, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([
+        buildSpreadsheetSumFormula(context.onCampusPersonnelDirectExpressions),
+        roundedOnCampusIncludedDirectFormula
+      ])), "Currency"));
       refs.totals.onCampusIndirectRate = addMetricRow("I. On-Campus IDC Rate", formulaSpreadsheetCell(evaluation.defaults.indirectRate / 100, refs.settings.defaultIndirectRate, "Percentage"));
-      refs.totals.offCampusBase = addMetricRow("I. Off-Campus Base", formulaSpreadsheetCell(evaluation.displayTotals.offCampusBase, buildSpreadsheetRoundUpDollarFormula(roundedOffCampusIncludedDirectFormula), "Currency"));
+      refs.totals.offCampusBase = addMetricRow("I. Off-Campus Base", formulaSpreadsheetCell(evaluation.displayTotals.offCampusBase, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([
+        buildSpreadsheetSumFormula(context.offCampusPersonnelDirectExpressions),
+        roundedOffCampusIncludedDirectFormula
+      ])), "Currency"));
       refs.totals.offCampusIndirectRate = addMetricRow("I. Off-Campus IDC Rate", formulaSpreadsheetCell(evaluation.defaults.offCampusIndirectRate / 100, refs.settings.offCampusIndirectRate, "Percentage"));
       refs.totals.mtdc = addMetricRow("I. MTDC", formulaSpreadsheetCell(evaluation.displayTotals.mtdc, buildSpreadsheetRoundUpDollarFormula(buildSpreadsheetSumFormula([refs.totals.onCampusBase, refs.totals.offCampusBase])), "Currency"));
       refs.totals.indirect = addMetricRow("I. Total Indirect Costs", formulaSpreadsheetCell(evaluation.displayTotals.indirect, buildSpreadsheetSumFormula([
@@ -7372,12 +7528,12 @@
 
       addRow([]);
       addRow([textSpreadsheetCell("Senior Personnel Inputs", "Section")]);
-      addRow([textSpreadsheetCell("Row", "Header"), textSpreadsheetCell("Label", "Header"), textSpreadsheetCell("Qty", "Header"), textSpreadsheetCell("CAL Months", "Header"), textSpreadsheetCell("ACAD Months", "Header"), textSpreadsheetCell("SUMR Months", "Header"), textSpreadsheetCell("Base Salary", "Header"), textSpreadsheetCell("Fringe", "Header")]);
+      addRow([textSpreadsheetCell("Row", "Header"), textSpreadsheetCell("Label", "Header"), textSpreadsheetCell("Qty", "Header"), textSpreadsheetCell("CAL Months", "Header"), textSpreadsheetCell("ACAD Months", "Header"), textSpreadsheetCell("SUMR Months", "Header"), textSpreadsheetCell("Base Salary", "Header"), textSpreadsheetCell("Fringe", "Header"), textSpreadsheetCell("IDC Treatment", "Header")]);
 
       seniorPersonnelDefinitions.forEach((definition) => {
         const row = findStoredRowByKey(year.personnel?.senior || [], definition.key);
         const label = definition.kind === "others" ? definition.label : (state.globalSettings?.seniorPersonnelLabels?.[definition.key] || row?.label || "");
-        const rowCells = [textSpreadsheetCell(definition.prefix || ""), textSpreadsheetCell(label), definition.kind === "others" ? optionalNumberSpreadsheetCell(row?.quantity, "Integer") : textSpreadsheetCell(""), optionalNumberSpreadsheetCell(row?.calMonths), optionalNumberSpreadsheetCell(row?.acadMonths), optionalNumberSpreadsheetCell(row?.sumrMonths), optionalNumberSpreadsheetCell(row?.baseSalary, "Currency"), optionalNumberSpreadsheetCell(row?.fringeAmount, "Currency")];
+        const rowCells = [textSpreadsheetCell(definition.prefix || ""), textSpreadsheetCell(label), definition.kind === "others" ? optionalNumberSpreadsheetCell(row?.quantity, "Integer") : textSpreadsheetCell(""), optionalNumberSpreadsheetCell(row?.calMonths), optionalNumberSpreadsheetCell(row?.acadMonths), optionalNumberSpreadsheetCell(row?.sumrMonths), optionalNumberSpreadsheetCell(row?.baseSalary, "Currency"), optionalNumberSpreadsheetCell(row?.fringeAmount, "Currency"), textSpreadsheetCell(getIdcModeLabel(normalizeIdcMode(row?.idcMode, defaultPersonnelIdcMode())))];
         const rowNumber = addRow(rowCells);
         seniorRowNumbers.push(rowNumber);
         seniorRowCellsByKey[definition.key] = rowCells;
@@ -7495,11 +7651,11 @@
 
       addRow([]);
       addRow([textSpreadsheetCell("Other Personnel Inputs", "Section")]);
-      addRow([textSpreadsheetCell("Row", "Header"), textSpreadsheetCell("Label", "Header"), textSpreadsheetCell("Qty", "Header"), textSpreadsheetCell("CAL Months", "Header"), textSpreadsheetCell("ACAD Months", "Header"), textSpreadsheetCell("SUMR Months", "Header"), textSpreadsheetCell("Base Salary", "Header"), textSpreadsheetCell("Fringe", "Header")]);
+      addRow([textSpreadsheetCell("Row", "Header"), textSpreadsheetCell("Label", "Header"), textSpreadsheetCell("Qty", "Header"), textSpreadsheetCell("CAL Months", "Header"), textSpreadsheetCell("ACAD Months", "Header"), textSpreadsheetCell("SUMR Months", "Header"), textSpreadsheetCell("Base Salary", "Header"), textSpreadsheetCell("Fringe", "Header"), textSpreadsheetCell("IDC Treatment", "Header")]);
 
       otherPersonnelDefinitions.forEach((definition) => {
         const row = findStoredRowByKey(year.personnel?.otherPersonnel || [], definition.key);
-        const rowNumber = addRow([textSpreadsheetCell(definition.prefix || ""), textSpreadsheetCell(definition.label), optionalNumberSpreadsheetCell(row?.quantity, "Integer"), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.calMonths) : textSpreadsheetCell(""), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.acadMonths) : textSpreadsheetCell(""), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.sumrMonths) : textSpreadsheetCell(""), optionalNumberSpreadsheetCell(row?.baseSalary, "Currency"), optionalNumberSpreadsheetCell(row?.fringeAmount, "Currency")]);
+        const rowNumber = addRow([textSpreadsheetCell(definition.prefix || ""), textSpreadsheetCell(definition.label), optionalNumberSpreadsheetCell(row?.quantity, "Integer"), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.calMonths) : textSpreadsheetCell(""), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.acadMonths) : textSpreadsheetCell(""), definition.hasMonths ? optionalNumberSpreadsheetCell(row?.sumrMonths) : textSpreadsheetCell(""), optionalNumberSpreadsheetCell(row?.baseSalary, "Currency"), optionalNumberSpreadsheetCell(row?.fringeAmount, "Currency"), textSpreadsheetCell(getIdcModeLabel(normalizeIdcMode(row?.idcMode, defaultPersonnelIdcMode())))]);
         otherRowNumbers.push(rowNumber);
       });
 
@@ -7515,7 +7671,7 @@
         const idcTreatmentRef = getCellRef(rowNumber, 3);
         const indirectCostRef = getCellRef(rowNumber, 4);
         const indirectFormula = refs.settings.defaultIndirectRate && refs.settings.offCampusIndirectRate
-          ? `IF(${idcTreatmentRef}="On-campus IDC",${buildSpreadsheetRoundToCentFormula(`${directAmountRef}*${refs.settings.defaultIndirectRate}`)},IF(${idcTreatmentRef}="Off-campus IDC",${buildSpreadsheetRoundToCentFormula(`${directAmountRef}*${refs.settings.offCampusIndirectRate}`)},0))`
+          ? `IF(${idcTreatmentRef}="On-campus",${buildSpreadsheetRoundToCentFormula(`${directAmountRef}*${refs.settings.defaultIndirectRate}`)},IF(${idcTreatmentRef}="Off-campus",${buildSpreadsheetRoundToCentFormula(`${directAmountRef}*${refs.settings.offCampusIndirectRate}`)},0))`
           : "";
         rows.push([
           textSpreadsheetCell(definition.label),
@@ -7542,14 +7698,19 @@
         },
         seniorSalaryRefs: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 6)),
         seniorFringeRefs: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 7)),
+        seniorIdcModeRefs: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 8)),
         otherSalaryRefs: otherRowNumbers.map((rowNumber) => getCellRef(rowNumber, 6)),
+        otherFringeRefs: otherRowNumbers.map((rowNumber) => getCellRef(rowNumber, 7)),
+        otherIdcModeRefs: otherRowNumbers.map((rowNumber) => getCellRef(rowNumber, 8)),
         fringeRefs: seniorRowNumbers.map((rowNumber) => getCellRef(rowNumber, 7)).concat(otherRowNumbers.map((rowNumber) => getCellRef(rowNumber, 7))),
         equipmentAmountRef: nonPersonnelRowNumbers.equipment ? getCellRef(nonPersonnelRowNumbers.equipment, 2) : "0",
         travelAmountRefs: [nonPersonnelRowNumbers.travelDomestic, nonPersonnelRowNumbers.travelInternational].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
         participantAmountRefs: [nonPersonnelRowNumbers.participantStipends, nonPersonnelRowNumbers.participantTravel, nonPersonnelRowNumbers.participantSubsistence, nonPersonnelRowNumbers.participantOther].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
         otherDirectAmountRefs: [nonPersonnelRowNumbers.materials, nonPersonnelRowNumbers.publication, nonPersonnelRowNumbers.consultant, nonPersonnelRowNumbers.computer, nonPersonnelRowNumbers.subawards, nonPersonnelRowNumbers.otherDirect].filter(Boolean).map((rowNumber) => getCellRef(rowNumber, 2)),
-        onCampusIncludedDirectRoundedExpressions: Object.values(nonPersonnelRowNumbers).map((rowNumber) => `IF(${getCellRef(rowNumber, 3)}="On-campus IDC",${buildSpreadsheetRoundUpDollarFormula(getCellRef(rowNumber, 2))},0)`),
-        offCampusIncludedDirectRoundedExpressions: Object.values(nonPersonnelRowNumbers).map((rowNumber) => `IF(${getCellRef(rowNumber, 3)}="Off-campus IDC",${buildSpreadsheetRoundUpDollarFormula(getCellRef(rowNumber, 2))},0)`)
+        onCampusPersonnelDirectExpressions: seniorRowNumbers.map((rowNumber) => `IF(${getCellRef(rowNumber, 8)}="On-campus",${getCellRef(rowNumber, 6)}+${getCellRef(rowNumber, 7)},0)`).concat(otherRowNumbers.map((rowNumber) => `IF(${getCellRef(rowNumber, 8)}="On-campus",${getCellRef(rowNumber, 6)}+${getCellRef(rowNumber, 7)},0)`)),
+        offCampusPersonnelDirectExpressions: seniorRowNumbers.map((rowNumber) => `IF(${getCellRef(rowNumber, 8)}="Off-campus",${getCellRef(rowNumber, 6)}+${getCellRef(rowNumber, 7)},0)`).concat(otherRowNumbers.map((rowNumber) => `IF(${getCellRef(rowNumber, 8)}="Off-campus",${getCellRef(rowNumber, 6)}+${getCellRef(rowNumber, 7)},0)`)),
+        onCampusIncludedDirectRoundedExpressions: Object.values(nonPersonnelRowNumbers).map((rowNumber) => `IF(${getCellRef(rowNumber, 3)}="On-campus",${buildSpreadsheetRoundUpDollarFormula(getCellRef(rowNumber, 2))},0)`),
+        offCampusIncludedDirectRoundedExpressions: Object.values(nonPersonnelRowNumbers).map((rowNumber) => `IF(${getCellRef(rowNumber, 3)}="Off-campus",${buildSpreadsheetRoundUpDollarFormula(getCellRef(rowNumber, 2))},0)`)
       };
 
       if (aggregateSourceSheets.length) {
@@ -7809,14 +7970,15 @@
       });
 
       const nonPersonnelResults = computeNonPersonnel(defaultIndirectRate, offCampusIndirectRate);
+      const personnelIdcBases = computePersonnelIdcBases(personnelResults);
 
       const totalPersonnelDirect = roundToCent(personnelSections.reduce(
         (sum, section) => sum + personnelResults[section.key].salary + personnelResults[section.key].fringe,
         0
       ));
-      const totalPersonnelIndirect = roundToCent(totalPersonnelDirect * defaultIndirectRate / 100);
-      const onCampusBase = roundToCent(totalPersonnelDirect + nonPersonnelResults.onCampusBase);
-      const offCampusBase = roundToCent(nonPersonnelResults.offCampusBase);
+      const totalPersonnelIndirect = roundToCent(personnelIdcBases.onCampusBase * defaultIndirectRate / 100);
+      const onCampusBase = roundToCent(personnelIdcBases.onCampusBase + nonPersonnelResults.onCampusBase);
+      const offCampusBase = roundToCent(personnelIdcBases.offCampusBase + nonPersonnelResults.offCampusBase);
       const onCampusIndirect = roundToCent(onCampusBase * defaultIndirectRate / 100);
       const offCampusIndirect = roundToCent(offCampusBase * offCampusIndirectRate / 100);
       const totals = {
@@ -7827,7 +7989,7 @@
         indirect: roundToCent(onCampusIndirect + offCampusIndirect),
         onCampusBase,
         offCampusBase,
-        mtdc: roundToCent(totalPersonnelDirect + nonPersonnelResults.includedDirect),
+        mtdc: roundToCent(personnelIdcBases.onCampusBase + personnelIdcBases.offCampusBase + nonPersonnelResults.includedDirect),
         indirectRate: defaultIndirectRate,
         offCampusIndirectRate,
         total: 0
