@@ -4934,11 +4934,13 @@
         const response = await fetch(`${RATE_PROXY_URL}?source=ors-rates`, { method: "GET" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const payload = await response.json();
-        for (const key of ["releaseFringeRate", "overloadFringeRate", "offCampusIndirectRate"]) if (strictStep5Number(payload[key], key, 0, 1000) === null) throw new Error("Missing reference rate.");
+        for (const key of ["releaseFringeRate", "overloadFringeRate"]) if (strictStep5Number(payload[key], key, 0, 1000) === null) throw new Error("Missing reference rate.");
+        const missingOffCampus = !Object.prototype.hasOwnProperty.call(payload, "offCampusIndirectRate");
+        if (!missingOffCampus && strictStep5Number(payload.offCampusIndirectRate, "off-campus reference", 0, 1000) === null) throw new Error("Missing off-campus reference.");
         if (strictStep5Number(payload.onCampusIndirectRate ?? payload.indirectRate, "on-campus reference", 0, 1000) === null) throw new Error("Missing on-campus reference.");
         window.step5RateReference = { payload: cloneState(payload), retrievedAt: new Date().toISOString() };
         elements.orsRateUpdated.textContent = `Reference retrieved: ${new Date().toLocaleString()}. Effective dates require source review.`;
-        setOrsRateStatus("Live ORS reference loaded. Stored values and defaults are frozen; review a separate update before applying.", "good");
+        setOrsRateStatus(missingOffCampus ? "Live ORS reference loaded. The off-campus rate was not returned by this feed; no replacement is inferred. Stored values and defaults remain frozen." : "Live ORS reference loaded. Stored values and defaults are frozen; review a separate update before applying.", missingOffCampus ? "warn" : "good");
         if (options.forceApply && typeof openRateUpdateEditor === "function") openRateUpdateEditor();
         return window.step5RateReference;
       } catch (error) { setOrsRateStatus("Live reference unavailable. No stored value or default changed.", "warn"); return null; }
