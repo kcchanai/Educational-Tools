@@ -2070,6 +2070,12 @@
 @media (max-width:650px) { .step6-review-grid,.step6-record-grid { grid-template-columns:1fr; } }
 
 .transfer-table-wrap {overflow:auto;max-width:100%;} .transfer-table {width:100%;min-width:850px;border-collapse:collapse;} .transfer-table td,.transfer-table th {padding:6px;border:1px solid #d7e0e2;text-align:left;} .copy-transfer-field {display:block;font-size:.7rem;} .step6-controls {min-width:0;} .transfer-actions {display:flex;gap:8px;} @media print {.step6-controls {display:none !important;}}
+.personnel-helper-row [hidden] { display:none !important; }
+.helper-basis-summary { padding:10px; background:#f2f7f8; border-left:3px solid #3b6c70; }
+.helper-fringe-reference { font-size:.8rem; }
+.personnel-helper-summary-row.primary { grid-template-columns:repeat(5,minmax(0,1fr)); }
+.helper-calculation-breakdown { margin:10px 0; }
+@media(max-width:760px) { .personnel-helper-summary-row.primary {grid-template-columns:repeat(2,minmax(0,1fr));} }
 </style>
 </head>
 <body>
@@ -2973,15 +2979,15 @@
     const builtInHelperRateDefaults = {
       defaultIndirectRate: elements.defaultIndirectRate.value,
       defaultOffCampusIndirectRate: elements.offCampusIndirectRate.value,
-      releaseFringeRate: "59.5",
-      overloadFringeRate: "2.47"
+      releaseFringeRate: "59.29",
+      overloadFringeRate: "2.32"
     };
     const helperStateDefaults = {
       defaultIndirectRate: elements.defaultIndirectRate.value,
       defaultOffCampusIndirectRate: elements.offCampusIndirectRate.value,
       facultyTerm: "uhcc9",
-      releaseFringeRate: "59.5",
-      overloadFringeRate: "2.47",
+      releaseFringeRate: "59.29",
+      overloadFringeRate: "2.32",
       summerRateSource: CUSTOM_RATE_OPTION
     };
     const liveHelperRateDefaults = { ...builtInHelperRateDefaults };
@@ -3367,7 +3373,7 @@
         releaseFringeOutput: helperRow.querySelector(".helper-output-release-fringe"),
         instructionalFringeOutput: helperRow.querySelector(".helper-output-instructional-fringe"),
         nonInstructionalFringeOutput: helperRow.querySelector(".helper-output-non-instructional-fringe"),
-        statusNote: helperRow.querySelector(".helper-status-note")
+        statusNote: helperRow.querySelector(".helper-main-status")
       };
     }
 
@@ -3436,9 +3442,9 @@
 
     function applyBudgetHelperOutputs(row, results) {
       const valueInputs = getPersonnelValueInputs(row);
-      valueInputs.calMonths.value = formatInputDecimal(results.calMonths);
-      valueInputs.acadMonths.value = formatInputDecimal(results.acadMonths);
-      valueInputs.sumrMonths.value = formatInputDecimal(results.sumrMonths);
+      valueInputs.calMonths.value = results.calMonths === null ? "" : formatInputDecimal(results.calMonths);
+      valueInputs.acadMonths.value = results.acadMonths === null ? "" : formatInputDecimal(results.acadMonths);
+      valueInputs.sumrMonths.value = results.sumrMonths === null ? "" : formatInputDecimal(results.sumrMonths);
       setMoneyInputValue(valueInputs.baseSalary, results.salaryBeforeFringe);
       setMoneyInputValue(valueInputs.fringeAmount, results.fringe);
     }
@@ -3796,7 +3802,7 @@
       const years = Array.from({ length: DEFAULT_PROPOSAL_YEAR_COUNT }, () => createEmptyYearState());
       const initialYear = years[0];
       return {
-        version: 6,
+        version: 7,
         globalSettings: {
           organizationLabel: "",
           proposalNumber: "",
@@ -3928,7 +3934,7 @@
       };
     }
 
-    function normalizeYearState(rawYear = {}, sourceVersion = 5) {
+    function normalizeYearState(rawYear = {}, sourceVersion = 7) {
       if (rawYear.subawards != null && !Array.isArray(rawYear.subawards)) throw new Error("Subaward allocations must be an array.");
       if (rawYear.legacySubaward != null && (typeof rawYear.legacySubaward !== "object" || Array.isArray(rawYear.legacySubaward))) throw new Error("Invalid preserved legacy subaward record.");
       const emptyYear = createEmptyYearState();
@@ -3946,14 +3952,14 @@
         personnel: {
           senior: Array.isArray(rawYear.personnel?.senior)
             ? rawYear.personnel.senior.filter(Boolean).map((row) => ({
-                ...normalizePersonnelStep5(row, sourceVersion),
+                ...normalizePersonnelStep5(row, sourceVersion, rawYear),
                 idcMode: normalizeIdcMode(row?.idcMode, defaultPersonnelIdcMode()),
                 idcModeMixed: Boolean(row?.idcModeMixed)
               }))
             : [],
           otherPersonnel: Array.isArray(rawYear.personnel?.otherPersonnel)
             ? rawYear.personnel.otherPersonnel.filter(Boolean).map((row) => ({
-                ...normalizePersonnelStep5(row, sourceVersion),
+                ...normalizePersonnelStep5(row, sourceVersion, rawYear),
                 idcMode: normalizeIdcMode(row?.idcMode, defaultPersonnelIdcMode()),
                 idcModeMixed: Boolean(row?.idcModeMixed)
               }))
@@ -4026,10 +4032,10 @@
 
     function normalizeProposalState(state, options = {}) {
       if (!state || typeof state !== "object" || Array.isArray(state)) return createEmptyProposalState();
-      if (![1, 2, 3, 4, 5, 6].includes(state.version)) throw new Error("Unsupported planner state version.");
+      if (![1, 2, 3, 4, 5, 6, 7].includes(state.version)) throw new Error("Unsupported planner state version.");
       const imported = state.version === 1 ? upgradeLegacyPlannerState(state) : state;
       const normalizedState = {
-        version: 6,
+        version: 7,
         globalSettings: {
           organizationLabel: imported.globalSettings?.organizationLabel || "",
           proposalNumber: imported.globalSettings?.proposalNumber || "",
@@ -4082,7 +4088,7 @@
     function collectPlannerState() {
       syncProposalStateFromDom();
       return cloneState({
-        version: 6,
+        version: 7,
         globalSettings: proposalState.globalSettings,
         years: proposalState.years,
         activeYearId: proposalState.activeYearId
@@ -4658,7 +4664,7 @@
     }
     function getDefaultEffortBasis() {
       const part = category => ({ category, months: "", percent: "", fullTimeUnits: "" });
-      return { method: "unverified", reviewed: false, source: "", rationale: "", calMonths: "", acadMonths: "", sumrMonths: "", release: part("acad"), instructional: part("sumr"), nonInstructional: part("sumr") };
+      return { method: "unverified", reviewed: false, source: "", rationale: "", summerDaysPerMonth: "21", calMonths: "", acadMonths: "", sumrMonths: "", release: part("acad"), instructional: part("sumr"), nonInstructional: part("sumr") };
     }
     function getDefaultPayBasis() { return { reviewed: false, source: "", rationale: "", dayDivisor: "", salaryEscalationPercent: "0", unitEscalationPercent: "0", escalationYears: "0" }; }
     function getDefaultFringeBasis() { return { mode: "manual", releaseCategory: "unverified", overloadCategory: "unverified", source: "", effectiveStart: "", effectiveEnd: "", status: "unverified", rationale: "" }; }
@@ -4676,7 +4682,8 @@
     }
     function normalizeEffortBasis(raw) {
       const out = step5CheckedRecord(raw, getDefaultEffortBasis(), "effort basis");
-      if (!["unverified", "manual", "percent", "workload"].includes(out.method)) throw new Error("Unknown effort method.");
+      if (!["unverified", "manual", "percent", "workload", "appointment"].includes(out.method)) throw new Error("Unknown effort method.");
+      strictStep5Number(out.summerDaysPerMonth, "summer workdays per month", 0, 1000);
       for (const key of ["calMonths", "acadMonths", "sumrMonths"]) strictStep5Number(out[key], key, 0, 120);
       for (const name of ["release", "instructional", "nonInstructional"]) {
         out[name] = step5CheckedRecord(raw?.[name], getDefaultEffortBasis()[name], "effort component");
@@ -4743,7 +4750,7 @@
       const value = sumStep5Fractions(terms);
       return value.numerator <= 0n ? 0 : safeIntegerFromBigInt((value.numerator + value.denominator - 1n) / value.denominator);
     }
-    function evaluateEffortBasis(helper = {}) {
+    function evaluateV6EffortBasis(helper = {}) {
       const issues = [], terms = { cal: [], acad: [], sumr: [] };
       try {
         const e = normalizeEffortBasis(helper.effort);
@@ -4771,6 +4778,60 @@
         }
       } catch (error) { issues.push(error.message); }
       return { valid: !issues.length, issues, calMonths: roundMonthTerms(terms.cal), acadMonths: roundMonthTerms(terms.acad), sumrMonths: roundMonthTerms(terms.sumr) };
+    }
+    function createAppointmentHelperBasis(term = 'uhcc9') {
+      const effort = getDefaultEffortBasis(), payBasis = getDefaultPayBasis(), fringeBasis = getDefaultFringeBasis();
+      effort.method = 'appointment';
+      effort.source = 'Planner appointment estimate, not an approved NSF/UH conversion';
+      effort.rationale = 'Nine-month release: 9 x requested units / annual workload. Instructional summer: units / 3. Noninstructional summer: days / selected workdays per month. Confirm the individual effort basis.';
+      payBasis.dayDivisor = String(getNonInstructionalDayFactorForFacultyTerm(term));
+      payBasis.source = 'Legacy planner compensation convention, not verified payroll authority';
+      payBasis.rationale = 'Annual salary x requested release units / selected annual workload; noninstructional pay uses annual salary x days / selected pay-day divisor. Confirm applicability.';
+      fringeBasis.releaseCategory = 'faculty'; fringeBasis.overloadCategory = 'overload';
+      fringeBasis.source = 'https://research.hawaii.edu/ors/resources/rates/'; fringeBasis.status = 'custom';
+      fringeBasis.rationale = 'Saved planning rates. FY2027 composite reference is not an individual actual rate. The faculty composite includes a vacation component only for eligible employees; confirm category and period.';
+      return { effort, payBasis, fringeBasis };
+    }
+    function evaluateEffortBasis(helper = {}) {
+      const issues = [], warnings = [], terms = { cal: [], acad: [], sumr: [] }; let invalidData = false;
+      try {
+        const e = normalizeEffortBasis(helper.effort);
+        if (!e.reviewed) warnings.push('Person-months are planning values; check the chosen conversion against the actual appointment before entry.');
+        if (e.method === 'unverified') issues.push('Choose a person-month method, or enter explicit months. Salary can still be calculated.');
+        if (e.method === 'appointment') {
+          const term = normalizeHelperFacultyTerm(helper.facultyTerm);
+          if (!['uhcc9','manoa9'].includes(term)) issues.push('For an 11-month appointment choose explicit person-months, percent effort or a documented workload ratio. No calendar-month conversion is assumed.');
+          else {
+            const release = strictStep5Number(helper.desiredTE, 'release units') || 0, instruction = strictStep5Number(helper.desiredInstructionalTE, 'instructional units') || 0, days = strictStep5Number(helper.desiredNonInstructionalDays, 'noninstructional days') || 0;
+            const load = strictStep5Number(helper.annualCreditLoad, 'annual workload'), workdays = strictStep5Number(e.summerDaysPerMonth, 'summer workdays per month', 0, 1000);
+            if (release > 0 && !(load > 0)) issues.push('Enter a positive annual workload for the release-effort estimate.');
+            else if (release > 0) terms.acad.push({ numerators: [9, release], denominators: [load] });
+            if (instruction > 0) terms.sumr.push({ numerators: [instruction], denominators: [3] });
+            if (days > 0 && !(workdays > 0)) issues.push('Enter positive workdays per month for the summer estimate, or choose explicit person-months.');
+            else if (days > 0) terms.sumr.push({ numerators: [days], denominators: [workdays] });
+            warnings.push('Appointment preset is an editable planning conversion, not an NSF or UH-approved effort rule.');
+          }
+        } else if (e.method === 'manual') {
+          if (['calMonths','acadMonths','sumrMonths'].every(k => e[k] === '')) issues.push('Enter at least one explicit person-month value. A blank is not a reviewed zero.');
+          for (const key of ['cal','acad','sumr']) terms[key].push({ numerators: [e[key + 'Months'] || 0], denominators: [] });
+        } else if (['percent','workload'].includes(e.method)) {
+          for (const [name, field] of [['release','desiredTE'],['instructional','desiredInstructionalTE'],['nonInstructional','desiredNonInstructionalDays']]) {
+            const part = e[name], months = strictStep5Number(part.months, 'appointment months', 0, 12), request = strictStep5Number(helper[field], 'workload request', 0, 1000000) || 0, percent = strictStep5Number(part.percent, 'effort percent', 0, 100);
+            if (e.method === 'percent' && percent === null && request === 0) continue;
+            if (e.method === 'workload' && request === 0) continue;
+            if (months === null || (months === 0 && (request > 0 || percent > 0))) { issues.push('Enter positive appointment months for requested effort.'); continue; }
+            if (e.method === 'percent') {
+              if (percent === null) issues.push('Enter the percent of this appointment component.');
+              else terms[part.category].push({ numerators: [months, percent], denominators: [100] });
+            } else {
+              const full = strictStep5Number(part.fullTimeUnits, 'full-time workload', 0, 1000000);
+              if (!(full > 0)) issues.push('Enter a positive full-time workload denominator.');
+              else terms[part.category].push({ numerators: [months, request], denominators: [full] });
+            }
+          }
+        }
+      } catch (error) { issues.push(error.message); invalidData = true; }
+      return { valid: !issues.length, invalidData, issues, warnings, calMonths: roundMonthTerms(terms.cal), acadMonths: roundMonthTerms(terms.acad), sumrMonths: roundMonthTerms(terms.sumr) };
     }
     function evaluateRatePeriod(year = {}) {
       const issues = [], warnings = []; let p;
@@ -4814,8 +4875,8 @@
       if (ratePlan?.mode !== "allocated" || !check.valid) return ceilMoneyRatio([base, fallbackRate], [100]);
       return check.segments.reduce((sum, s) => sum + ceilMoneyRatio([base, s[location + "Share"], s[location + "Rate"]], [100, 100]), 0);
     }
-    function calculateBudgetHelperValues(helper = {}, year = null) {
-      const issues = [], effort = evaluateEffortBasis(helper);
+    function calculateV6BudgetHelperValues(helper = {}, year = null) {
+      const issues = [], effort = evaluateV6EffortBasis(helper);
       const names = ["desiredTE", "desiredInstructionalTE", "desiredNonInstructionalDays", "annualSalary", "annualCreditLoad", "instructionalCostPerTE", "releaseFringeRate", "overloadFringeRate"];
       const n = {}; let pay = getDefaultPayBasis(), fringeBasis = getDefaultFringeBasis();
       try {
@@ -4853,6 +4914,46 @@
       const advisory = n.desiredInstructionalTE > 0 && n.desiredNonInstructionalDays > 0 ? "Review Article XXI.F.2 eligibility: concurrent additional summer teaching and summer research compensation may be prohibited. Annual coexistence does not prove overlap." : "";
       return { hasWorkInput, valid: !issues.length, validationMessage: issues.join(" "), validationTarget, advisory, effortIssues: effort.issues, calMonths: effort.valid ? effort.calMonths : 0, acadMonths: effort.valid ? effort.acadMonths : 0, sumrMonths: effort.valid ? effort.sumrMonths : 0, salaryPerTE, releaseSalary, instructionalSalary, nonInstructionalSalary, releaseFringe, instructionalFringe, nonInstructionalFringe, salaryBeforeFringe: releaseSalary + instructionalSalary + nonInstructionalSalary, fringe: releaseFringe + instructionalFringe + nonInstructionalFringe };
     }
+    function calculateBudgetHelperValues(helper = {}, year = null) {
+      const issues = [], fringeIssues = [], warnings = [], effort = evaluateEffortBasis(helper);
+      const n = {}; let pay = getDefaultPayBasis(), fringeBasis = getDefaultFringeBasis();
+      for (const key of ['desiredTE','desiredInstructionalTE','desiredNonInstructionalDays','annualSalary','annualCreditLoad','instructionalCostPerTE']) {
+        try { n[key] = strictStep5Number(helper[key], key) || 0; } catch (error) { issues.push(error.message); n[key] = 0; }
+      }
+      try { pay = normalizePayBasis(helper.payBasis); } catch (error) { issues.push(error.message); }
+      try { fringeBasis = normalizeFringeBasis(helper.fringeBasis); } catch (error) { fringeIssues.push(error.message); }
+      const hasWorkInput = ['desiredTE','desiredInstructionalTE','desiredNonInstructionalDays'].some(key => n[key] > 0);
+      let validationTarget = '';
+      if (hasWorkInput) {
+        if (!pay.reviewed) warnings.push('Compensation uses the displayed planning basis, not payroll approval.');
+        if ((n.desiredTE > 0 || n.desiredNonInstructionalDays > 0) && !(n.annualSalary > 0)) { issues.push('Enter a positive annual salary for the requested release/day pay.'); validationTarget = 'annualSalary'; }
+        if (n.desiredTE > 0 && !(n.annualCreditLoad > 0)) { issues.push('Enter a positive annual compensation workload.'); validationTarget = 'annualCreditLoad'; }
+        if (n.desiredInstructionalTE > 0 && !(n.instructionalCostPerTE > 0)) { issues.push('Enter the instructional unit pay rate.'); validationTarget = 'instructionalCostPerTE'; }
+        if (n.desiredNonInstructionalDays > 0 && !(Number(pay.dayDivisor) > 0)) issues.push('Enter a positive noninstructional pay-day divisor, or choose the visible planning preset.');
+        for (const [key, needed] of [['releaseFringeRate',n.desiredTE > 0],['overloadFringeRate',n.desiredInstructionalTE > 0 || n.desiredNonInstructionalDays > 0]]) {
+          try { const raw = strictStep5Number(helper[key], key, 0, 1000); if (needed && raw === null) fringeIssues.push('Enter the applicable fringe rate, including explicit 0 if appropriate.'); n[key] = raw || 0; } catch (error) { fringeIssues.push(error.message); }
+        }
+        if (fringeBasis.mode === 'period') { const p = evaluateRatePeriod(year || {}); if (!p.valid || p.mode !== 'allocated') fringeIssues.push('Period fringe needs a complete explicit fiscal allocation.'); }
+      }
+      let salaryPerTE = 0, releaseSalary = 0, instructionalSalary = 0, nonInstructionalSalary = 0, releaseFringe = 0, instructionalFringe = 0, nonInstructionalFringe = 0;
+      if (!issues.length && hasWorkInput) {
+        try {
+          const years = Number(pay.escalationYears || 0), salaryFactors = Array(years).fill(100 + Number(pay.salaryEscalationPercent || 0)), unitFactors = Array(years).fill(100 + Number(pay.unitEscalationPercent || 0)), scaleDenominators = Array(years).fill(100);
+          const projected = productFraction([n.annualSalary, ...salaryFactors], scaleDenominators);
+          salaryPerTE = n.annualCreditLoad > 0 ? Number(projected.numerator) / Number(projected.denominator) / n.annualCreditLoad : 0;
+          releaseSalary = n.desiredTE > 0 ? ceilMoneyRatio([n.annualSalary, ...salaryFactors, n.desiredTE], [...scaleDenominators, n.annualCreditLoad]) : 0;
+          instructionalSalary = ceilMoneyRatio([n.instructionalCostPerTE, ...unitFactors, n.desiredInstructionalTE], scaleDenominators);
+          nonInstructionalSalary = n.desiredNonInstructionalDays > 0 ? ceilMoneyRatio([n.annualSalary, ...salaryFactors, n.desiredNonInstructionalDays], [...scaleDenominators, pay.dayDivisor]) : 0;
+          if (!fringeIssues.length) {
+            const fringe = (salary, additional) => fringeBasis.mode === 'period' ? ceilStep5Terms(year.ratePlan.segments.map(s => ({ numerators: [salary, s[additional ? 'additionalPayShare' : 'releasePayShare'], s[additional ? 'overloadFringeRate' : 'releaseFringeRate']], denominators: [100, 100] }))) : ceilMoneyRatio([salary, n[additional ? 'overloadFringeRate' : 'releaseFringeRate']], [100]);
+            releaseFringe = fringe(releaseSalary, false); instructionalFringe = fringe(instructionalSalary, true); nonInstructionalFringe = fringe(nonInstructionalSalary, true);
+          }
+        } catch (error) { issues.push(error.message); }
+      }
+      const salaryValid = !issues.length, fringeValid = salaryValid && !fringeIssues.length;
+      const advisory = n.desiredInstructionalTE > 0 && n.desiredNonInstructionalDays > 0 ? 'Check Article XXI concurrent summer teaching/research compensation restrictions; no eligibility approval is inferred.' : '';
+      return { hasWorkInput, valid: salaryValid && fringeValid, salaryValid, fringeValid, effortValid: effort.valid, effortInvalid: effort.invalidData, validationMessage: [...issues,...fringeIssues].join(' '), validationTarget, advisory, warnings: [...warnings,...effort.warnings], effortIssues: effort.issues, calMonths: effort.valid ? effort.calMonths : null, acadMonths: effort.valid ? effort.acadMonths : null, sumrMonths: effort.valid ? effort.sumrMonths : null, salaryPerTE, releaseSalary, instructionalSalary, nonInstructionalSalary, releaseFringe, instructionalFringe, nonInstructionalFringe, salaryBeforeFringe: releaseSalary + instructionalSalary + nonInstructionalSalary, fringe: releaseFringe + instructionalFringe + nonInstructionalFringe };
+    }
     function getStep5BlockingIssues(state) {
       const out = [];
       for (const year of state.years || []) {
@@ -4863,6 +4964,7 @@
           if (row.helper?.apply) {
             const h = calculateBudgetHelperValues(row.helper, year);
             if (!h.valid) out.push({ code: "helper-basis-invalid", yearId: year.id, rowKey: row.key, message: h.validationMessage });
+            if (h.effortInvalid) out.push({ code: "helper-effort-invalid", yearId: year.id, rowKey: row.key, message: h.effortIssues.join(" ") });
           }
         }
       }
@@ -4965,11 +5067,17 @@
       if (!["pending", "manual", "recalculated"].includes(value.mode)) throw new Error("Unknown legacy review mode.");
       if (!value.pending && (!value.resolution.trim() || value.mode === "pending")) throw new Error("Resolved legacy effort requires a reason and decision.");
     }
-    function normalizePersonnelStep5(row, sourceVersion = 5) {
+    function normalizePersonnelStep5(row, sourceVersion = 7, year = null) {
       const result = cloneState(row);
       if (result.fringeBasis !== undefined) result.fringeBasis = normalizeFringeBasis(result.fringeBasis);
       if (!result.helper) return result;
       const h = result.helper;
+      if ([5,6].includes(sourceVersion) && h.apply && !calculateV6BudgetHelperValues(h, year).valid) {
+        h.previousHelperApply = true;
+        if (result.manualValues) h.previousManualValues = cloneState(result.manualValues);
+        h.apply = false;
+        delete result.manualValues;
+      }
       if (sourceVersion < 5 && h.apply && !h.legacy) {
         const original = cloneState(h), old = calculateLegacyBudgetHelperValues(original);
         const originalValues = Object.fromEntries(["calMonths", "acadMonths", "sumrMonths", "baseSalary", "fringeAmount"].map(k => [k, String(result[k] ?? "")]));
@@ -4984,6 +5092,12 @@
       return result;
     }
     function validateStep5HelperFields(h, sourceVersion) {
+      if (h.previousHelperApply !== undefined && (sourceVersion < 7 || typeof h.previousHelperApply !== 'boolean')) throw new Error('Invalid previous-helper application history.');
+      if (h.effort?.method === 'appointment' && sourceVersion < 7) throw new Error('The appointment estimate requires state version 7.');
+      if (h.previousManualValues !== undefined) {
+        projectRecord(h.previousManualValues, ['calMonths','acadMonths','sumrMonths','baseSalary','fringeAmount'], 'previous manual fallback');
+        for (const [key,value] of Object.entries(h.previousManualValues)) projectNumber(value, key, true);
+      }
       const newKeys = ["effort", "payBasis", "fringeBasis", "legacy"];
       if (sourceVersion < 5 && newKeys.some(k => Object.prototype.hasOwnProperty.call(h, k))) throw new Error("Step 5 helper metadata requires state version 5.");
       if (h.effort !== undefined) h.effort = normalizeEffortBasis(h.effort);
@@ -4996,7 +5110,7 @@
     }
     function step5HasHelperContent(row) {
       const meta = row?._step5Helper;
-      return Boolean(meta && JSON.stringify(meta) !== JSON.stringify({ effort: getDefaultEffortBasis(), payBasis: getDefaultPayBasis(), fringeBasis: getDefaultFringeBasis() }));
+      return Boolean(meta && JSON.stringify(meta) !== JSON.stringify(row._step5FreshBasis ? row._step5InitialHelper : { effort: getDefaultEffortBasis(), payBasis: getDefaultPayBasis(), fringeBasis: getDefaultFringeBasis() }));
     }
     function step5Control(container, label, value, type, change, choices = null, path = "") {
       const wrap = document.createElement("label"); wrap.textContent = label;
@@ -5008,46 +5122,103 @@
       control.dataset.step5Field = path; control.addEventListener(choices || type === "checkbox" ? "change" : "input", () => change(type === "checkbox" ? control.checked : control.value));
       wrap.appendChild(control); container.appendChild(wrap); return control;
     }
-    function mountStep5HelperControls(row, helperRow, data = {}) {
-      const h = data.helper || {};
-      row._step5Helper = { effort: normalizeEffortBasis(h.effort), payBasis: normalizePayBasis(h.payBasis), fringeBasis: normalizeFringeBasis(h.fringeBasis), ...(h.legacy ? { legacy: cloneState(h.legacy) } : {}) };
-      const details = document.createElement("details"); details.dataset.effortControls = "true"; details.className = "step5-helper-assumptions"; details.open = Boolean(h.legacy?.pending);
-      const title = document.createElement("summary"); title.textContent = "Effort, compensation and fringe assumptions"; details.appendChild(title);
-      const warning = document.createElement("p"); warning.className = "help"; warning.textContent = "These are reviewed planning choices, not Fiscal/HR/ORS approval. Pay, workload and NSF person-months are separate. Escalation is a budget estimate, not a payroll adjustment calculator."; details.appendChild(warning);
-      const grid = heading => { const fieldset = document.createElement("fieldset"), legend = document.createElement("legend"); legend.textContent = heading; fieldset.appendChild(legend); const g = document.createElement("div"); g.className = "personnel-helper-grid four-across"; fieldset.appendChild(g); details.appendChild(fieldset); return g; };
-      const add = (g, label, path, type = "text", choices = null) => { const parts = path.split("."); let obj = row._step5Helper; for (const key of parts.slice(0, -1)) obj = obj[key]; const key = parts.at(-1); return step5Control(g, label, obj[key], type, value => { obj[key] = value; calculate(); }, choices, path); };
-      let g = grid("NSF effort, independent of compensation");
-      add(g, "Effort method", "effort.method", "text", [["unverified", "Unverified, choose a basis"], ["manual", "Explicit person-months"], ["percent", "Percent of appointment"], ["workload", "Documented workload ratio"]]);
-      for (const [key, label] of [["calMonths", "Explicit CAL months"], ["acadMonths", "Explicit ACAD months"], ["sumrMonths", "Explicit SUMR months"]]) add(g, label, `effort.${key}`, "number");
-      for (const [key, label] of [["release", "Release/buyout effort"], ["instructional", "Instructional additional effort"], ["nonInstructional", "Noninstructional additional effort"]]) {
-        g = grid(label);
-        add(g, "Month category", `effort.${key}.category`, "text", [["cal", "Calendar"], ["acad", "Academic"], ["sumr", "Summer"]]);
-        add(g, "Appointment months", `effort.${key}.months`, "number"); add(g, "Percent effort (percent method)", `effort.${key}.percent`, "number"); add(g, "Full-time workload units (ratio method)", `effort.${key}.fullTimeUnits`, "number");
-      }
-      g = grid("Effort provenance"); add(g, "Effort source/reference", "effort.source"); add(g, "Effort rationale", "effort.rationale"); add(g, "I reviewed this planning basis", "effort.reviewed", "checkbox");
-      g = grid("Compensation and explicit escalation estimates");
-      add(g, "Noninstructional pay day divisor", "payBasis.dayDivisor", "number"); add(g, "Salary escalation percent/year", "payBasis.salaryEscalationPercent", "number"); add(g, "Unit-pay escalation percent/year", "payBasis.unitEscalationPercent", "number"); add(g, "Explicit escalation years (0-20)", "payBasis.escalationYears", "number");
-      add(g, "Compensation source/reference", "payBasis.source"); add(g, "Compensation/escalation rationale", "payBasis.rationale"); add(g, "I reviewed this planning pay basis", "payBasis.reviewed", "checkbox");
-      g = grid("Fringe classification and source");
-      add(g, "Fringe calculation", "fringeBasis.mode", "text", [["manual", "Saved row rates / actual-rate override"], ["period", "Explicit fiscal pay allocations"]]);
-      const cats = [["unverified", "Unverified"], ["faculty", "Faculty"], ["staff", "Staff"], ["graduate-assistant", "Graduate assistant"], ["casual", "Casual hire"], ["student", "Student"], ["overload", "Overload, confirm eligibility"], ["actual", "Known actual rate"], ["custom", "Custom planning assumption"]];
-      add(g, "Release employee/pay category", "fringeBasis.releaseCategory", "text", cats); add(g, "Additional-pay category", "fringeBasis.overloadCategory", "text", cats);
-      add(g, "Fringe source", "fringeBasis.source"); add(g, "Fringe effective start (YYYY-MM-DD)", "fringeBasis.effectiveStart"); add(g, "Fringe effective end (YYYY-MM-DD)", "fringeBasis.effectiveEnd");
-      add(g, "Fringe source status", "fringeBasis.status", "text", [["unverified", "Unverified"], ["preliminary", "Preliminary"], ["provisional", "Provisional"], ["actual", "Known actual"], ["custom", "Custom"]]); add(g, "Fringe qualification/override rationale", "fringeBasis.rationale");
-      const link = document.createElement("a"); link.href = "https://www.uhpa.org/uhpa-contracts/article-xxi-salaries-2/"; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Review Article XXI compensation and overlap restrictions"; details.appendChild(link);
-      if (h.legacy) {
-        const card = document.createElement("fieldset"); card.dataset.legacyEffort = "true"; const caption = document.createElement("legend"); caption.textContent = h.legacy.pending ? "Legacy helper review required" : "Preserved legacy helper history"; card.appendChild(caption);
-        const text = document.createElement("p"); text.textContent = `Original effective salary ${formatCurrency(readStoredNumberValue(h.legacy.effectiveValues.baseSalary))}, fringe ${formatCurrency(readStoredNumberValue(h.legacy.effectiveValues.fringeAmount))}; ${h.legacy.effectiveValues.calMonths || 0} CAL, ${h.legacy.effectiveValues.acadMonths || 0} ACAD, ${h.legacy.effectiveValues.sumrMonths || 0} SUMR. ${h.legacy.resolution || "Final output is held until an explicit decision."}`; card.appendChild(text);
-        if (h.legacy.pending) {
-          const reason = step5Control(card, "Reason for review decision", "", "text", () => {}, null, "legacy.reason");
-          for (const [mode, label] of [["manual", "Retain effective values as manual planning input"], ["recalculated", "Review and apply the new helper assumptions"]]) {
-            const button = document.createElement("button"); button.type = "button"; button.dataset.legacyEffortAction = mode; button.textContent = label;
-            button.addEventListener("click", () => { try { resolveLegacyEffort(row.dataset.personnelKey, mode, reason.value); } catch (error) { setProjectStatus(error.message, true); } }); card.appendChild(button);
-          }
+    function syncMinimalHelperPresentation(row, results) {
+      const controls = getPersonnelHelperControls(row), host = controls.row, meta = row._step5Helper, method = meta.effort.method;
+      const instruction = Number(controls.desiredInstructionalTE.value) > 0;
+      host.querySelector('.helper-instructional-rates').hidden = !instruction;
+      const active = { release: Number(controls.desiredTE.value) > 0, instructional: instruction, nonInstructional: Number(controls.desiredNonInstructionalDays.value) > 0 };
+      host.querySelectorAll('[data-step5-field]').forEach(control => {
+        const path = control.dataset.step5Field, label = control.closest('label'); let visible = true;
+        if (/^effort\.(calMonths|acadMonths|sumrMonths)$/.test(path)) visible = method === 'manual';
+        else if (path === 'effort.summerDaysPerMonth') visible = method === 'appointment' && active.nonInstructional;
+        else if (/^effort\.(release|instructional|nonInstructional)\./.test(path)) {
+          const [,part,key] = path.split('.'); visible = ['percent','workload'].includes(method) && (active[part] || (method === 'percent' && meta.effort[part].percent !== ''));
+          if (key === 'percent') visible = visible && method === 'percent';
+          if (key === 'fullTimeUnits') visible = visible && method === 'workload';
         }
+        if (path === 'payBasis.dayDivisor') visible = active.nonInstructional;
+        label.hidden = !visible;
+      });
+      host.querySelectorAll('.step5-helper-assumptions fieldset[data-helper-grid]').forEach(fieldset => { fieldset.hidden = !Array.from(fieldset.querySelectorAll('label')).some(label => !label.hidden); });
+      const summary = host.querySelector('.helper-basis-summary'), term = controls.facultyTerm.value;
+      const effortText = method === 'appointment' ? (['uhcc9','manoa9'].includes(term) ? `Effort estimate: release = 9 x units / ${controls.annualCreditLoad.value || '?' } ACAD; summer teaching = units / 3 SUMR; noninstructional days / ${meta.effort.summerDaysPerMonth || '?'} SUMR.` : 'Effort pending: choose explicit months or an appointment-based method for the 11-month appointment.') : method === 'manual' ? 'Effort: your explicit person-month entries.' : method === 'unverified' ? 'Effort pending: choose a method in optional settings.' : `Effort: ${method === 'percent' ? 'percent of appointment' : 'documented workload ratio'}.`;
+      summary.textContent = `Planning basis: release pay = annual salary x units / ${controls.annualCreditLoad.value || '?'}; noninstructional pay = annual salary x days / ${meta.payBasis.dayDivisor || '?'}. ${effortText} Selected regular / additional fringe: ${controls.releaseFringeRate.value || '?'}% / ${controls.overloadFringeRate.value || '?'}%. Presets are estimates, not approved institutional rules. Edit below if your basis differs.`;
+      const notice = host.querySelector('.helper-fringe-reference');
+      const payload = window.step5RateReference?.payload; const referenceLoaded = Boolean(payload && Number.isFinite(Number(payload.releaseFringeRate)) && Number.isFinite(Number(payload.overloadFringeRate)));
+      notice.textContent = `Saved fringe rates are used, not silently refreshed. FY2027 ORS composite reference: faculty 59.29%, overload 2.32%; use a known actual rate when available. Faculty composite includes a vacation component only for eligible employees. Confirm your appointment, pay category and effective period.${referenceLoaded ? ` Loaded reference: ${payload.releaseFringeRate}% / ${payload.overloadFringeRate}%.` : ''}`;
+      host.querySelector('.helper-use-fringe-reference').disabled = !referenceLoaded;
+      const imported = host.querySelector('.helper-import-note');
+      imported.hidden = !meta.previousHelperApply;
+      imported.textContent = 'Earlier project: this helper could not calculate under its original rules. Saved manual values have been retained. Choosing a preset or checking Apply deliberately recalculates; save the original if needed.';
+      const pendingMonths = results.hasWorkInput && !results.effortValid;
+      for (const input of Object.values(getPersonnelValueInputs(row))) if (input.classList.contains('months-input')) input.placeholder = pendingMonths ? 'Pending' : '0.00';
+    }
+    function useAppointmentPlanningPreset(row) {
+      const controls = getPersonnelHelperControls(row), preset = createAppointmentHelperBasis(controls.facultyTerm.value), history = row._step5Helper;
+      row._step5Helper = { ...preset, ...(history.previousHelperApply ? { previousHelperApply: true } : {}), ...(history.previousManualValues ? { previousManualValues: cloneState(history.previousManualValues) } : {}), ...(history.legacy ? { legacy: cloneState(history.legacy) } : {}) };
+      // Existing input elements retain focus/handlers; callbacks resolve the current metadata dynamically.
+      controls.row.querySelectorAll('[data-step5-field]').forEach(control => {
+        const parts = control.dataset.step5Field.split('.'); let value = row._step5Helper;
+        for (const part of parts) value = value?.[part];
+        if (value !== undefined) { if (control.type === 'checkbox') control.checked = Boolean(value); else control.value = String(value); }
+      });
+      calculate();
+    }
+    function mountStep5HelperControls(row, helperRow, data = {}) {
+      const h = data.helper || {}, fresh = !data.helper;
+      row._step5Helper = fresh ? createAppointmentHelperBasis(helperRow.querySelector('.helper-faculty-term').value) : { effort: normalizeEffortBasis(h.effort), payBasis: normalizePayBasis(h.payBasis), fringeBasis: normalizeFringeBasis(h.fringeBasis), ...(h.legacy ? { legacy: cloneState(h.legacy) } : {}), ...(h.previousHelperApply ? { previousHelperApply: true } : {}), ...(h.previousManualValues ? { previousManualValues: cloneState(h.previousManualValues) } : {}) };
+      row._step5FreshBasis = fresh; row._step5InitialHelper = cloneState(row._step5Helper);
+      const numericResults = helperRow.querySelector('.personnel-helper-summary');
+      const basis = document.createElement('p'); basis.className = 'helper-basis-summary help'; numericResults.before(basis);
+      const imported = document.createElement('p'); imported.className = 'helper-import-note helper-status-note warn'; numericResults.before(imported);
+      const details = document.createElement('details'); details.dataset.effortControls = 'true'; details.className = 'step5-helper-assumptions'; details.open = Boolean(h.legacy?.pending);
+      const title = document.createElement('summary'); title.textContent = 'Optional settings: change planning basis, effort or documentation'; details.appendChild(title);
+      const warning = document.createElement('p'); warning.className = 'help'; warning.textContent = 'No source/rationale paperwork is required to calculate a planning budget. Pay and NSF person-months remain separate. Check applicability before proposal entry; this app does not grant approval.'; details.appendChild(warning);
+      const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'helper-use-preset'; reset.textContent = 'Use appointment planning estimate'; reset.addEventListener('click', () => useAppointmentPlanningPreset(row)); details.appendChild(reset);
+      const grid = heading => { const fs = document.createElement('fieldset'), legend = document.createElement('legend'); fs.dataset.helperGrid = 'true'; legend.textContent = heading; fs.appendChild(legend); const g = document.createElement('div'); g.className = 'personnel-helper-grid four-across'; fs.appendChild(g); details.appendChild(fs); return g; };
+      const add = (g, label, path, type = 'text', choices = null) => {
+        const parts = path.split('.'); let obj = row._step5Helper; for (const key of parts.slice(0,-1)) obj = obj[key];
+        return step5Control(g,label,obj[parts.at(-1)],type,value => { let current = row._step5Helper; for (const key of parts.slice(0,-1)) current = current[key]; current[parts.at(-1)] = value; calculate(); }, choices,path);
+      };
+      let g = grid('Person-month calculation');
+      add(g,'Effort method','effort.method','text',[['appointment','Nine-month planning estimate'],['manual','Enter explicit person-months'],['percent','Percent of appointment'],['workload','Documented workload ratio'],['unverified','Pending, no method selected']]);
+      add(g,'Summer workdays per month (estimate)','effort.summerDaysPerMonth','number');
+      for (const [key,label] of [['calMonths','Explicit CAL months'],['acadMonths','Explicit ACAD months'],['sumrMonths','Explicit SUMR months']]) add(g,label,`effort.${key}`,'number');
+      for (const [key,label] of [['release','Release/buyout effort'],['instructional','Instructional additional effort'],['nonInstructional','Noninstructional additional effort']]) {
+        g = grid(label); add(g,'Month category',`effort.${key}.category`,'text',[['cal','Calendar'],['acad','Academic'],['sumr','Summer']]); add(g,'Appointment months',`effort.${key}.months`,'number'); add(g,'Percent effort',`effort.${key}.percent`,'number'); add(g,'Full-time workload units',`effort.${key}.fullTimeUnits`,'number');
+      }
+      g = grid('Optional effort notes'); add(g,'Effort source/reference','effort.source'); add(g,'Effort rationale','effort.rationale'); add(g,'I checked this conversion for my appointment','effort.reviewed','checkbox');
+      g = grid('Compensation adjustments'); add(g,'Noninstructional pay day divisor (estimate)','payBasis.dayDivisor','number'); add(g,'Salary escalation percent/year','payBasis.salaryEscalationPercent','number'); add(g,'Unit-pay escalation percent/year','payBasis.unitEscalationPercent','number'); add(g,'Explicit escalation years (0-20)','payBasis.escalationYears','number');
+      add(g,'Compensation source/reference (optional)','payBasis.source'); add(g,'Compensation/escalation rationale (optional)','payBasis.rationale'); add(g,'I checked this pay basis for my appointment','payBasis.reviewed','checkbox');
+      g = grid('Optional fringe classification and source'); add(g,'Fringe calculation','fringeBasis.mode','text',[['manual','Saved row rates / actual-rate override'],['period','Explicit fiscal pay allocations']]);
+      const cats = [['unverified','Unverified'],['faculty','Faculty'],['staff','Staff'],['graduate-assistant','Graduate assistant'],['casual','Casual hire'],['student','Student'],['overload','Overload, confirm eligibility'],['actual','Known actual rate'],['custom','Custom planning assumption']];
+      add(g,'Release employee/pay category','fringeBasis.releaseCategory','text',cats); add(g,'Additional-pay category','fringeBasis.overloadCategory','text',cats); add(g,'Fringe source','fringeBasis.source'); add(g,'Fringe effective start (YYYY-MM-DD)','fringeBasis.effectiveStart'); add(g,'Fringe effective end (YYYY-MM-DD)','fringeBasis.effectiveEnd'); add(g,'Fringe source status','fringeBasis.status','text',[['unverified','Unverified'],['preliminary','Preliminary'],['provisional','Provisional'],['actual','Known actual'],['custom','Custom']]); add(g,'Fringe qualification/override rationale','fringeBasis.rationale');
+      const link = document.createElement('a'); link.href = 'https://www.uhpa.org/uhpa-contracts/article-xxi-salaries-2/'; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = 'Article XXI compensation and overlap restrictions'; details.appendChild(link);
+      if (h.legacy) {
+        const card = document.createElement('fieldset'); card.dataset.legacyEffort = 'true'; const caption = document.createElement('legend'); caption.textContent = h.legacy.pending ? 'Legacy helper review required' : 'Preserved legacy helper history'; card.appendChild(caption);
+        const text = document.createElement('p'); text.textContent = `Original effective salary ${formatCurrency(readStoredNumberValue(h.legacy.effectiveValues.baseSalary))}, fringe ${formatCurrency(readStoredNumberValue(h.legacy.effectiveValues.fringeAmount))}; ${h.legacy.effectiveValues.calMonths || 0} CAL, ${h.legacy.effectiveValues.acadMonths || 0} ACAD, ${h.legacy.effectiveValues.sumrMonths || 0} SUMR. ${h.legacy.resolution || 'Final output is held until an explicit decision.'}`; card.appendChild(text);
+        if (h.legacy.pending) { const reason = step5Control(card,'Reason for review decision','','text',()=>{},null,'legacy.reason'); for (const [mode,label] of [['manual','Retain effective values as manual planning input'],['recalculated','Review and apply the new helper assumptions']]) { const button = document.createElement('button'); button.type = 'button'; button.dataset.legacyEffortAction = mode; button.textContent = label; button.addEventListener('click',()=>{try{resolveLegacyEffort(row.dataset.personnelKey,mode,reason.value);}catch(error){setProjectStatus(error.message,true);}}); card.appendChild(button); } }
         details.appendChild(card);
       }
-      helperRow.querySelector(".personnel-helper-summary").before(details);
+      const breakdown = document.createElement('details'); breakdown.className = 'helper-calculation-breakdown';
+      const breakdownTitle = document.createElement('summary'); breakdownTitle.textContent = 'Show compensation calculation breakdown'; breakdown.appendChild(breakdownTitle);
+      const unitReference = numericResults.querySelector('.helper-output-salary-per-te').closest('.helper-card'); breakdown.appendChild(unitReference);
+      breakdown.appendChild(numericResults.querySelector('.personnel-helper-summary-row.secondary'));
+      const primary = numericResults.querySelector('.personnel-helper-summary-row.primary');
+      for (const [selector,label] of [['.helper-output-acad','ACAD person-months'],['.helper-output-sumr','SUMR person-months'],['.helper-output-cal','CAL person-months'],['.helper-output-salary','Salary request (A)'],['.helper-output-fringe','Fringe contribution (C)']]) {
+        const card = primary.querySelector(selector).closest('.helper-card'); card.querySelector('.label').textContent = label; primary.appendChild(card);
+      }
+      numericResults.appendChild(breakdown);
+      const jump = document.createElement('button'); jump.type = 'button'; jump.className = 'helper-show-transfer'; jump.textContent = 'View these Research.gov values';
+      jump.addEventListener('click',()=>{ const container = document.getElementById('step6-transfer-details'); container.open = true; renderTransferView(); const code = 'A.' + (seniorPersonnelDefinitions.findIndex(d=>d.key===row.dataset.personnelKey)+1); const target = Array.from(document.querySelectorAll('[data-transfer-line]')).find(r=>r.dataset.transferLine===code && r.dataset.transferPeriod===proposalState.activeYearId); target?.scrollIntoView({block:'center'}); });
+      numericResults.after(jump,details);
+      const reference = document.createElement('p'); reference.className = 'helper-fringe-reference help'; helperRow.querySelector('.personnel-helper-header').after(reference);
+      const useReference = document.createElement('button'); useReference.type = 'button'; useReference.className = 'helper-use-fringe-reference'; useReference.textContent = 'Use loaded fringe references for this row'; useReference.addEventListener('click',()=>{
+        const payload = window.step5RateReference?.payload; if (!payload) return;
+        for (const field of ['releaseFringeRate','overloadFringeRate']) { const controlsForRef = getPersonnelHelperControls(row); controlsForRef[field].value = String(payload[field]); markRateFieldTouched(controlsForRef[field]); }
+        row._step5Helper.fringeBasis = { ...row._step5Helper.fringeBasis,mode:'manual',source:'https://research.hawaii.edu/ors/resources/rates/',status:'custom',rationale:'User selected loaded reference percentages as planning inputs; verify applicability, period and actual rate. No institutional review inferred.' };
+        helperRow.querySelectorAll('[data-step5-field^="fringeBasis."]').forEach(input=>{const value = row._step5Helper.fringeBasis[input.dataset.step5Field.split('.')[1]];if(value!==undefined)input.value=value;}); calculate();
+      }); reference.after(useReference);
     }
     function resolveLegacyEffort(key, mode, reason) {
       if (!String(reason || "").trim()) throw new Error("Record a reason for the legacy helper decision.");
@@ -5110,60 +5281,29 @@
 
 
     function syncBudgetHelperRow(row) {
-      const controls = getPersonnelHelperControls(row);
-      if (!controls) {
-        return;
-      }
-
-      const results = getBudgetHelperResults(row);
-      if (!results) {
-        return;
-      }
-
-      controls.calOutput.textContent = formatDecimal(results.calMonths);
-      controls.acadOutput.textContent = formatDecimal(results.acadMonths);
-      controls.sumrOutput.textContent = formatDecimal(results.sumrMonths);
-      controls.salaryPerTEOutput.textContent = formatReferenceCurrency(results.salaryPerTE);
-      controls.salaryOutput.textContent = formatCurrency(results.salaryBeforeFringe);
-      controls.fringeOutput.textContent = formatCurrency(results.fringe);
-      controls.releaseSalaryOutput.textContent = formatCurrency(results.releaseSalary);
-      controls.instructionalSalaryOutput.textContent = formatCurrency(results.instructionalSalary);
-      controls.nonInstructionalSalaryOutput.textContent = formatCurrency(results.nonInstructionalSalary);
-      controls.releaseFringeOutput.textContent = formatCurrency(results.releaseFringe);
-      controls.instructionalFringeOutput.textContent = formatCurrency(results.instructionalFringe);
-      controls.nonInstructionalFringeOutput.textContent = formatCurrency(results.nonInstructionalFringe);
-      updateBudgetHelperValidationHighlight(controls, results.validationTarget);
-
-      if (results.validationMessage) {
-        controls.statusNote.textContent = results.validationMessage;
-        controls.statusNote.className = "helper-status-note warn";
-      } else if (results.hasWorkInput && controls.applyToggle.checked) {
-        controls.statusNote.textContent = results.advisory || "Reviewed planning assumptions applied; not institutional approval.";
-        controls.statusNote.className = "helper-status-note";
-      } else if (results.hasWorkInput) {
-        controls.statusNote.textContent = "Preview only. Check Apply helper outputs to fill this row.";
-        controls.statusNote.className = "helper-status-note";
-      } else {
-        controls.statusNote.textContent = "";
-        controls.statusNote.className = "helper-status-note";
-      }
-
+      const controls = getPersonnelHelperControls(row); if (!controls) return;
+      const results = getBudgetHelperResults(row); if (!results) return;
+      syncMinimalHelperPresentation(row, results);
+      const money = (value, valid) => results.hasWorkInput && !valid ? 'Pending' : formatCurrency(value);
+      for (const [key, output] of [['calMonths','calOutput'],['acadMonths','acadOutput'],['sumrMonths','sumrOutput']]) controls[output].textContent = results.hasWorkInput && !results.effortValid ? 'Pending' : formatDecimal(results[key] ?? 0);
+      controls.salaryPerTEOutput.textContent = results.hasWorkInput && !results.salaryValid ? 'Pending' : formatReferenceCurrency(results.salaryPerTE);
+      for (const [key,output] of [['salaryBeforeFringe','salaryOutput'],['releaseSalary','releaseSalaryOutput'],['instructionalSalary','instructionalSalaryOutput'],['nonInstructionalSalary','nonInstructionalSalaryOutput']]) controls[output].textContent = money(results[key],results.salaryValid);
+      for (const [key,output] of [['fringe','fringeOutput'],['releaseFringe','releaseFringeOutput'],['instructionalFringe','instructionalFringeOutput'],['nonInstructionalFringe','nonInstructionalFringeOutput']]) controls[output].textContent = money(results[key],results.fringeValid);
+      updateBudgetHelperValidationHighlight(controls,results.validationTarget);
+      if (results.validationMessage) { controls.statusNote.textContent = results.validationMessage; controls.statusNote.className = 'helper-main-status helper-status-note warn'; }
+      else if (results.hasWorkInput) {
+        const applied = controls.applyToggle.checked ? 'Planning salary and fringe applied to the Research.gov row.' : 'Preview only. Check Apply to fill the Research.gov row.';
+        controls.statusNote.textContent = `${applied} ${results.effortValid ? 'Separate person-month values are shown using the selected basis.' : 'Person-months pending: ' + results.effortIssues.join(' ')}${results.advisory ? ' ' + results.advisory : ''} Verify assumptions before entry; not institutional approval.`;
+        controls.statusNote.className = 'helper-main-status helper-status-note' + (!results.effortValid ? ' warn' : '');
+      } else { controls.statusNote.textContent = 'Enter the requested workload and salary. Optional settings are not required for the planning preset.'; controls.statusNote.className = 'helper-main-status helper-status-note'; }
       if (controls.applyToggle.checked && results.valid && results.hasWorkInput) {
-        if (row.dataset.helperApplied !== "true") {
-          storeManualPersonnelValues(row);
-        }
-        applyBudgetHelperOutputs(row, results);
-        setPersonnelDerivedState(row, true);
-        row.dataset.helperApplied = "true";
+        if (row.dataset.helperApplied !== 'true') storeManualPersonnelValues(row);
+        applyBudgetHelperOutputs(row,results); setPersonnelDerivedState(row,true); row.dataset.helperApplied = 'true';
       } else {
-        if (row.dataset.helperApplied === "true") {
-          restoreManualPersonnelValues(row);
-        }
-        setPersonnelDerivedState(row, false);
-        row.dataset.helperApplied = "false";
+        if (row.dataset.helperApplied === 'true') restoreManualPersonnelValues(row);
+        setPersonnelDerivedState(row,false); row.dataset.helperApplied = 'false';
       }
     }
-
     function toggleBudgetHelper(row) {
       const helperRow = getPersonnelHelperRow(row);
       const toggleButton = row.querySelector(".row-helper-toggle");
@@ -5348,10 +5488,10 @@
           <td colspan="8">
             <div class="personnel-helper-panel">
               <div class="personnel-helper-header">
-                <h4>Budget Required Helper</h4><p class="helper-status-note step5-effort-note">Step 5: compensation is separate from effort. Unverified conversions are not approvals.</p>
+                <h4>Personnel Budget Helper</h4><p class="help">Enter workload and salary, then Apply to fill the Research.gov personnel row. Optional settings are below the results.</p>
                 <label class="personnel-helper-apply">
                   <input type="checkbox" class="helper-apply-toggle">
-                  <span>Apply helper outputs to this row</span>
+                  <span>Apply to Research.gov personnel row</span>
                 </label>
               </div>
               <div class="personnel-helper-grid four-across">
@@ -5395,7 +5535,7 @@
                   <input type="number" class="helper-overload-fringe-rate" min="0" step="0.01" inputmode="decimal" value="2.47">
                 </div>
               </div>
-              <div class="personnel-helper-grid three-across">
+              <div class="personnel-helper-grid three-across helper-instructional-rates">
                 <div>
                   <label>Summer Instructional Rate Source (by rank)</label>
                   <select class="helper-summer-rate-source"></select>
@@ -5460,7 +5600,7 @@
                   </div>
                 </div>
               </div>
-              <p class="helper-status-note"></p>
+              <p class="helper-main-status helper-status-note" role="status"></p>
             </div>
           </td>
         `;
@@ -5569,10 +5709,14 @@
         });
 
         helperRow.querySelector(".helper-faculty-term").addEventListener("change", (event) => {
-          syncAnnualCreditLoadControl(
-            helperRow.querySelector(".helper-annual-credit-load"),
-            event.currentTarget.value
-          );
+          const load = helperRow.querySelector(".helper-annual-credit-load"), previousTerm = load.dataset.termMode;
+          if (row._step5Helper.effort.method === 'appointment' && String(row._step5Helper.payBasis.dayDivisor) === String(getNonInstructionalDayFactorForFacultyTerm(previousTerm))) {
+            row._step5Helper.payBasis.dayDivisor = String(getNonInstructionalDayFactorForFacultyTerm(event.currentTarget.value));
+            helperRow.querySelector('[data-step5-field="payBasis.dayDivisor"]').value = row._step5Helper.payBasis.dayDivisor;
+            row._step5Helper.payBasis.reviewed = false;
+            helperRow.querySelector('[data-step5-field="payBasis.reviewed"]').checked = false;
+          }
+          syncAnnualCreditLoadControl(load,event.currentTarget.value);
           calculate();
         });
 
@@ -6084,9 +6228,9 @@
         const helper = kind === "named" && row.helper ? calculateBudgetHelperValues(row.helper, options.year || null) : null;
         const useHelper = Boolean(row.helper?.apply && helper?.valid && helper?.hasWorkInput);
         const quantity = kind === "others" ? readStoredNumberValue(row.quantity) : 0;
-        const calMonths = useHelper ? helper.calMonths : roundToCent(readStoredNumberValue(row.calMonths));
-        const acadMonths = useHelper ? helper.acadMonths : roundToCent(readStoredNumberValue(row.acadMonths));
-        const sumrMonths = useHelper ? helper.sumrMonths : roundToCent(readStoredNumberValue(row.sumrMonths));
+        const calMonths = useHelper ? (helper.calMonths ?? 0) : roundToCent(readStoredNumberValue(row.calMonths));
+        const acadMonths = useHelper ? (helper.acadMonths ?? 0) : roundToCent(readStoredNumberValue(row.acadMonths));
+        const sumrMonths = useHelper ? (helper.sumrMonths ?? 0) : roundToCent(readStoredNumberValue(row.sumrMonths));
         const rawBaseSalary = readStoredNumberValue(row.baseSalary);
         const rawFringeAmount = readStoredNumberValue(row.fringeAmount);
         const baseSalary = useHelper ? helper.salaryBeforeFringe : roundUpDollar(rawBaseSalary);
@@ -6575,7 +6719,7 @@
         lines.push(section.label);
         if (!values.rows.length) lines.push("No budget amounts entered.");
         values.rows.forEach((row) => {
-          const months = section.key === "senior" || row.hasMonths ? `${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months; ` : "";
+          const months = row.useHelper && row.helperBudget && !row.helperBudget.effortValid ? "Person-months pending; " : section.key === "senior" || row.hasMonths ? `${formatDecimal(row.calMonths)} CAL, ${formatDecimal(row.acadMonths)} ACAD, ${formatDecimal(row.sumrMonths)} SUMR months; ` : "";
           const quantity = section.key !== "senior" || row.kind === "others" ? `qty ${formatDecimal(row.quantity)}; ` : "";
           lines.push(`${row.label || "Senior Personnel row"}: ${quantity}${months}budget salary ${formatCurrency(row.baseSalary)}, budget fringe ${formatCurrency(row.fringeAmount)}, IDC treatment ${row.idcModeMixed ? "Mixed by year" : getIdcModeLabel(row.idcMode)}.`);
         });
@@ -7346,7 +7490,7 @@
           const h = stored?.helper || {};
           const preview = calculateBudgetHelperValues(h, year);
           const term = normalizeHelperFacultyTerm(h.facultyTerm || helperStateDefaults.facultyTerm);
-          const load = h.annualCreditLoad == null || h.annualCreditLoad === "" ? getDefaultAnnualCreditLoadForFacultyTerm(term) : h.annualCreditLoad;
+          const load = h.annualCreditLoad == null ? getDefaultAnnualCreditLoadForFacultyTerm(term) : h.annualCreditLoad;
           const r = rows.length + 1;
           const hasWork = `SUM(E${r}:H${r},N${r})>0`;
           const invalid = `OR(AND(AB${r}=1,H${r}<=0),AND(E${r}>0,J${r}<=0),AND(F${r}>0,N${r}<=0))`;
@@ -7383,7 +7527,14 @@
           const mode = budget.idcMode || normalizeIdcMode(stored.idcMode, defaultPersonnelIdcMode());
           const helper = helperRefs[definition.key];
           const manual = { cal: `ROUND(MAX(0,L${r}),2)`, acad: `ROUND(MAX(0,M${r}),2)`, sumr: `ROUND(MAX(0,N${r}),2)`, salary: up(`J${r}`), fringe: up(`K${r}`) };
-          const formula = (key) => cumulative ? across((sheet) => sheet.refs.personnel[section][definition.key][key]) : helper ? `IF(${helper.condition},${helper[key]},${manual[key]})` : manual[key];
+          const pendingMonths = section === "senior" && (cumulative ? aggregateSheets.some(sheet => sheet.refs.personnel.senior[definition.key].monthsPending) : Boolean(budget.useHelper && budget.helperBudget && !budget.helperBudget.effortValid));
+          const formula = (key) => {
+            if (!cumulative) return helper ? `IF(${helper.condition},${helper[key]},${manual[key]})` : manual[key];
+            const total = across(sheet => sheet.refs.personnel[section][definition.key][key]);
+            const sources = aggregateSheets.map(sheet => buildSpreadsheetSheetCellFormula(sheet.name,sheet.refs.personnel[section][definition.key][key]));
+            return ["cal","acad","sumr"].includes(key) ? `IF(OR(${sources.map(ref=>ref+'=""').join(',')}),"",${total})` : total;
+          };
+          const monthCell = (key,value) => pendingMonths ? formulaSpreadsheetTextCell("",formula(key),"Number") : cf(value,formula(key),"Number");
           const quantityFormula = cumulative ? across((sheet) => sheet.refs.personnel[section][definition.key].qty) : "";
           const included = Object.keys(stored).length > 0 ? 1 : 0;
           const countValue = named ? ((included && personLabel) || budget.baseSalary || budget.fringeAmount || budget.calMonths || budget.acadMonths || budget.sumrMonths ? 1 : 0) : readStoredNumberValue(stored.quantity);
@@ -7392,7 +7543,7 @@
           const off = cumulative ? aggregateSheets.reduce((total, sheet) => total + sheet.refs.personnel[section][definition.key].offValue, 0) : mode === IDC_MODE_OFF_CAMPUS ? budget.baseSalary + budget.fringeAmount : 0;
           add([
             textSpreadsheetCell(definition.prefix), textSpreadsheetCell(personLabel), named ? textSpreadsheetCell("") : (cumulative ? cf(readStoredNumberValue(stored.quantity), quantityFormula, "Integer") : optionalNumberSpreadsheetCell(stored.quantity, "Integer")),
-            hasMonths ? cf(budget.calMonths, formula("cal"), "Number") : textSpreadsheetCell(""), hasMonths ? cf(budget.acadMonths, formula("acad"), "Number") : textSpreadsheetCell(""), hasMonths ? cf(budget.sumrMonths, formula("sumr"), "Number") : textSpreadsheetCell(""),
+            hasMonths ? monthCell("cal",budget.calMonths) : textSpreadsheetCell(""), hasMonths ? monthCell("acad",budget.acadMonths) : textSpreadsheetCell(""), hasMonths ? monthCell("sumr",budget.sumrMonths) : textSpreadsheetCell(""),
             cf(budget.baseSalary, formula("salary")), cf(budget.fringeAmount, formula("fringe")), textSpreadsheetCell(budget.idcModeMixed ? "Mixed by year" : getIdcModeLabel(mode)),
             cumulative ? textSpreadsheetCell("") : optionalNumberSpreadsheetCell(stored.manualValues?.baseSalary ?? stored.baseSalary, "RawCurrency"), cumulative ? textSpreadsheetCell("") : optionalNumberSpreadsheetCell(stored.manualValues?.fringeAmount ?? stored.fringeAmount, "RawCurrency"),
             !cumulative && hasMonths ? optionalNumberSpreadsheetCell(stored.manualValues?.calMonths ?? stored.calMonths) : textSpreadsheetCell(""), !cumulative && hasMonths ? optionalNumberSpreadsheetCell(stored.manualValues?.acadMonths ?? stored.acadMonths) : textSpreadsheetCell(""), !cumulative && hasMonths ? optionalNumberSpreadsheetCell(stored.manualValues?.sumrMonths ?? stored.sumrMonths) : textSpreadsheetCell(""),
@@ -7401,7 +7552,7 @@
             cf(off, cumulative ? across((sheet) => sheet.refs.personnel[section][definition.key].off) : `IF(I${r}="Off-campus",G${r}+H${r},0)`, "Currency"),
             named && !cumulative ? numberSpreadsheetCell(included, "Integer") : textSpreadsheetCell("")
           ]);
-          refs.personnel[section][definition.key] = { qty: `C${r}`, cal: `D${r}`, acad: `E${r}`, sumr: `F${r}`, salary: `G${r}`, fringe: `H${r}`, count: `O${r}`, on: `P${r}`, off: `Q${r}`, countValue: count, onValue: on, offValue: off };
+          refs.personnel[section][definition.key] = { qty: `C${r}`, cal: `D${r}`, acad: `E${r}`, sumr: `F${r}`, salary: `G${r}`, fringe: `H${r}`, count: `O${r}`, on: `P${r}`, off: `Q${r}`, countValue: count, onValue: on, offValue: off, monthsPending: pendingMonths };
         });
         add([]);
       };
@@ -7429,13 +7580,14 @@
       const all = [...senior, ...other];
       const categorySum = (keys) => sum(keys.map((key) => refs.nonPersonnel[key].amount));
       const metric = (key, title, value, formula, style = "BudgetCurrency") => {
-        refs.totals[key] = field(title, cf(value, cumulative ? across((sheet) => sheet.refs.totals[key]) : formula, style));
+        const expression = cumulative && !["seniorCal","seniorAcad","seniorSumr"].includes(key) ? across(sheet => sheet.refs.totals[key]) : formula;
+        refs.totals[key] = field(title, value === null ? formulaSpreadsheetTextCell("",expression,style) : cf(value,expression,style));
       };
       const t = evaluation.displayTotals;
       metric("seniorCount", "A7. Total Senior Personnel Count", t.seniorCount, sum(senior.map((row) => row.count)), "Integer");
-      metric("seniorCal", "A7. Senior CAL Months", evaluation.personnel.senior.calMonths, `ROUND(${sum(senior.map((row) => row.cal))},2)`, "Number");
-      metric("seniorAcad", "A7. Senior ACAD Months", evaluation.personnel.senior.acadMonths, `ROUND(${sum(senior.map((row) => row.acad))},2)`, "Number");
-      metric("seniorSumr", "A7. Senior SUMR Months", evaluation.personnel.senior.sumrMonths, `ROUND(${sum(senior.map((row) => row.sumr))},2)`, "Number");
+      metric("seniorCal", "A7. Senior CAL Months", senior.some(row=>row.monthsPending) ? null : evaluation.personnel.senior.calMonths, `IF(OR(${senior.map(row=>row.cal+'=""').join(',')}),"",ROUND(${sum(senior.map(row=>row.cal))},2))`, "Number");
+      metric("seniorAcad", "A7. Senior ACAD Months", senior.some(row=>row.monthsPending) ? null : evaluation.personnel.senior.acadMonths, `IF(OR(${senior.map(row=>row.acad+'=""').join(',')}),"",ROUND(${sum(senior.map(row=>row.acad))},2))`, "Number");
+      metric("seniorSumr", "A7. Senior SUMR Months", senior.some(row=>row.monthsPending) ? null : evaluation.personnel.senior.sumrMonths, `IF(OR(${senior.map(row=>row.sumr+'=""').join(',')}),"",ROUND(${sum(senior.map(row=>row.sumr))},2))`, "Number");
       metric("seniorSalary", "A7. Senior Salary Before Fringe", t.seniorSalary, sum(senior.map((row) => row.salary)));
       metric("seniorFringe", "A7. Senior Fringe", t.seniorFringe, sum(senior.map((row) => row.fringe)));
       metric("salariesWages", "Total Salaries and Wages (A + B)", t.salariesWages, sum(all.map((row) => row.salary)));
@@ -7478,7 +7630,7 @@ function spreadsheetCellAt(rows, cellReference) {
 
 function replaceSpreadsheetFormulaCell(rows, cellReference, value, formula, styleId = "BudgetCurrency") {
   const address = spreadsheetCellAt(rows, cellReference);
-  rows[address.row][address.column] = formulaSpreadsheetCell(value, formula, styleId);
+  rows[address.row][address.column] = value === "" ? formulaSpreadsheetTextCell("", formula, styleId) : formulaSpreadsheetCell(value, formula, styleId);
 }
 
 function formulaSpreadsheetTextCell(value, formula, styleId = "") {
@@ -7633,9 +7785,10 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
     }
 
     function buildStep5SpreadsheetMetadataWorksheet(state, evaluations, annualSheets, name = "EffortRates") {
-      const rows = [[textSpreadsheetCell("Effort, compensation and rate assumptions", "Section")], [textSpreadsheetCell("Annual helper inputs remain editable in annual sheets. Edit extra basis and fiscal allocation inputs here. These are planning estimates, not payroll approval or a substitute for final institutional review.")], []];
+      const rows = [[textSpreadsheetCell("Effort, compensation and rate assumptions", "Section")], [textSpreadsheetCell("Annual helper inputs remain editable in annual sheets. Edit extra basis and fiscal allocation inputs here. Appointment conversions are unreviewed planning estimates, not payroll approval or a substitute for final institutional review.")], []];
       const refs = { years: {} }, add = cells => (rows.push(cells), rows.length), at = (r, c) => buildSpreadsheetCellReference(r, c);
       const t = value => textSpreadsheetCell(String(value ?? "")), n = value => numberSpreadsheetCell(Number(value || 0), "PreciseNumber"), f = (value, formula, style = "PreciseNumber") => formulaSpreadsheetCell(value, formula, style);
+      const pendingFormula = (value, formula, style = "Number") => value === null || value === undefined || value === "" ? formulaSpreadsheetTextCell("", formula, style) : f(value, formula, style);
       const link = (sheet, ref) => buildSpreadsheetSheetCellFormula(sheet, ref);
       const sum = terms => terms.length ? `SUM(${terms.join(",")})` : "0";
       state.years.forEach((year, index) => {
@@ -7667,17 +7820,29 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
         const allocationChecks = ["onShare", "offShare", "releaseShare", "additionalShare"].map(k => `${sum(yr.segments.map(s => s[k]))}=100`);
         field("allocationValid", "Allocation shares valid (1/0)", f(plan.mode === "allocated" && period.valid ? 1 : 0, `IF(AND(${yr.plan.mode}="allocated",${yr.segments.length}>0,${allocationChecks.join(",")}),1,0)`, "Integer"));
         add([]);
-        add(["Row", "Apply", "Method", "Effort reviewed", "Manual CAL", "Manual ACAD", "Manual SUMR", "Release category", "Release months", "Release percent", "Release full-time units", "Instruction category", "Instruction months", "Instruction percent", "Instruction full-time units", "Noninstruction category", "Noninstruction months", "Noninstruction percent", "Noninstruction full-time units", "Annual salary basis (annual input)", "Compensation units (annual input)", "Release units (annual input)", "Instruction units (annual input)", "Days (annual input)", "Unit pay (annual input)", "Salary escalation %", "Unit escalation %", "Escalation years", "Pay day divisor", "Pay reviewed", "Fringe mode", "Regular fringe % (annual input)", "Additional fringe % (annual input)", "CAL", "ACAD", "SUMR", "Release salary", "Instruction salary", "Noninstruction salary", "Release fringe", "Instruction fringe", "Noninstruction fringe", "Valid", "Has Work", "Effort source", "Effort rationale", "Pay source", "Pay rationale", "Fringe source", "Fringe rationale", "Regular category", "Additional category", "Fringe start", "Fringe end", "Fringe status"].map(v => textSpreadsheetCell(v, "Header")));
+        // Indexes 0..54 are frozen for consumers. The final three columns are append-only.
+        add(["Row", "Apply", "Method", "Effort reviewed", "Manual CAL", "Manual ACAD", "Manual SUMR", "Release category", "Release months", "Release percent", "Release full-time units", "Instruction category", "Instruction months", "Instruction percent", "Instruction full-time units", "Noninstruction category", "Noninstruction months", "Noninstruction percent", "Noninstruction full-time units", "Annual salary basis (annual input)", "Compensation units (annual input)", "Release units (annual input)", "Instruction units (annual input)", "Days (annual input)", "Unit pay (annual input)", "Salary escalation %", "Unit escalation %", "Escalation years", "Pay day divisor", "Pay reviewed", "Fringe mode", "Regular fringe % (annual input)", "Additional fringe % (annual input)", "CAL", "ACAD", "SUMR", "Release salary", "Instruction salary", "Noninstruction salary", "Release fringe", "Instruction fringe", "Noninstruction fringe", "Financial valid", "Has Work", "Effort source", "Effort rationale", "Pay source", "Pay rationale", "Fringe source", "Fringe rationale", "Regular category", "Additional category", "Fringe start", "Fringe end", "Fringe status", "Summer workdays/month", "Faculty term", "Effort ready"].map(v => textSpreadsheetCell(v, "Header")));
         for (const definition of seniorPersonnelDefinitions.filter(d => d.kind !== "others")) {
           const stored = findStoredRowByKey(year.personnel?.senior || [], definition.key), h = stored?.helper || {}, e = normalizeEffortBasis(h.effort), pay = normalizePayBasis(h.payBasis), fringe = normalizeFringeBasis(h.fringeBasis);
           const value = calculateBudgetHelperValues(h, year), effort = evaluateEffortBasis(h), r = rows.length + 1, c = col => at(r, col);
           const old = annual.refs.helpers[definition.key], ar = /\d+$/.exec(old.salary)[0];
           const annualInput = (col, raw) => f(Number(raw || 0), `SUM(${link(annual.name, `${col}${ar}`)})`);
           const annualText = (col, raw) => formulaSpreadsheetTextCell(raw, link(annual.name, `${col}${ar}`));
-          const component = (base, units, kind) => `IF(${c(base)}="${kind}",IF(${c(2)}="percent",${c(base+1)}*${c(base+2)}/100,IF(${c(units)}=0,0,IFERROR(${c(base+1)}*${c(units)}/${c(base+3)},0))),0)`;
-          const effortFormula = (kind, manual) => `IF(${c(2)}="manual",ROUND(SUM(${c(manual)}),2),IF(OR(${c(2)}="percent",${c(2)}="workload"),ROUND(${component(7,21,kind)}+${component(11,22,kind)}+${component(15,23,kind)},2),0))`;
-          const hasWork = `SUM(${c(19)},${c(21)},${c(22)},${c(23)},${c(24)})>0`;
-          const valid = `IF(NOT(${hasWork}),1,IF(AND(${c(3)}=1,${c(29)}=1,${c(44)}<>"",${c(45)}<>"",${c(46)}<>"",${c(47)}<>"",OR(${c(2)}="manual",${c(2)}="percent",${c(2)}="workload"),${c(25)}>=0,${c(25)}<=100,${c(26)}>=0,${c(26)}<=100,${c(27)}>=0,${c(27)}<=20,MOD(${c(27)},1)=0,IF(${c(21)}>0,AND(${c(19)}>0,${c(20)}>0),TRUE()),IF(${c(22)}>0,${c(24)}>0,TRUE()),IF(${c(23)}>0,AND(${c(19)}>0,${c(28)}>0),TRUE()),IF(${c(30)}="period",${yr.plan.allocationValid}=1,TRUE())),1,0))`;
+          const manualValue = raw => raw === "" || raw === null || raw === undefined ? t("") : n(raw);
+          const component = (base, units, kind) => `IF(${c(base)}="${kind}",IF(${c(2)}="percent",${c(base + 1)}*${c(base + 2)}/100,IF(${c(units)}=0,0,IFERROR(${c(base + 1)}*${c(units)}/${c(base + 3)},0))),0)`;
+          const traditionalEffort = (kind, manual) => `IF(${c(2)}="manual",ROUND(SUM(${c(manual)}),2),IF(OR(${c(2)}="percent",${c(2)}="workload"),ROUND(${component(7, 21, kind)}+${component(11, 22, kind)}+${component(15, 23, kind)},2),0))`;
+          const hasWork = `SUM(${c(21)},${c(22)},${c(23)})>0`;
+          const financialValid = `IF(NOT(${hasWork}),1,IF(AND(${c(25)}>=0,${c(25)}<=100,${c(26)}>=0,${c(26)}<=100,${c(27)}>=0,${c(27)}<=20,MOD(${c(27)},1)=0,IF(${c(21)}>0,AND(${c(19)}>0,${c(20)}>0),TRUE()),IF(${c(22)}>0,${c(24)}>0,TRUE()),IF(${c(23)}>0,AND(${c(19)}>0,${c(28)}>0),TRUE()),IF(${c(30)}="period",${yr.plan.allocationValid}=1,TRUE())),1,0))`;
+          const categoryOK = base => `OR(${c(base)}="cal",${c(base)}="acad",${c(base)}="sumr")`;
+          const percentChecks = [[7,21],[11,22],[15,23]].map(([base,units]) => `IF(OR(${c(units)}>0,${c(base+2)}<>""),AND(${categoryOK(base)},ISNUMBER(${c(base+1)}),ISNUMBER(${c(base+2)}),${c(base+1)}>=0,${c(base+1)}<=12,${c(base+2)}>=0,${c(base+2)}<=100,OR(${c(base+1)}>0,AND(${c(units)}=0,${c(base+2)}=0))),TRUE())`);
+          const workloadChecks = [[7,21],[11,22],[15,23]].map(([base,units]) => `IF(${c(units)}>0,AND(${categoryOK(base)},${c(base+1)}>0,${c(base+1)}<=12,${c(base+3)}>0),TRUE())`);
+          const manualChecks = [4,5,6].map(col=>`OR(${c(col)}="",AND(ISNUMBER(${c(col)}),${c(col)}>=0,${c(col)}<=120))`);
+          const legacyEffortReady = `IF(${c(2)}="percent",AND(${percentChecks.join(',')}),IF(${c(2)}="workload",AND(${workloadChecks.join(',')}),FALSE()))`;
+          const effortReady = `IF(${c(2)}="manual",IF(AND(OR(${c(4)}<>"",${c(5)}<>"",${c(6)}<>""),${manualChecks.join(',')}),1,0),IF(${c(2)}="appointment",IF(AND(OR(${c(56)}="uhcc9",${c(56)}="manoa9"),IF(${c(21)}>0,${c(20)}>0,TRUE()),IF(${c(23)}>0,${c(55)}>0,TRUE())),1,0),IF(OR(${c(2)}="percent",${c(2)}="workload"),IF(${legacyEffortReady},1,0),0)))`;
+          const effortFormula = (kind, manual) => {
+            const appointment = kind === "cal" ? "0" : kind === "acad" ? `IF(${c(21)}=0,0,ROUND(9*${c(21)}/${c(20)},2))` : `ROUND(${c(22)}/3+IF(${c(23)}=0,0,${c(23)}/${c(55)}),2)`;
+            return `IF(${c(57)}=1,IF(${c(2)}="appointment",${appointment},${traditionalEffort(kind, manual)}),"")`;
+          };
           const salaryNum = `${c(19)}*(100+${c(25)})^${c(27)}`, unitNum = `${c(24)}*(100+${c(26)})^${c(27)}`, scale = `100^${c(27)}`;
           const up = expr => `ROUNDUP(MAX(0,${expr}),0)`;
           const salary = (units, expr) => `IF(AND(${c(42)}=1,${c(units)}>0),${up(expr)},0)`;
@@ -7685,26 +7850,28 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
             const allocated = sum(yr.segments.map(s => `${salaryCell}*${s[additional ? "additionalRate" : "releaseRate"]}*${s[additional ? "additionalShare" : "releaseShare"]}/10000`));
             return `IF(${c(42)}=1,${up(`IF(${c(30)}="period",${allocated},${salaryCell}*${c(additional ? 32 : 31)}/100)`)},0)`;
           };
-          const values = [t(definition.key), annualText("D", h.apply ? "Yes" : "No"), t(e.method), n(e.reviewed ? 1 : 0), n(e.calMonths), n(e.acadMonths), n(e.sumrMonths), t(e.release.category), n(e.release.months), n(e.release.percent), n(e.release.fullTimeUnits), t(e.instructional.category), n(e.instructional.months), n(e.instructional.percent), n(e.instructional.fullTimeUnits), t(e.nonInstructional.category), n(e.nonInstructional.months), n(e.nonInstructional.percent), n(e.nonInstructional.fullTimeUnits), annualInput("H", h.annualSalary), annualInput("J", h.annualCreditLoad === "" || h.annualCreditLoad == null ? getDefaultAnnualCreditLoadForFacultyTerm(h.facultyTerm) : h.annualCreditLoad), annualInput("E", h.desiredTE), annualInput("F", h.desiredInstructionalTE), annualInput("G", h.desiredNonInstructionalDays), annualInput("N", h.instructionalCostPerTE), n(pay.salaryEscalationPercent), n(pay.unitEscalationPercent), n(pay.escalationYears), n(pay.dayDivisor), n(pay.reviewed ? 1 : 0), t(fringe.mode), annualInput("K", h.releaseFringeRate), annualInput("L", h.overloadFringeRate), f(effort.calMonths, effortFormula("cal",4), "Number"), f(effort.acadMonths, effortFormula("acad",5), "Number"), f(effort.sumrMonths, effortFormula("sumr",6), "Number"), f(value.releaseSalary, salary(21,`${salaryNum}*${c(21)}/(${scale}*${c(20)})`),"BudgetCurrency"), f(value.instructionalSalary, salary(22,`${unitNum}*${c(22)}/${scale}`),"BudgetCurrency"), f(value.nonInstructionalSalary, salary(23,`${salaryNum}*${c(23)}/(${scale}*${c(28)})`),"BudgetCurrency"), f(value.releaseFringe,fringeFormula(c(36),false),"BudgetCurrency"), f(value.instructionalFringe,fringeFormula(c(37),true),"BudgetCurrency"), f(value.nonInstructionalFringe,fringeFormula(c(38),true),"BudgetCurrency"), f(value.valid?1:0,valid,"Integer"), f(value.hasWorkInput?1:0,`IF(${hasWork},1,0)`,"Integer"), t(e.source),t(e.rationale),t(pay.source),t(pay.rationale),t(fringe.source),t(fringe.rationale),t(fringe.releaseCategory),t(fringe.overloadCategory),t(fringe.effectiveStart),t(fringe.effectiveEnd),t(fringe.status)];
+          const monthValue = key => value.effortValid ? value[key] : null;
+          const values = [t(definition.key), annualText("D", h.apply ? "Yes" : "No"), t(e.method), n(e.reviewed ? 1 : 0), manualValue(e.calMonths), manualValue(e.acadMonths), manualValue(e.sumrMonths), t(e.release.category), manualValue(e.release.months), manualValue(e.release.percent), manualValue(e.release.fullTimeUnits), t(e.instructional.category), manualValue(e.instructional.months), manualValue(e.instructional.percent), manualValue(e.instructional.fullTimeUnits), t(e.nonInstructional.category), manualValue(e.nonInstructional.months), manualValue(e.nonInstructional.percent), manualValue(e.nonInstructional.fullTimeUnits), annualInput("H", h.annualSalary), annualInput("J", h.annualCreditLoad == null ? getDefaultAnnualCreditLoadForFacultyTerm(h.facultyTerm) : h.annualCreditLoad), annualInput("E", h.desiredTE), annualInput("F", h.desiredInstructionalTE), annualInput("G", h.desiredNonInstructionalDays), annualInput("N", h.instructionalCostPerTE), n(pay.salaryEscalationPercent), n(pay.unitEscalationPercent), n(pay.escalationYears), n(pay.dayDivisor), n(pay.reviewed ? 1 : 0), t(fringe.mode), annualInput("K", h.releaseFringeRate), annualInput("L", h.overloadFringeRate), pendingFormula(monthValue("calMonths"), effortFormula("cal", 4), "Number"), pendingFormula(monthValue("acadMonths"), effortFormula("acad", 5), "Number"), pendingFormula(monthValue("sumrMonths"), effortFormula("sumr", 6), "Number"), f(value.releaseSalary, salary(21, `${salaryNum}*${c(21)}/(${scale}*${c(20)})`), "BudgetCurrency"), f(value.instructionalSalary, salary(22, `${unitNum}*${c(22)}/${scale}`), "BudgetCurrency"), f(value.nonInstructionalSalary, salary(23, `${salaryNum}*${c(23)}/(${scale}*${c(28)})`), "BudgetCurrency"), f(value.releaseFringe, fringeFormula(c(36), false), "BudgetCurrency"), f(value.instructionalFringe, fringeFormula(c(37), true), "BudgetCurrency"), f(value.nonInstructionalFringe, fringeFormula(c(38), true), "BudgetCurrency"), f(value.valid ? 1 : 0, financialValid, "Integer"), f(value.hasWorkInput ? 1 : 0, `IF(${hasWork},1,0)`, "Integer"), t(e.source), t(e.rationale), t(pay.source), t(pay.rationale), t(fringe.source), t(fringe.rationale), t(fringe.releaseCategory), t(fringe.overloadCategory), t(fringe.effectiveStart), t(fringe.effectiveEnd), t(fringe.status), n(e.summerDaysPerMonth), t(normalizeHelperFacultyTerm(h.facultyTerm)), f(value.effortValid ? 1 : 0, effortReady, "Integer")];
           add(values);
-          const salaryRef = at(add([t(`${definition.key}: salary total`),f(value.salaryBeforeFringe,`SUM(${c(36)}:${c(38)})`,"BudgetCurrency")]),1);
-          const fringeRef = at(add([t(`${definition.key}: fringe total`),f(value.fringe,`SUM(${c(39)}:${c(41)})`,"BudgetCurrency")]),1);
-          const salaryPerTE = at(add([t(`${definition.key}: unit salary reference`),f(value.salaryPerTE,`IF(AND(${c(42)}=1,${c(20)}>0),${salaryNum}/(${scale}*${c(20)}),0)`,"ReferenceCurrency")]),1);
-          yr.helpers[definition.key] = { cal:c(33),acad:c(34),sumr:c(35),salary:salaryRef,fringe:fringeRef,valid:c(42),hasWork:c(43),salaryPerTE,releaseSalary:c(36),instructionalSalary:c(37),nonInstructionalSalary:c(38),releaseFringe:c(39),instructionalFringe:c(40),nonInstructionalFringe:c(41),value };
-          if (h.legacy) add([t(`${definition.key}: non-calculating original helper history`),t(JSON.stringify(h.legacy))]);
+          const salaryRef = at(add([t(`${definition.key}: salary total`), f(value.salaryBeforeFringe, `SUM(${c(36)}:${c(38)})`, "BudgetCurrency")]), 1);
+          const fringeRef = at(add([t(`${definition.key}: fringe total`), f(value.fringe, `SUM(${c(39)}:${c(41)})`, "BudgetCurrency")]), 1);
+          const salaryPerTE = at(add([t(`${definition.key}: unit salary reference`), f(value.salaryPerTE, `IF(AND(${c(42)}=1,${c(43)}=1,${c(20)}>0),${salaryNum}/(${scale}*${c(20)}),0)`, "ReferenceCurrency")]), 1);
+          yr.helpers[definition.key] = { cal: c(33), acad: c(34), sumr: c(35), salary: salaryRef, fringe: fringeRef, valid: c(42), financialValid: c(42), effortReady: c(57), hasWork: c(43), salaryPerTE, releaseSalary: c(36), instructionalSalary: c(37), nonInstructionalSalary: c(38), releaseFringe: c(39), instructionalFringe: c(40), nonInstructionalFringe: c(41), value };
+          if (h.legacy) add([t(`${definition.key}: non-calculating original helper history`), t(JSON.stringify(h.legacy))]);
         }
-        for (const row of year.personnel?.otherPersonnel || []) if (row.fringeBasis) add([t(`${row.key}: manually entered fringe provenance`),t(JSON.stringify(row.fringeBasis))]);
+        for (const row of year.personnel?.otherPersonnel || []) if (row.fringeBasis) add([t(`${row.key}: manually entered fringe provenance`), t(JSON.stringify(row.fringeBasis))]);
         add([]);
       });
       return { name, rows, refs };
     }
+
     function applyStep5SpreadsheetLinks(sheet, metadata, year, evaluation) {
       const refs = metadata.refs.years[year.id], link = ref => buildSpreadsheetSheetCellFormula(metadata.name,ref);
       for (const [key, h] of Object.entries(refs.helpers)) {
         const target = sheet.refs.helpers[key];
         for (const [field, cell] of [["calMonths",target.cal],["acadMonths",target.acad],["sumrMonths",target.sumr],["salaryBeforeFringe",target.salary],["fringe",target.fringe]]) {
           const metaKey={calMonths:"cal",acadMonths:"acad",sumrMonths:"sumr",salaryBeforeFringe:"salary",fringe:"fringe"}[field];
-          replaceSpreadsheetFormulaCell(sheet.rows,cell,h.value[field],link(h[metaKey]),["calMonths","acadMonths","sumrMonths"].includes(field)?"Number":"BudgetCurrency");
+          replaceSpreadsheetFormulaCell(sheet.rows,cell,h.value[field] ?? "",link(h[metaKey]),["calMonths","acadMonths","sumrMonths"].includes(field)?"Number":"BudgetCurrency");
         }
         const r=/\d+$/.exec(target.salary)[0];
         for (const [col,field,style] of [["R","salaryPerTE","ReferenceCurrency"],["U","releaseSalary","BudgetCurrency"],["V","instructionalSalary","BudgetCurrency"],["W","nonInstructionalSalary","BudgetCurrency"],["X","releaseFringe","BudgetCurrency"],["Y","instructionalFringe","BudgetCurrency"],["Z","nonInstructionalFringe","BudgetCurrency"],["AA","valid","Integer"],["AB","hasWork","Integer"]]) {
@@ -7722,7 +7889,7 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
       return sheet;
     }
     function buildSpreadsheetWorkbook(state = collectPlannerState()) {
-      if(state.version!==6) throw new Error("Normalize state version 6 before export.");
+      if(state.version!==7) throw new Error("Normalize state version 7 before export.");
       const issues=getBudgetBlockingIssues(state);if(issues.length)throw new Error(`Budget export blocked: ${issues.map(i=>i.message).join(" ")}`);
       const subawardSheet=buildSubawardLedgerSpreadsheetWorksheet(state),equipmentSheet=buildEquipmentItemsSpreadsheetWorksheet(state,evaluateEquipmentLedger(state));
       const names=new Set(),metaName=sanitizeWorksheetName("EffortRates",names);
@@ -8185,8 +8352,8 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
     }
 
     const PROJECT_FILE_FORMAT = "nsf-budget-planner-project";
-    const PROJECT_FILE_SCHEMA = 4;
-    const PROJECT_CALCULATION_POLICY = "roundup-components-v1-equipment-v1-effort-rates-v5-transfer-v6";
+    const PROJECT_FILE_SCHEMA = 5;
+    const PROJECT_CALCULATION_POLICY = "roundup-components-v1-equipment-v1-effort-rates-v5-transfer-v6-minimal-v7";
     const PROJECT_RECOVERY_KEY = "nsf-budget-planner.recovery.v1";
     const MAX_PROJECT_BYTES = 2 * 1024 * 1024;
     const MAX_RECOVERY_BYTES = MAX_PROJECT_BYTES + 4096;
@@ -8304,7 +8471,7 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
       const raw = cloneState(input), warnings = [], legacyHelperInputs = validateLegacyHelperInputs(inheritedLegacy);
       const topKeys = raw?.version === 1 ? ["version", "settings", "participantSupport", "personnel", "nonPersonnel"] : ["version", "globalSettings", "years", "activeYearId"];
       projectRecord(raw, topKeys, "planner state");
-      if (![1, 2, 3, 4, 5, 6].includes(raw.version)) throw new Error("Unsupported planner state version.");
+      if (![1, 2, 3, 4, 5, 6, 7].includes(raw.version)) throw new Error("Unsupported planner state version.");
       const sourceVersion = raw.version;
       const globalKeys = ["organizationLabel", "proposalNumber", "piLabel", "orgRepName", "seniorPersonnelLabels", "subawardPolicy", "subawardRoster", "equipmentPolicy", "transferPlan"];
       const yearSettingKeys = ["budgetPeriodLabel", "defaultIndirectRate", "defaultIndirectRateTouched", "offCampusIndirectRate", "offCampusIndirectRateTouched", "feeAmount", "costSharingAmount", "costSharingAgreedAmount"];
@@ -8371,11 +8538,11 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
             }
             if (row.helper != null) {
               if (row.key === "others") throw new Error("The grouped Others row does not support a helper.");
-              const helperKeys = ["open", "apply", "desiredTE", "desiredInstructionalTE", "desiredNonInstructionalDays", "annualSalary", "facultyTerm", "annualCreditLoad", "releaseFringeRate", "overloadFringeRate", "summerRateSource", "instructionalCostPerTE", "customInstructionalCostPerTE", "monthsCharged", "effort", "payBasis", "fringeBasis", "legacy"];
+              const helperKeys = ["open", "apply", "desiredTE", "desiredInstructionalTE", "desiredNonInstructionalDays", "annualSalary", "facultyTerm", "annualCreditLoad", "releaseFringeRate", "overloadFringeRate", "summerRateSource", "instructionalCostPerTE", "customInstructionalCostPerTE", "monthsCharged", "effort", "payBasis", "fringeBasis", "legacy", "previousHelperApply", "previousManualValues"];
               const h = projectRecord(row.helper, helperKeys, "helper");
               validateStep5HelperFields(h, sourceVersion);
               for (const key of ["open", "apply"]) if (h[key] != null && typeof h[key] !== "boolean") throw new Error("Invalid helper flag.");
-              for (const key of helperKeys.filter((key) => !["open", "apply", "facultyTerm", "summerRateSource", "effort", "payBasis", "fringeBasis", "legacy"].includes(key))) if (h[key] != null) h[key] = projectNumber(h[key], "helper input");
+              for (const key of helperKeys.filter((key) => !["open", "apply", "facultyTerm", "summerRateSource", "effort", "payBasis", "fringeBasis", "legacy", "previousHelperApply", "previousManualValues"].includes(key))) if (h[key] != null) h[key] = projectNumber(h[key], "helper input");
               if (h.facultyTerm != null && !["9", "11", "uhcc9", "uhcc11", "manoa", "manoa9", "manoa11"].includes(h.facultyTerm)) throw new Error("Unsupported faculty term.");
               if (h.summerRateSource != null) projectText(h.summerRateSource, "summer rate reference");
               if (h.apply && (!Object.prototype.hasOwnProperty.call(h, "annualSalary") || !h.facultyTerm || !Object.prototype.hasOwnProperty.call(h, "releaseFringeRate") || !Object.prototype.hasOwnProperty.call(h, "overloadFringeRate"))) throw new Error("Applied helper is missing its salary, term or rate assumptions.");
@@ -8459,13 +8626,14 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
       if (document?.format != null) {
         if (document.format !== PROJECT_FILE_FORMAT) throw new Error("This is not an editable project file. Redacted reports cannot be imported.");
         projectRecord(document, ["format", "schemaVersion", "calculationPolicy", "savedAt", "state", "defaults", "legacyHelperInputs"], "project file");
-        if (![1, 2, 3, PROJECT_FILE_SCHEMA].includes(document.schemaVersion)) throw new Error("Unsupported project-file schema version.");
-        const expectedPolicy = document.schemaVersion === 1 ? "roundup-components-v1" : (document.schemaVersion === 2 ? "roundup-components-v1-equipment-v1" : document.schemaVersion === 3 ? "roundup-components-v1-equipment-v1-effort-rates-v5" : PROJECT_CALCULATION_POLICY);
+        if (![1, 2, 3, 4, PROJECT_FILE_SCHEMA].includes(document.schemaVersion)) throw new Error("Unsupported project-file schema version.");
+        const expectedPolicy = document.schemaVersion === 1 ? "roundup-components-v1" : (document.schemaVersion === 2 ? "roundup-components-v1-equipment-v1" : document.schemaVersion === 3 ? "roundup-components-v1-equipment-v1-effort-rates-v5" : document.schemaVersion === 4 ? "roundup-components-v1-equipment-v1-effort-rates-v5-transfer-v6" : PROJECT_CALCULATION_POLICY);
         if (document.calculationPolicy !== expectedPolicy) throw new Error("Unsupported calculation policy.");
         if (document.schemaVersion === 1 && document.state?.version > 3) throw new Error("This equipment state requires the current project-file schema.");
         if (document.schemaVersion === 2 && document.state?.version !== 4) throw new Error("Schema 2 requires state version 4.");
         if (document.schemaVersion === 3 && document.state?.version !== 5) throw new Error("Schema 3 requires state version 5.");
-        if (document.schemaVersion === PROJECT_FILE_SCHEMA && document.state?.version !== 6) throw new Error("The current schema requires state version 6.");
+        if (document.schemaVersion === 4 && document.state?.version !== 6) throw new Error("Schema 4 requires state version 6.");
+        if (document.schemaVersion === PROJECT_FILE_SCHEMA && document.state?.version !== 7) throw new Error("The current schema requires state version 7.");
         if (typeof document.savedAt !== "string" || document.savedAt.length > 80 || !Number.isFinite(Date.parse(document.savedAt))) throw new Error("Invalid saved timestamp.");
         defaults = validateProjectDefaults(document.defaults);
         input = document.state; legacy = document.legacyHelperInputs === undefined ? [] : document.legacyHelperInputs; savedAt = document.savedAt; legacyFormat = document.schemaVersion === 1;
@@ -9479,6 +9647,11 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
           if(row.key==='others'&&!(Number.isSafeInteger(n(row.quantity))&&n(row.quantity)>0))add('senior-others-count-required','error','entry','Funded grouped Others needs a positive whole count.',{yearId:yr,rowKey:row.key});
           if(months>0&&salary===0)add('senior-salary-required','error','entry','Senior person-months require a corresponding salary request.',{yearId:yr,rowKey:row.key});
           if(salary>0&&months===0)review('senior-months-required','Funded senior salary needs person-month review.',yr,'personnel',row.key);
+          if (stored?.helper?.apply && row.useHelper) {
+            if (!row.helperBudget.effortValid) review('helper-effort-pending','Salary/fringe are calculated; choose or complete the separate person-month method before final entry.',yr,'effort',row.key);
+            else if (!stored.helper.effort?.reviewed) add('helper-effort-estimate','warning','entry','Person-months use the selected planning conversion. Confirm the actual appointment basis before Research.gov entry.',{yearId:yr,rowKey:row.key});
+            if (!stored.helper.payBasis?.reviewed) add('helper-pay-estimate','warning','entry','Compensation uses the displayed planning denominator/day divisor. Confirm institutional applicability; no payroll approval is inferred.',{yearId:yr,rowKey:row.key});
+          }
           monthCheck(row,row.key==='others'?n(row.quantity):1);
         }
         for(const row of e.personnel.otherPersonnel.rows){
@@ -9643,9 +9816,11 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
         seniorPersonnelDefinitions.forEach((definition, i) => {
           const record = evaluation.personnel.senior.rows.find(r => r.key === definition.key);
           const label = definition.kind === "others" ? "OTHERS (LIST INDIVIDUALLY ON BUDGET JUSTIFICATION PAGE)" : state.globalSettings.seniorPersonnelLabels?.[definition.key] || record?.label || "Name not entered";
-          add(`A.${i + 1}`, label, record?.baseSalary || 0, { people: definition.kind === "others" ? count("seniorOthers", record?.quantity || 0) : undefined, acadMonths: record?.acadMonths || 0, sumrMonths: record?.sumrMonths || 0, calMonths: record?.calMonths || 0 });
+          const pending = isCumulative ? state.years.some(y => { const r = y.personnel?.senior?.find(v => v.key === definition.key); if (!r?.helper?.apply) return false; const h = calculateBudgetHelperValues(r.helper,y); return h.valid && h.hasWorkInput && !h.effortValid; }) : Boolean(record?.useHelper && record.helperBudget && !record.helperBudget.effortValid);
+          add(`A.${i + 1}`, label, record?.baseSalary || 0, { people: definition.kind === "others" ? count("seniorOthers", record?.quantity || 0) : undefined, acadMonths: pending ? null : record?.acadMonths || 0, sumrMonths: pending ? null : record?.sumrMonths || 0, calMonths: pending ? null : record?.calMonths || 0 });
         });
-        add("A.7", "TOTAL SENIOR/KEY PERSONNEL (1 - 6)", totals.seniorSalary, { people: count("senior", totals.seniorCount), acadMonths: evaluation.personnel.senior.acadMonths, sumrMonths: evaluation.personnel.senior.sumrMonths, calMonths: evaluation.personnel.senior.calMonths, subtotal: true });
+        const seniorMonthsPending = rows.some(r => r.acadMonths === null);
+        add("A.7", "TOTAL SENIOR/KEY PERSONNEL (1 - 6)", totals.seniorSalary, { people: count("senior", totals.seniorCount), acadMonths: seniorMonthsPending ? null : evaluation.personnel.senior.acadMonths, sumrMonths: seniorMonthsPending ? null : evaluation.personnel.senior.sumrMonths, calMonths: seniorMonthsPending ? null : evaluation.personnel.senior.calMonths, subtotal: true });
         otherPersonnelDefinitions.forEach((definition, i) => {
           const record = evaluation.personnel.otherPersonnel.rows.find(r => r.key === definition.key);
           add(`B.${i + 1}`, definition.label, record?.baseSalary || 0, { people: count(definition.key, record?.quantity || 0), ...(definition.hasMonths ? { acadMonths: record?.acadMonths || 0, sumrMonths: record?.sumrMonths || 0, calMonths: record?.calMonths || 0 } : {}) });
@@ -9694,7 +9869,7 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
     }
     function transferNumber(value) { return typeof value === "number" && Number.isFinite(value) ? String(value) : value === null || value === undefined ? "" : String(value); }
     function transferLineText(row) {
-      return [row.code, row.label, ...(row.people !== undefined ? [`People: ${row.people === null ? "unreviewed" : row.people}`] : []), ...(row.acadMonths !== undefined ? [`ACAD: ${transferNumber(row.acadMonths)}`, `SUMR: ${transferNumber(row.sumrMonths)}`, `CAL: ${transferNumber(row.calMonths)}`] : []), `Funds: ${transferNumber(row.amount)}`].join("\t");
+      return [row.code, row.label, ...(row.people !== undefined ? [`People: ${row.people === null ? "unreviewed" : row.people}`] : []), ...(row.acadMonths !== undefined ? [`ACAD: ${row.acadMonths === null ? "Pending" : transferNumber(row.acadMonths)}`, `SUMR: ${row.sumrMonths === null ? "Pending" : transferNumber(row.sumrMonths)}`, `CAL: ${row.calMonths === null ? "Pending" : transferNumber(row.calMonths)}`] : []), `Funds: ${transferNumber(row.amount)}`].join("\t");
     }
     function buildTransferText(view) {
       const lines = [view.mode === "entry" && view.preflight.ready ? "MANUAL TRANSFER CHECKS PASSED, NOT INSTITUTIONAL APPROVAL" : "DRAFT PLANNING TRANSFER, NOT READY FOR FINAL ENTRY", view.format, ...view.notes, ""];
@@ -9736,7 +9911,7 @@ function buildYearSpreadsheetWorksheet(state, year, evaluation, index, options =
           const r = document.createElement("tr"); r.dataset.transferLine = row.code; r.dataset.transferPeriod = p.id;
           const label = document.createElement("th"); label.scope = "row"; label.textContent = row.code; r.appendChild(label);
           for (const [key, value] of [["label", row.label], ["people", row.people], ["acadMonths", row.acadMonths], ["sumrMonths", row.sumrMonths], ["calMonths", row.calMonths], ["amount", row.amount]]) {
-            const td = document.createElement("td"); const text = value === null ? "Review count" : value === undefined ? "" : transferNumber(value); td.textContent = text;
+            const td = document.createElement("td"); const text = value === null ? (key === "people" ? "Review count" : "Pending effort") : value === undefined ? "" : transferNumber(value); td.textContent = text;
             if (key !== "label" && value !== undefined && value !== null && !row.referenceOnly) { const b = document.createElement("button"); b.type = "button"; b.className = "copy-transfer-field"; b.dataset.transferField = key; b.setAttribute("aria-label", `Copy ${p.label} ${row.code} ${key}`); b.textContent = "Copy"; b.disabled = !view.canCopy; b.addEventListener("click", () => copyTransferValue(text)); td.appendChild(b); }
             r.appendChild(td);
           }
